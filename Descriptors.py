@@ -4,10 +4,16 @@
 import os
 import sys
 import numpy as np
-import pandas as pd
 
-from DataLoader import GetCoords
+try:
+    import modin.pandas as pd
+    import ray
+    ray.init()
+except:
+    import pandas as pd
+
 from itertools import combinations
+from .DataLoader import GetCoords
 
 filedir = os.path.dirname(__file__)
 
@@ -19,8 +25,12 @@ class R2(GetCoords):
     Functions:
     ----------
         xyz_to_distances: calculates the R2 distances vector for each XYZ matrix
-        build_descriptor: return a dataframe with the R2 descriptors for all molecules
+        build_descriptor: creates a dataframe with the R2 descriptors for all molecules
     """
+
+    def __str__(self):
+         return "Generator of R2 descriptor from molecular geometries."
+
     def __init__(self):
         self.r2_ref_geom = None
 
@@ -38,7 +48,7 @@ class R2(GetCoords):
         return r2_vector
 
     def build_descriptor(self, all_geoms: np.ndarray, delta = False,
-                         save_csv=False) -> pd.core.frame.DataFrame:
+                         save_csv=False):
 
         n_samples, n_atoms, _ = all_geoms.shape
         id_atom_pairs = np.tril_indices(n_atoms,-1)
@@ -50,8 +60,8 @@ class R2(GetCoords):
             d = self.xyz_to_distances(xyz)
             r2_descriptor[i] = d
 
-        col_names = list(map(lambda x,y: 'r' + str(y+1) + str(x+1),\
-             id_atom_pairs[0], id_atom_pairs[1]))
+        func = lambda x,y: 'r' + ''.join(sorted([str(y+1), str(x+1)], key=int))
+        col_names = list(map(func, id_atom_pairs[0], id_atom_pairs[1]))
 
         self.read_eq_geom()
         eq_geom = self.eq_xyz.copy()
@@ -73,9 +83,9 @@ class ZMatrix(GetCoords):
 
     Functions:
     ----------
-        get_distance: calculates the distances between two atoms
-        get_angle: calculate the angle bewtween three atoms
-        get_dihedral: calculate the dihedral bewtween four atoms
+        get_distance (static): calculates the distances between two atoms
+        get_angle (static): calculate the angle bewtween three atoms
+        get_dihedral (static): calculate the dihedral bewtween four atoms
         build_descriptor: return a dataframe with the Z-matrix for all molecules
     """
 
@@ -161,7 +171,7 @@ class ZMatrix(GetCoords):
         return phi
 
     @staticmethod
-    def get_bending(geom: np.ndarray, idx_atoms: list):
+    def get_bending(geom: np.ndarray, idx_atoms: list) -> np.float:
         """
         This function calculates the bending angle between two different
         planes of the molecule defined by two sets of three atoms.
@@ -199,7 +209,7 @@ class ZMatrix(GetCoords):
                 self.distancematrix[j][i] = self.distancematrix[i][j]     
 
     def build_descriptor(self, all_geoms: np.ndarray, delta = False, 
-                         save_csv=False) -> pd.core.frame.DataFrame:
+                         save_csv=False):
         """
        'Z-Matrix Algorithm'
         Build main components of zmatrix:
@@ -325,7 +335,7 @@ class ZMatrix(GetCoords):
 
         return df
 
-    def transform(self,zmat_data,funct) -> pd.core.frame.DataFrame:
+    def transform(self,zmat_data,funct):
         """
         Apply a non-linear transformation to the delta Z-Matrix dataset.
 

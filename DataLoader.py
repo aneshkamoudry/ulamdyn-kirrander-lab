@@ -5,10 +5,14 @@ import os
 import sys
 import glob
 import rmsd
-import shutil
 import numpy as np
-import pandas as pd
-import pandas as pd
+
+try:
+    import modin.pandas as pd
+    import ray
+    ray.init()
+except:
+    import pandas as pd
 
 from itertools import combinations
 
@@ -18,18 +22,17 @@ BOHR_TO_ANG = 0.529177210903
 HARTREE_TO_KCAL = 627.5096080305927
 HARTREE_TO_eV = 27.211399
 
-
 # This function is used to return one list with all 'TRAJXX' directories
 # sorted in ascending order.
 def get_traj_dirs():
-    dirs_list = glob.glob("TRAJ*")
+    dirs_list = glob.glob("TRAJ[0-9]*")
     dirs_list = sorted(dirs_list, key = lambda x: int(x.rsplit("TRAJ")[1]))
     return dirs_list
 
 class GetCoords:
     """
-    This class object read the Cartesian coordinates for all NX trajectories,
-    and calculate the RMSD with respect to an equilibrium geometry.
+    Class object used to read the Cartesian coordinates of all NX trajectories.
+    It can also calculate the RMSD with respect to an equilibrium geometry.
 
     Functions:
     ----------
@@ -43,35 +46,46 @@ class GetCoords:
     """
 
     # Defining slots to optimize performance (RAM):
-    __slots__ = ['trajectories', 'labels', 'eq_xyz', 'xyz', 'rmsd']
+    __slots__ = ['trajectories', 'labels', 'eq_xyz', 'xyz', 'rmsd', 'dataset']
 
     def __init__(self):
+        # This variable contains a list of all available trajectories:
+        # [TRAJ1, TRAJ2,..., TRAJN]
         self.trajectories = get_traj_dirs()
+        # Store the sequence of atom labels as a numpy array
         self.labels = None
         self.eq_xyz = None
         self.xyz = None
         self.rmsd = None
+        self.dataset = None
 
-    def build_dataframe(self, save_csv=False):
+    @property
+    def save_csv(self):
+        if self.dataset is None:
+            self.build_dataframe()
+
+        df = self.dataset
+
+        if self.rmsd is not None:
+            df['RMSD'] = self.rmsd
+
+        df.to_csv('all_coordinates.csv', index=False, header=True)
+
+    def build_dataframe(self):
         if all(v is not None for v in [self.labels, self.xyz]):
             n_atoms = len(self.labels)
             col_names = [['x'+str(i), 'y'+str(i), 'z'+str(i)] for i in range(1,n_atoms+1)]
             col_names = sum(col_names, [])
             df = pd.DataFrame(self.xyz.reshape(-1, n_atoms*3), columns = col_names)
-            
-            if self.rmsd is not None:
-                df['RMSD'] = self.rmsd
 
-            if save_csv:
-                df.to_csv('all_coordinates.csv', index=False, header=True)
+            self.dataset = df
 
         else:
+            print("---------------------------------------")
             print("The coordinates variable is empty!")
-            print("There is no data to save.")
+            print("There is no data available to save.")
             print("Please run the loader functions first.")
-            sys.exit() 
-
-        return df    
+            print("---------------------------------------")
     
     @staticmethod
     def from_dyn(outfile):
@@ -144,7 +158,7 @@ class GetCoords:
     def read_all_trajs(self):
         all_geoms = list()
         for trj in self.trajectories:
-            print("Reading geometries from %s" % trj + "...\n")
+            print("Reading geometries from %s" % trj + "...")
             if os.path.isfile(trj + '/RESULTS/dyn.out'):
                 dynfile = trj + '/RESULTS/dyn.out'
                 atom_labels, xyz = self.from_dyn(dynfile)
@@ -154,8 +168,8 @@ class GetCoords:
                 atom_labels, xyz = self.from_xyz(xyzfile)
                 all_geoms.append(xyz)    
             else:
-                print ("File dyn.xyz or dyn.out not found!") 
-                print("Please check the directory %s" % trj + "/RESULTS" + "\n")
+                print ("\nFile dyn.out or dyn.xyz not available.") 
+                print("Check the directory %s" % trj + "/RESULTS" + "\n")
         
         self.xyz = np.concatenate(all_geoms, axis = 0)
         self.labels = atom_labels
@@ -198,54 +212,181 @@ class GetCoords:
         self.xyz = aligned_geoms
         self.rmsd = rmsd_values
 
+#%% Starting new class: GetGradients
+class GetGradients:
+
+    # Defining slots to optimize performance (RAM):
+    __slots__ = ['trajectories', 'all_grads', 'datasets']
+
+    def __init__(self):
+        # This variable contains a list of all available trajectories:
+        # [TRAJ1, TRAJ2,..., TRAJN]
+        self.trajectories = get_traj_dirs()
+        # Store the gradient matrices per state as a dictionary, where
+        # the key is the state identifier (e.g., {'S1': np.array})
+        self.all_grads = dict()
+        self.datasets = dict()
+
+    @staticmethod
+    def all_states(outfile):
+        read_grads = False
+        current_step = -1
+        count_start = 0
+        t_current = 0
+        t_hop = np.inf
+
+        grads_dict = dict()
+
+        with open(outfile, 'r') as nx_log:
+            for line in nx_log:
+
+                # This condition is used to monitor the MD restarting, and
+                # then skip the repeated gradients (Step 0 of each restart)
+                if 'STARTING MOLECULAR DYNAMICS' in line:
+                    count_start += 1
+
+                if 'Nat' in line:
+                    num_atoms = np.int(line.split()[-1])
+
+                if 'STEP' in line:
+                    line_list = line.replace(',','').split()
+                    current_step = np.int(line_list[2])
+                    t_current = np.float(line_list[4])
+
+                if 'Time of hopping' in line:
+                    t_hop = np.float(line.split()[-2])
+                
+                # The second condition in the if statement is used to skip
+                # the gradients recalculated after hopping
+                if ('Gradient' in line) and (t_current != t_hop):
+                    if 'current' in line:
+                       continue
+                    elif 'state' in line:
+                       state = 'S' + line.split()[-2]
+                    else:
+                       state = 'current_state'
+                    
+                    if count_start == 2:
+                        read_grads = False
+                        count_start -= 1
+                    else:
+                        read_grads = True
+                
+                    if state not in grads_dict:
+                        grads_dict[state] = list()
+                    continue    
+
+                if read_grads:
+                    vals = line.split()
+                    if len(vals) == 3:
+                        grads = np.array(vals, dtype=np.float64)
+                        grads_dict[state].append(grads)
+                    else:
+                        read_grads = False
+
+        for k in grads_dict.keys():
+            grads_dict[k] = np.array(grads_dict[k])
+            grads_dict[k] = grads_dict[k].reshape(-1,num_atoms,3)
+            grads_dict[k] *= (HARTREE_TO_eV / BOHR_TO_ANG)
+
+        return grads_dict
+
+    def read_all_trajs(self):
+        all_grads = dict()
+        for trj in self.trajectories:
+            print("Reading gradients from %s" % trj + "...")
+            if os.path.isfile(trj + '/RESULTS/nx.log'):
+                nxfile = trj + '/RESULTS/nx.log'
+                gradients = self.all_states(nxfile)
+                if not all_grads:
+                    all_grads = {key: list() for key in gradients.keys()}
+                for k in all_grads.keys():
+                    all_grads[k].append(gradients[k])
+            else:
+                print ("\nFile nx.log is not available.") 
+                print("Check the directory %s" % trj + "/RESULTS" + "\n")
+        
+        for k in all_grads.keys():
+            self.all_grads[k] = np.concatenate(all_grads[k], axis = 0)
+
+    def build_dataframe(self, save_csv=False):
+
+        if self.all_grads:
+            state = list(self.all_grads.keys())[0]
+            n_atoms = self.all_grads[state].shape[1]
+            col_names = [['Gx'+str(i), 'Gy'+str(i), 'Gz'+str(i)] for i in range(1,n_atoms+1)]
+            col_names = sum(col_names, [])
+
+            for k in self.all_grads.keys():
+                df = pd.DataFrame(self.all_grads[k].reshape(-1, n_atoms*3),
+                                  columns = col_names)
+                self.datasets[k] = df
+                if save_csv:
+                    output = 'all_gradients_' + k.lower() + '.csv'
+                    df.to_csv(output, index=False, header=True)
+
+        else:
+            print("---------------------------------------")
+            print("The all_grads variable is empty!")
+            print("There is no data available to save.")
+            print("Please run the loader functions first.")
+            print("---------------------------------------")        
+
+
+#%% Starting new class: GetProperties
 class GetProperties:
     
-     __slots__ = ['trajectories', 'properties', 'num_states']
+     __slots__ = ['trajectories', 'dataset', 'num_states']
+
+     def __init__(self):
+        self.trajectories = get_traj_dirs()
      
      def __init__(self):
+         # This variable contains a list of all available trajectories:
+         # [TRAJ1, TRAJ2,..., TRAJN]
          self.trajectories = get_traj_dirs()
          # This class variable will be used to store a dataframe
          # with all properties read from the NX outputs
-         self.properties = None
+         self.dataset = None
          # Auxiliary variable to keep track of the number of states.
          # The default value will be updated in the energy function.
          self.num_states = None
 
      @property
      def save_csv(self):
-        if self.properties is not None:
-            df = self.properties.copy()
+        if self.dataset is not None:
+            df = self.dataset.copy()
             df['time'] = df['time'].astype(object)
-            df.to_csv('all_properties.csv', index=False, header=True, float_format="%.8f")
+            df.to_csv('all_properties.csv', index=False, header=True, 
+                      float_format="%.10f")
             
         else:
             print("The properties variable is empty!")
             print("There is no data to save.")
             print("Please run the loader functions first.")
-            sys.exit()
 
      def _update_properties(self,df):
 
-         if self.properties is not None:
-             if self.properties.shape[0] == df.shape[0]:
-                 if 'time' in self.properties.columns.tolist():
-                     dfs_to_merge = (self.properties,df)
+         if self.dataset is not None:
+             if self.dataset.shape[0] == df.shape[0]:
+                 if 'time' in self.dataset.columns.tolist():
+                     dfs_to_merge = (self.dataset,df)
                  else:
-                     dfs_to_merge = (df,self.properties)    
-                 self.properties = pd.concat(dfs_to_merge, axis=1)
+                     dfs_to_merge = (df,self.dataset)    
+                 self.dataset = pd.concat(dfs_to_merge, axis=1)
              else:
-                 warning = "****************************************************************\n"
+                 warning = "***************************************************************\n"
                  warning += "WARNING: The size of the dataframes does not match!\n"
-                 warning += "         Please check if there are repeated or missing lines"
-                 warning += "         in one of the data files."
-                 warning += "\n****************************************************************"
+                 warning += "         Please check if there are repeated or missing lines\n"
+                 warning += "         in one of the data files.\n"
+                 warning += "***************************************************************"
                  print(warning) 
          else:
-             print("Properties is empty.") 
-             print("Its value will be updated with the current loaded data.")
-             self.properties = df
+             print("The properties dataset is empty.") 
+             print("Updating class variable with the current loaded data.")
+             self.dataset = df
 
-     def energies(self) -> pd.core.frame.DataFrame:
+     def energies(self):
 
          all_energies = list()
          traj_id = list()
@@ -307,17 +448,15 @@ class GetProperties:
          df = df.loc[:, (df != 0).any(axis=0)]
 
          self._update_properties(df)
-         df = self.properties
+         df = self.dataset
 
          return df
 
-     def oscillator_strength(self) -> pd.core.frame.DataFrame:
-         
-         osc = list()
-         n_samples = 0
-         
+     def oscillator_strength(self):
+
          for trj in self.trajectories:
              step = -1
+             counter = -1
              read_line = False
              
              print('Reading properties from %s' % trj)   
@@ -334,39 +473,50 @@ class GetProperties:
              lines = f.read()
              if "Oscillator strength" not in lines:
                  f.close()
-                 print("Oscillator strength not found in %s" % propfile)
+                 print("\nOscillator strength not found in %s" % propfile)
                  return
              else:    
                  lines = lines.split('\n')
+                 
+                 oscillator_lines = list(filter(lambda x: x.startswith(' Oscillator '), lines))
+                 time_lines = list(filter(lambda x: x.startswith(' TIME '), lines))
+                 time_lines = list(set([float(i.split()[2]) for i in time_lines]))
+                 num_rows = len(time_lines)
+                 osc_dict = dict()
+                 for line in oscillator_lines:
+                     states = line.split()[2]
+                     if states not in osc_dict.keys():
+                         osc_dict[states] = np.full(num_rows, np.nan)
+
                  # Start reading the properties file
                  for line in lines:
                     if 'STEP:' in line:
                         current_step = np.int(line.split()[4])
                         if current_step != step:
                             read_line = True
-                            n_samples += 1
+                            counter += 1
                         else:
                             read_line = False
                         step = current_step
 
                     if ('Oscillator' in line) and read_line:
                         x = np.float(line.split()[4])
-                        osc.append(x)
+                        states = line.split()[2]
+                        osc_dict[states][counter] = x
+
              f.close()
 
-         osc = np.array(osc, dtype=np.float64)
-         osc = osc.reshape(n_samples,-1)
-
-         ncols = osc.shape[1]
-         col_names = ['f1' + str(i) for i in range(2,ncols+2)]
-         df = pd.DataFrame(osc, columns=col_names)
-
+         col_names = ['f_' + ''.join(key.replace('(','').replace(')','').split(',')) 
+                      for key in osc_dict]
+         df = pd.DataFrame(osc_dict)
+         df.columns = col_names
+         
          self._update_properties(df)
-         df = self.properties
+         df = self.dataset
 
          return df
 
-     def populations(self) -> pd.core.frame.DataFrame: 
+     def populations(self): 
          
          coefs_list = list()
          
@@ -403,6 +553,6 @@ class GetProperties:
          df = pd.DataFrame(pop, columns=col_names)
 
          self._update_properties(df)
-         df = self.properties
+         df = self.dataset
 
          return df

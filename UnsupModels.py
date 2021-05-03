@@ -4,7 +4,13 @@
 import os
 import sys
 import numpy as np
-import pandas as pd
+
+try:
+    import modin.pandas as pd
+    import ray
+    ray.init()
+except:
+    import pandas as pd
 
 try:
     from sklearn.preprocessing import MinMaxScaler
@@ -14,7 +20,7 @@ try:
     from sklearn.decomposition import PCA, KernelPCA
     from sklearn.manifold import TSNE, Isomap, SpectralEmbedding
 except:
-    print("Sklearn modules not found.")
+    print("Required sklearn modules were not found.")
     print("Please make sure that sklearn library has been installed.")
 
 class DimensionalityReduction:
@@ -22,14 +28,14 @@ class DimensionalityReduction:
     def __str__(self):
          return "Unsupervised learning models for dimensionality reduction."
 
-    def __init__ (self, data, n_samples=None, scaler=str(),
+    def __init__ (self, data, n_samples=None, scaler=None,
                   random_state=42, n_cpus=-1):
         self.df = data
         if n_samples is not None:
             self.df = data.sample(n_samples)
         self.indices = self.df.index.values
         self.n_cpus = n_cpus
-        self.scaler = scaler.lower().strip()
+        self.scaler = scaler
         self.random_state = random_state
         
     @property
@@ -45,14 +51,34 @@ class DimensionalityReduction:
             df_scaled = sc_option.get(self.scaler).fit_transform(self.df)
             return df_scaled
     
+    def _print_model_params(self,model):
+        print(" The following parameters set will be used:\n")
+        for k,v in model.__dict__.items():
+            print(" {:>20} = {:<20}".format(k,str(v)))
+        print(" ")
+
+    def _run_model(self,model,data):
+
+        model.fit(data)
+        X_transformed = model.transform(data)
+
+        col_labels = ['X' + str(i+1) for i in range(X_transformed.shape[1])]
+        df = pd.DataFrame(X_transformed, columns=col_labels) 
+        df.index = self.indices
+
+        return df    
+
     def pca(self, n_components=2, calc_error=False, save_errors=False):
 
         if self.scaler:
             data = self.data_scaling
         else:
-            data = self.df.copy()
-            warning_msg = "WARNING: The data will not be rescaled for PCA analysis!\n"
-            warning_msg += "        The results are not reliable in this case.\n"
+            data = self.df.values
+            warning_msg = "---------------------------------------------------\n"
+            warning_msg += "WARNING:\n"
+            warning_msg += "The data will not be rescaled for PCA analysis!\n"
+            warning_msg += "Results can be unreliable in this case.\n"
+            warning_msg += "---------------------------------------------------\n"
             print(warning_msg)
 
         model = PCA(n_components=n_components, svd_solver='full', 
@@ -62,9 +88,10 @@ class DimensionalityReduction:
         print("*  Starting the Principal Component Analysis:  *")
         print("************************************************\n")
 
-        model.fit(data)
-        X_transformed = model.transform(data)
+        self._print_model_params(model)
 
+        df_transformed = self._run_model(model,data)
+        
         print("**********************************************")
         print("*  Percentage of variance explained by PCA:  *")
         print("**********************************************\n")
@@ -75,12 +102,8 @@ class DimensionalityReduction:
                 break
         print("")
 
-        col_labels = ['PC' + str(i+1) for i in range(X_transformed.shape[1])]
-        df_transformed = pd.DataFrame(X_transformed, columns=col_labels) 
-        df_transformed.index = self.indices
-
         if calc_error:
-            X_reconstructed = model.inverse_transform(X_transformed)
+            X_reconstructed = model.inverse_transform(df_transformed.values)
             squared_errors = (data - X_reconstructed)**2
             col_labels = ['SE' + str(i+1) for i in range(squared_errors.shape[1])]
             if save_errors:
@@ -98,6 +121,7 @@ class DimensionalityReduction:
             tot_rmse = np.sqrt(np.mean(squared_errors))
             print(" ")
             print("     Total RMSE = {:2.3f} ".format(tot_rmse))
+            print(" ")
 
         return df_transformed
 
@@ -118,12 +142,9 @@ class DimensionalityReduction:
         print("*  Starting the Kernel PCA analysis:  *")
         print("***************************************\n")
 
-        model.fit(data)
-        X_transformed = model.transform(data)
+        self._print_model_params(model)
 
-        col_labels = ['KPC' + str(i+1) for i in range(X_transformed.shape[1])]
-        df_transformed = pd.DataFrame(X_transformed, columns=col_labels) 
-        df_transformed.index = self.indices
+        df_transformed = self._run_model(model,data)
 
         return df_transformed
 
@@ -143,15 +164,38 @@ class DimensionalityReduction:
         print("*  Starting the Isomap analysis:  *")
         print("***********************************\n")
 
-        model.fit(data)
-        X_transformed = model.transform(data)
+        self._print_model_params(model)
 
-        col_labels = ['X' + str(i+1) for i in range(X_transformed.shape[1])]
-        df_transformed = pd.DataFrame(X_transformed, columns=col_labels) 
-        df_transformed.index = self.indices
+        df_transformed = self._run_model(model,data)
 
         if calc_error:
             error = model.reconstruction_error()
-            print("   Total reconstruction error = {:2.3f}".format(error))
+            print(" Total reconstruction error = {:2.3f}\n".format(error))
+
+        return df_transformed
+    
+    def tsne(self, n_components=2, perplexity=40.0, learning_rate=200.0, n_iter=2000, 
+             n_iter_without_progress=400, metric='euclidean', init='pca', verbose=1, 
+             method='barnes_hut', angle=0.5, square_distances='legacy'):
+     
+        if self.scaler:
+            data = self.data_scaling
+        else:
+            data = self.df.copy()
+
+        model = TSNE(n_components=n_components, perplexity=perplexity, 
+                     learning_rate=learning_rate, n_iter=n_iter, 
+                     n_iter_without_progress=n_iter_without_progress, 
+                     metric=metric, init=init, verbose=verbose, method=method, 
+                     angle=angle, square_distances=square_distances, 
+                     n_jobs=self.n_cpus, random_state=self.random_state)
+
+        print("*******************************************")
+        print("*  Starting the t-SNE manifold analysis:  *")
+        print("*******************************************\n")
+
+        self._print_model_params(model)
+
+        df_transformed = self._run_model(model,data)
 
         return df_transformed

@@ -5,7 +5,7 @@ import os
 import sys
 import numpy as np
 
-from DataLoader import *
+from .DataLoader import *
 
 class Geometries:
 
@@ -14,8 +14,20 @@ class Geometries:
         comment_line = ""
 
         for p in props_to_print:
+            units = ''
+            if 'DE' in p:
+                states = list(p.replace('DE',''))
+                states = ''.join(sorted(states, key=int, reverse=True))
+                p = 'DE' + states
+                units = ' eV'
+            if 'time' in p:
+                units = ' fs'
+            if 'RMSD' in p:
+                units = ' ang'
             val = dataframe[p][idx]
-            string = p + " = " + str(val) + " | "
+            separator = " | " if p != props_to_print[-1] else ""
+            string = p + " = " + str(val) + units + separator
+
             comment_line += string
  
         return comment_line
@@ -31,6 +43,7 @@ class Geometries:
         props_to_print = sorted(set(props_to_print), key=props_to_print.index)
         
         for n, xyz in enumerate(geoms_array):
+            xyz = np.round(xyz, 8)
             xyz = np.concatenate((labels, xyz), axis=1)
             xyz_str = [str(i).strip('[]') for i in xyz]
             comment_line = self._info(properties_data, n, props_to_print)
