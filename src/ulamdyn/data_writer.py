@@ -1,11 +1,14 @@
 ## Author: Max Pinheiro Jr <maxjr82@gmail.com>
 ## Date: 03/14/2021
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
+
 import os
 import sys
 import numpy as np
 
-from .DataLoader import *
+from ulamdyn.data_loader import *
 
 class Geometries:
 

@@ -13,7 +13,7 @@ except:
     import pandas as pd
 
 from itertools import combinations
-from .DataLoader import GetCoords
+from ulamdyn.data_loader import GetCoords
 
 filedir = os.path.dirname(__file__)
 

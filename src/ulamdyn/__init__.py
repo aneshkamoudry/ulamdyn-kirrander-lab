@@ -1,0 +1,48 @@
+# -*- coding: utf-8 -*-
+"""
+  ULaMDyn - Unsupervised Learning analysis for Molecular Dynamics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ULaMDyn is a python package built on top of sklearn designed to perform 
+data preprocessing, statistical and unsupervised learning analysis of 
+(non-adiabatic) molecular dynamics simulations.
+
+ULaMDyn consists of five general modules:
+
+- DataLoader
+- DataWriter
+- Statistics
+- Descriptors
+- UnsupModels
+
+"""
+
+import os
+import pkg_resources
+
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+def export(func):
+    if callable(func) and hasattr(func, '__name__'):
+        globals()[func.__name__] = func
+    try:
+        __all__.append(func.__name__)
+    except NameError:
+        __all__ = [func.__name__]
+    return func
+
+from ulamdyn.data_loader import *
+from ulamdyn.data_writer import *
+from ulamdyn.descriptors import *
+from ulamdyn.unsup_models import *
+from ulamdyn.statistics import *
+
+__title__ = 'ULaMDyn'
+__version__ = '0.0.1'
+__author__ = 'Max Pinheiro Jr'
+__email__ = 'maxjr82@gmail.com'
+__license__ = 'MIT'
+__copyright__ = 'Copyright 2021 Max Pinheiro'

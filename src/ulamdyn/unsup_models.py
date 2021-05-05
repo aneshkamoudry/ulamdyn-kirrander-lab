@@ -1,6 +1,9 @@
 ## Author: Max Pinheiro Jr <maxjr82@gmail.com>
 ## Date: 04/02/2021
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
+
 import os
 import sys
 import numpy as np

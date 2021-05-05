@@ -1,6 +1,9 @@
 ## Author: Max Pinheiro Jr <maxjr82@gmail.com>
 ## Date: 03/10/2021
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
+
 import os
 import sys
 import glob
@@ -52,9 +55,16 @@ class GetCoords:
         # This variable contains a list of all available trajectories:
         # [TRAJ1, TRAJ2,..., TRAJN]
         self.trajectories = get_traj_dirs()
+
         # Store the sequence of atom labels as a numpy array
         self.labels = None
+        # Store the XYZ matrix of the reference geometry (np.array)
         self.eq_xyz = None
+        # Try to read the reference geometry, geom.xyz file
+        # If the file is available, the labels and eq_xyz variables
+        # will be update with the data loaded by the function below.
+        self.read_eq_geom()
+
         self.xyz = None
         self.rmsd = None
         self.dataset = None
@@ -87,38 +97,53 @@ class GetCoords:
             print("Please run the loader functions first.")
             print("---------------------------------------")
     
-    @staticmethod
-    def from_dyn(outfile):
+    def from_dyn(self, outfile):
         read_coords = False
-        step = -1
-        current_step = -1
+        t = -1
+        current_time = -1
+        num_atoms = np.inf
 
         xyz_geoms = list()
         atom_labels = list()
+        counter = 0
+
+        if self.labels is not None:
+            num_atoms = len(self.labels)
+            atom_labels = self.labels
 
         with open(outfile, 'r') as dyn_out:
             for line in dyn_out:
 
-                if 'STEP' in line:
-                    current_step = np.int(line.split()[1])
+                # By keeping track of the current time we can deal with
+                # repetitions in restart calculations, but also to deal 
+                # with switching in QM/MM dynamics.
+                if 'TIME' in line:
+                    current_time = np.float(line.split()[-2])
                     
                 if read_coords:
                     vals = line.split()
                     if len(vals) == 6:
+                        counter += 1
+                        if counter > num_atoms:
+                            counter = 0
+                            read_coords = False
+                            continue
                         coords = np.array(vals[2:5], dtype=np.float64)
                         xyz_geoms.append(coords)
                         # Labels will be read only in the first iteration
-                        if current_step == 0:
+                        if current_time == 0.0 and isinstance(atom_labels, list):
                             atom_labels.append(vals[0].upper())
                     else:
                         read_coords = False
-                        
+                        counter = 0
+                
+                # This condition is used to skip repeated geometries.
                 if 'geometry' in line:
-                    if current_step < step:
+                    if current_time == t:
                         read_coords = False
                     else:
                         read_coords = True
-                    step = current_step
+                    t = current_time
 
         num_atoms = len(atom_labels)
 
@@ -176,12 +201,15 @@ class GetCoords:
 
     def read_eq_geom(self):
         try:
-            _, ref_geom = self.from_xyz('geom.xyz')
+            atom_labels, ref_geom = self.from_xyz('geom.xyz')
+            self.eq_xyz = np.squeeze(ref_geom, axis=0)
+            self.labels = atom_labels
         except FileNotFoundError:
-            print("A reference geometry file must be provided!")
+            print("\n-----------------------------------------------------------")
+            print("Reference geometry not found!")
+            print("The reference geometry is required to compute the RMSD. ")
             print("Check if the geom.xyz file is available in the current dir.")
-
-        self.eq_xyz = np.squeeze(ref_geom, axis=0)
+            print("-----------------------------------------------------------\n")
 
     @property
     def align_geoms(self):
@@ -199,7 +227,8 @@ class GetCoords:
             error_msg = "XYZ coordinates not loaded!" + "\n "
             error_msg += "Please make sure that the read_all_trajs function "
             error_msg += "has been executed."
-            return error_msg    
+            print(error_msg)
+            return 
     
         for idx, geom in enumerate(self.xyz):
             geom -= rmsd.centroid(geom)

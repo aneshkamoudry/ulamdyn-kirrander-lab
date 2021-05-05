@@ -1,6 +1,9 @@
 __author__ = 'Max Pinheiro Jr <maxjr82@gmail.com>'
 __date__   = 'Mar 14, 2021'
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
+
 import os
 import sys
 import time
@@ -14,18 +17,18 @@ try:
 except:
     import pandas as pd
 
-from .DataLoader import *
-from .Descriptors import *
-from .DataWriter import *
-from .Statistics import *
-from .UnsupModels import *
+from ulamdyn.data_loader import *
+from ulamdyn.data_writer import *
+from ulamdyn.descriptors import *
+from ulamdyn.statistics import *
+from ulamdyn.unsup_models import *
 
 def _check_geom_file():
     if not os.path.isfile('geom.xyz'):
         print("\n--------------------------------------------------------")
         print("ERROR:                                             \n")
-        print("geom.xyz file not found.")
-        print("Please provide a reference geometry [geom.xyz] in the ")
+        print("The geom.xyz file was not found.")
+        print("Please provide a reference geometry (geom.xyz) in the ")
         print("working directory.")
         print("Aborting execution.")
         print("--------------------------------------------------------")
@@ -84,6 +87,12 @@ def save_data(data_to_save):
         print("Saving the Z-Matrix descriptor dataframe...\n")
         zmt = ZMatrix()
         df = zmt.build_descriptor(all_geoms, save_csv=True)
+
+    elif data_to_save == 'gradients':
+        print("Saving the XYZ gradients for each available state as dataframes...\n")
+        gg = GetGradients()
+        gg.read_all_trajs()
+        gg.build_dataframe(save_csv=True)
 
 def save_xyz_hoppings(states_pair):
     # 1) Load the XYZ coordinates from all trajectories
