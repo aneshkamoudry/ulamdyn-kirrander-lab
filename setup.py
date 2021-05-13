@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Setup file for the ulamdyn package.
+"""
+
+from __future__ import with_statement
+from __future__ import absolute_import
+
 import os
 from setuptools import setup, find_packages
 
@@ -14,7 +22,8 @@ setup(
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
     long_description=long_description,
-    packages=find_packages(),
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     install_requires=['numpy', 'rmsd', 'pandas', 'scikit-learn'],
     keywords=['python', 'chemistry', 'dimensionality reduction', 'clustering', 'molecular dynamics'],
     classifiers=[
@@ -23,5 +32,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ]
-    python_requires=">=3.6",
+    python_requires=">=3.7",
 )
+
