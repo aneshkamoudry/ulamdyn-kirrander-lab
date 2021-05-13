@@ -17,13 +17,13 @@ ULaMDyn consists of five general modules:
 
 """
 
-import os
-import pkg_resources
-
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+
+import os
+import pkg_resources
 
 def export(func):
     if callable(func) and hasattr(func, '__name__'):
@@ -40,9 +40,12 @@ from ulamdyn.descriptors import *
 from ulamdyn.unsup_models import *
 from ulamdyn.statistics import *
 
+filedir = os.path.dirname(__file__)
+
 __title__ = 'ULaMDyn'
 __version__ = '0.0.1'
 __author__ = 'Max Pinheiro Jr'
 __email__ = 'maxjr82@gmail.com'
+__maintainer__ = 'Max Pinheiro Jr'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2021 Max Pinheiro'

@@ -1,6 +1,5 @@
 ## Author: Max Pinheiro Jr <maxjr82@gmail.com>
-## Date: 04/25/2021
-
+## Date: April 25, 2021
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals, with_statement)
 

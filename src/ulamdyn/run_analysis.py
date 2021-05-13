@@ -1,6 +1,5 @@
-__author__ = 'Max Pinheiro Jr <maxjr82@gmail.com>'
-__date__   = 'Mar 14, 2021'
-
+## Author: Max Pinheiro Jr <maxjr82@gmail.com>
+## Date: March 10, 2021
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals, with_statement)
 
@@ -22,6 +21,7 @@ from ulamdyn.data_writer import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
 from ulamdyn.unsup_models import *
+from ulamdyn.interface import *
 
 def _check_geom_file():
     if not os.path.isfile('geom.xyz'):
@@ -34,39 +34,6 @@ def _check_geom_file():
         print("--------------------------------------------------------")
         sys.exit()
     
-def build_descriptor(descriptor, getcoords_obj):
-    all_aligned_geoms = getcoords_obj.xyz
-    # getcoords_obj.xyz is a variable of the class object
-    # that stores all XYZ coordinates as a numpy array of 
-    # dimension [n_geoms, n_atoms, 3]
-    if descriptor == 'aXYZ':
-        df_xyz = getcoords_obj.dataset
-        df_xyz.to_csv(descriptor + '.csv', index=False)
-        return df_xyz
-    elif descriptor == 'R2' or descriptor == 'inv-R2' or descriptor == 'delta-R2':
-        r2 = R2()
-        dfs_dict = {'R2': r2.build_descriptor(all_aligned_geoms),
-                    'inv-R2': 1/r2.build_descriptor(all_aligned_geoms),
-                    'delta-R2': r2.build_descriptor(all_aligned_geoms, delta=True)}
-        df_r2 = dfs_dict[descriptor]
-        df_r2.to_csv(descriptor + '.csv', index=False)
-        return df_r2
-    elif descriptor == 'Zmat' or descriptor == 'delta-Zmat':
-        zmt = ZMatrix()
-        dfs_dict = {'Zmat': zmt.build_descriptor(all_aligned_geoms),
-                    'delta-Zmat': zmt.build_descriptor(all_aligned_geoms, delta=True)}
-        df_zmt = dfs_dict[descriptor]
-        df_zmt.to_csv(descriptor + '.csv', index=False)
-        return df_zmt 
-    else:
-        print("---------------------------------------------------")
-        print("ERROR: \n")
-        print("Descriptor not recognized or implemented!\n")
-        print("Please select one of the available descriptors:")
-        print("aXYZ, R2, inv-R2, delta-R2, Zmat or delta-Zmat.")
-        print("---------------------------------------------------")
-        sys.exit()
-
 def save_data(data_to_save):
     if data_to_save == 'all':
         print("Saving the full XYZ coordinates dataframe...\n")
@@ -126,71 +93,12 @@ def save_xyz_hoppings(states_pair):
         if 'RMSD' in df_props.columns:
             add_property.append('RMSD')
         out_name = 'Geoms_Hopping_' + states_pair + '.xyz'
-        geoms = Geometries()
-        geoms.save_xyz(atom_labels, hopping_geoms, df_props, add_property, out_name)
+        geoms = Geometries(atom_labels, add_property)
+        geoms.save_xyz(hopping_geoms, df_props, out_name)
     else:
         print("-----------------------------------------------------")
         print("There is no hopping for the selected pair of states.")
         print("-----------------------------------------------------")
-
-def run_dim_reduction(args):
-    # Step 1: Load XYZ data from all trajectories and align coordinates
-    gc = GetCoords()
-    gc.read_all_trajs()
-    gc.align_geoms
-    gc.build_dataframe()
-
-    # Step 2: create the dataset to apply the dimensionality reduction model.
-    df = build_descriptor(args.descriptor, gc)
-
-    # Step 3: build the dataset of properties that can be used for colormap.
-    gp = GetProperties()
-    df_props = gp.energies()
-    df_props = gp.oscillator_strength()
-    df_props = gp.populations()
-
-    try:
-        df_props['RMSD'] = gc.rmsd
-    except:
-        print("--------------------------------------------------------")
-        print("There is a mismatch in the length of coordinates ({})") 
-        print("and properties ({}) data sets.".format(len(gc.rmsd),
-                                                     df_props.shape[0]))
-        print("The RMSD will not be added to the properties data set.")
-        print("--------------------------------------------------------")
-
-    # Step 4: instanciate the dimensionality reduction class
-    dimred = DimensionalityReduction(data=df, n_samples=args.n_samples,
-                                     scaler=args.data_scaler, 
-                                     n_cpus=args.n_cpus)
-    model = args.dim_reduction.lower().strip()
-
-    # Step 5: check for the available models and run the calculation
-    if model == 'pca':
-        df_reduced = dimred.pca(n_components=args.n_dim,calc_error=True)
-    elif model == 'kpca':
-        df_reduced = dimred.kpca(n_components=args.n_dim,kernel=args.kernel)
-    elif model == 'isomap':
-        df_reduced = dimred.isomap(n_components=args.n_dim,calc_error=True)
-    elif model == 'tsne':
-        df_reduced = dimred.tsne(n_components=args.n_dim,
-                                 perplexity=args.perplexity)
-    else:
-        print("--------------------------------------------------------")
-        print("ERROR:                                             \n")
-        print("Model type not recognized or not implemented!")
-        print("Please select one of the available methods:")
-        print("PCA, KPCA, Isomap or t-SNE.")
-        print("--------------------------------------------------------")
-        sys.exit()    
-    
-    # Step 5: Save a csv file with the merged datasets (reduced + properties) 
-    print("Saving the merged (reduced + properties) data sets...\n")
-    df_reduced = df_reduced.merge(df_props, left_index=True, 
-                                      right_index=True, how='left')
-    csv_name = model + '_ndim' + str(args.n_dim) + '_'
-    csv_name += args.descriptor.lower() + '.csv'
-    df_reduced.to_csv(csv_name, header=True, index=True, index_label='index')
 
 def run_bootstrap(args):
 
@@ -267,10 +175,10 @@ if __name__ == '__main__':
                               and std) and confidence intervals.")                                                    
     parser.add_argument("--descriptor", required=False, type=str, metavar='', default='inv-R2',
                         help="Type of molecular descriptor used in the unsupervised\
-                              learning analysis.")                          
+                              learning analysis.")
     parser.add_argument("--dim_reduction", required=False, type=str, metavar='', default=None,  
                         help="Select a model for the dimensionality reduction analysis:\
-                              PCA, KPCA or Isomap.")
+                              PCA, KPCA, Isomap or tSNE.")
     parser.add_argument("--n_dim", required=False, type=int, metavar='', default=2,  
                         help="Number of dimensions of the reduced data set.")
     parser.add_argument("--n_samples", required=False, type=int, metavar='', default=None,  

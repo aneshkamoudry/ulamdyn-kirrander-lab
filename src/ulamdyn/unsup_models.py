@@ -1,6 +1,5 @@
 ## Author: Max Pinheiro Jr <maxjr82@gmail.com>
-## Date: 04/02/2021
-
+## Date: April 2, 2021
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals, with_statement)
 
@@ -11,22 +10,52 @@ import numpy as np
 try:
     import modin.pandas as pd
     import ray
-    ray.init()
 except:
     import pandas as pd
 
 try:
+    from sklearn import metrics
     from sklearn.preprocessing import MinMaxScaler
     from sklearn.preprocessing import RobustScaler
     from sklearn.preprocessing import StandardScaler
 
     from sklearn.decomposition import PCA, KernelPCA
     from sklearn.manifold import TSNE, Isomap, SpectralEmbedding
+
+    from sklearn.cluster import KMeans, SpectralClustering
 except:
     print("Required sklearn modules were not found.")
     print("Please make sure that sklearn library has been installed.")
 
-class DimensionalityReduction:
+__all__ = ['DimensionalityReduction', 'Clustering']
+
+class Utils:
+
+    @staticmethod
+    def _data_scaling(scaler, df):
+        
+        sc_option = {'minmax': MinMaxScaler(), 
+                     'standard': StandardScaler(),
+                     'robust': RobustScaler()}
+    
+        if scaler not in sc_option.keys():
+            return "Please choose a valid scaler: minmax, standard or robust."
+        else:
+            print(" ")
+            print("Scaling data with {} method".format(scaler))
+            scaled_data = sc_option.get(scaler).fit_transform(df)
+            df_scaled = pd.DataFrame(scaled_data, index=df.index, columns=df.columns)
+            print(" ")
+            return df_scaled
+    
+    @staticmethod
+    def _print_model_params(model):
+        print(" The following set of parameters will be used:\n")
+        for k,v in model.__dict__.items():
+            print(" {:>20} = {:<20}".format(k,str(v)))
+        print(" ")
+
+class DimensionalityReduction(Utils):
 
     def __str__(self):
          return "Unsupervised learning models for dimensionality reduction."
@@ -37,30 +66,17 @@ class DimensionalityReduction:
         if n_samples is not None:
             self.df = data.sample(n_samples)
         self.indices = self.df.index.values
-        self.n_cpus = n_cpus
+        
         self.scaler = scaler
-        self.random_state = random_state
-        
-    @property
-    def data_scaling(self):
-        
-        sc_option = {'minmax': MinMaxScaler(), 
-                     'standard': StandardScaler(),
-                     'robust': RobustScaler()}
-    
-        if self.scaler not in sc_option.keys():
-            return "Please choose a valid scaler: minmax, standard or robust."
-        else:
-            df_scaled = sc_option.get(self.scaler).fit_transform(self.df)
-            return df_scaled
-    
-    def _print_model_params(self,model):
-        print(" The following parameters set will be used:\n")
-        for k,v in model.__dict__.items():
-            print(" {:>20} = {:<20}".format(k,str(v)))
-        print(" ")
+        if self.scaler is not None:
+            self.df = self._data_scaling(self.scaler, self.df)
 
+        self.random_state = random_state
+        self.n_cpus = n_cpus
+        
     def _run_model(self,model,data):
+        
+        self._print_model_params(model)
 
         model.fit(data)
         X_transformed = model.transform(data)
@@ -73,14 +89,11 @@ class DimensionalityReduction:
 
     def pca(self, n_components=2, calc_error=False, save_errors=False):
 
-        if self.scaler:
-            data = self.data_scaling
-        else:
-            data = self.df.values
+        if not self.scaler:
             warning_msg = "---------------------------------------------------\n"
             warning_msg += "WARNING:\n"
-            warning_msg += "The data will not be rescaled for PCA analysis!\n"
-            warning_msg += "Results can be unreliable in this case.\n"
+            warning_msg += "The data is not properly scaled!\n"
+            warning_msg += "This may lead to unreliable results for PCA.\n"
             warning_msg += "---------------------------------------------------\n"
             print(warning_msg)
 
@@ -91,9 +104,7 @@ class DimensionalityReduction:
         print("*  Starting the Principal Component Analysis:  *")
         print("************************************************\n")
 
-        self._print_model_params(model)
-
-        df_transformed = self._run_model(model,data)
+        df_transformed = self._run_model(model,self.df)
         
         print("**********************************************")
         print("*  Percentage of variance explained by PCA:  *")
@@ -107,7 +118,7 @@ class DimensionalityReduction:
 
         if calc_error:
             X_reconstructed = model.inverse_transform(df_transformed.values)
-            squared_errors = (data - X_reconstructed)**2
+            squared_errors = (self.df - X_reconstructed)**2
             col_labels = ['SE' + str(i+1) for i in range(squared_errors.shape[1])]
             if save_errors:
                 df_errors = pd.DataFrame(squared_errors, columns=col_labels)
@@ -131,33 +142,27 @@ class DimensionalityReduction:
     def kpca(self, n_components=2, kernel='rbf', gamma=None, degree=4, coef0=1, 
              kernel_params=None, alpha=1.0, fit_inverse_transform=False):
 
-        if self.scaler:
-            data = self.data_scaling
-        else:
-            data = self.df.copy()
-
         model = KernelPCA(n_components=n_components, kernel=kernel, gamma=gamma, coef0=coef0,
                           degree=degree, alpha=alpha, kernel_params=kernel_params,
-                          fit_inverse_transform=fit_inverse_transform, n_jobs=self.n_cpus,
-                          random_state=self.random_state)
+                          fit_inverse_transform=fit_inverse_transform, 
+                          random_state=self.random_state,
+                          n_jobs=self.n_cpus)
 
         print("***************************************")
         print("*  Starting the Kernel PCA analysis:  *")
         print("***************************************\n")
 
-        self._print_model_params(model)
-
-        df_transformed = self._run_model(model,data)
+        df_transformed = self._run_model(model,self.df)
 
         return df_transformed
 
     def isomap(self, n_components=2, n_neighbors=10, neighbors_algorithm='auto', 
                metric='minkowski', p=2, metric_params=None, calc_error=False):
+        """Isomap Embedding
 
-        if self.scaler:
-            data = self.data_scaling
-        else:
-            data = self.df.copy()
+        Non-linear dimensionality reduction through Isometric Mapping
+
+        """
 
         model = Isomap(n_components=n_components, n_neighbors=n_neighbors,
                        neighbors_algorithm=neighbors_algorithm, metric=metric,
@@ -167,9 +172,7 @@ class DimensionalityReduction:
         print("*  Starting the Isomap analysis:  *")
         print("***********************************\n")
 
-        self._print_model_params(model)
-
-        df_transformed = self._run_model(model,data)
+        df_transformed = self._run_model(model,self.df)
 
         if calc_error:
             error = model.reconstruction_error()
@@ -181,11 +184,6 @@ class DimensionalityReduction:
              n_iter_without_progress=400, metric='euclidean', init='pca', verbose=1, 
              method='barnes_hut', angle=0.5, square_distances='legacy'):
      
-        if self.scaler:
-            data = self.data_scaling
-        else:
-            data = self.df.copy()
-
         model = TSNE(n_components=n_components, perplexity=perplexity, 
                      learning_rate=learning_rate, n_iter=n_iter, 
                      n_iter_without_progress=n_iter_without_progress, 
@@ -197,8 +195,81 @@ class DimensionalityReduction:
         print("*  Starting the t-SNE manifold analysis:  *")
         print("*******************************************\n")
 
-        self._print_model_params(model)
-
-        df_transformed = self._run_model(model,data)
+        df_transformed = self._run_model(model,self.df)
 
         return df_transformed
+
+class Clustering(Utils):
+
+    def __str__(self):
+         return "Clustering methods."
+
+    def __init__ (self, data, n_samples=None, scaler=None, 
+                  random_state=42, n_cpus=-1, verbosity=0):
+        self.df = data
+        if n_samples is not None:
+            self.df = data.sample(n_samples)
+        self.indices = self.df.index.values
+        
+        self.scaler = scaler
+        if self.scaler is not None:
+            self.df = self._data_scaling(self.scaler, self.df)
+
+        self.random_state = random_state
+        self.n_cpus = n_cpus
+        self.verbosity = verbosity
+    
+    def _run_model(self,model,data):
+        
+        self._print_model_params(model)
+
+        model.fit(data)
+        
+        col_name = [type(model).__name__.lower() + '_labels']
+        df = pd.DataFrame(model.labels_, columns=col_name) 
+        df.index = self.indices
+
+        cluster_count = df.groupby(col_name).size().reset_index().values
+
+        print(35 * '_')
+        print(" Number of geometries per cluster:\n")
+        for n, size in cluster_count:
+            print("     cluster {} --> {:<6}".format(str(n),str(size)))
+        print(35 * '_')    
+        print(" ")
+
+        return df
+
+    def kmeans(self, n_clusters=5, init='k-means++', n_init=100, 
+               max_iter=1000, convergence=1e-06):
+
+        model = KMeans(n_clusters=n_clusters, init=init, n_init=n_init, 
+                       max_iter=max_iter, tol=convergence, 
+                       random_state=self.random_state,
+                       verbose=self.verbosity)
+
+        print("***********************************************")
+        print("*  Starting the K-Means clustering analysis:  *")
+        print("***********************************************\n")
+
+        df_labels = self._run_model(model,self.df)
+        
+        return df_labels
+
+    def spectral(self, n_clusters=5, n_components=10, n_init=100, gamma=0.02,
+                 affinity='rbf', n_neighbors=20, degree=3, coef0=1, 
+                 kernel_params=None):
+
+        model = SpectralClustering(n_clusters=n_clusters, n_components=n_components,
+                                   n_init=n_init, gamma=gamma, degree=degree,
+                                   coef0=coef0, n_neighbors=n_neighbors,
+                                   kernel_params=kernel_params, 
+                                   n_jobs=self.n_cpus)
+
+        print("************************************************")
+        print("*  Starting the Spectral clustering analysis:  *")
+        print("************************************************\n")
+
+        df_labels = self._run_model(model,self.df)
+        
+        return df_labels                           

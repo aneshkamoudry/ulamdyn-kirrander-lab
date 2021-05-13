@@ -15,26 +15,31 @@ except:
 from itertools import combinations
 from ulamdyn.data_loader import GetCoords
 
+__all__ = ['R2', 'ZMatrix']
+
 filedir = os.path.dirname(__file__)
 
 class R2(GetCoords):
-    """
-    Construct the R2 descriptor defined as the Euclidean distances between
-    all non-equivalent pair of atoms.
+    """Construct the R2 descriptor defined as the Euclidean distances between all
+    (non-equivalent) pair of atoms.
 
-    Functions:
-    ----------
-        xyz_to_distances: calculates the R2 distances vector for each XYZ matrix
-        build_descriptor: creates a dataframe with the R2 descriptors for all molecules
+    Attributes:
+       r2_ref_geom: stores the vector with the calculated R2 descriptor for the 
+                    reference geometry (geom.xyz).
+                    
     """
+
+    __slots__ = ['r2_ref_geom', 'r2_descriptor']
 
     def __str__(self):
          return "Generator of R2 descriptor from molecular geometries."
 
     def __init__(self):
         self.r2_ref_geom = None
+        self.r2_descriptor = None
 
-    def xyz_to_distances(self,xyz_matrix: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def xyz_to_distances(xyz_matrix: np.ndarray) -> np.ndarray:
 
         n_atoms = len(xyz_matrix)
         distance_matrix = np.zeros((n_atoms,n_atoms))
@@ -47,30 +52,56 @@ class R2(GetCoords):
 
         return r2_vector
 
-    def build_descriptor(self, all_geoms: np.ndarray, delta = False,
+    def _derived_model(self,variant):
+
+        if variant == 'inv-R2':
+            self.r2_descriptor = 1/self.r2_descriptor
+        else:
+            self.read_eq_geom()
+            eq_geom = self.eq_xyz.copy()
+            self.r2_ref_geom = self.xyz_to_distances(eq_geom)
+
+            if variant == 'delta-R2':
+                self.r2_descriptor = self.r2_descriptor - self.r2_ref_geom
+
+            if variant == 'RE':
+                self.r2_descriptor = self.r2_ref_geom/self.r2_descriptor
+            
+    def build_descriptor(self, all_geoms: np.ndarray, variant=None,
                          save_csv=False):
 
+        """Create a dataframe with R2-based descriptors for all molecular geometries.
+
+        Args:
+           all_geoms (np.ndarray): a 3D array containing the list of XYZ matrices.
+           variant (str): used to choose a descriptor type derived from the R2 matrix.
+                          Options: inv-R2, delta-R2 and RE.
+                          The defult is None.
+           save_csv (bool): output a single csv file containing the R2 descriptor 
+                            computed for all geometries in the MD trajectories.
+                            The defult is False.
+    
+        Returns:
+           `pandas.DataFrame`: Dataframe with the R2 descriptors for all geometries
+
+        """
         n_samples, n_atoms, _ = all_geoms.shape
         id_atom_pairs = np.tril_indices(n_atoms,-1)
         n_features = len(id_atom_pairs[0])
 
-        r2_descriptor = np.empty((n_samples, n_features), dtype=np.float64)
+        self.r2_descriptor = np.empty((n_samples, n_features), dtype=np.float64)
 
         for i, xyz in enumerate(all_geoms):
             d = self.xyz_to_distances(xyz)
-            r2_descriptor[i] = d
+            self.r2_descriptor[i] = d
 
         func = lambda x,y: 'r' + ''.join(sorted([str(y+1), str(x+1)], key=int))
         col_names = list(map(func, id_atom_pairs[0], id_atom_pairs[1]))
 
-        self.read_eq_geom()
-        eq_geom = self.eq_xyz.copy()
-        self.r2_ref_geom = self.xyz_to_distances(eq_geom)
-
-        if delta:
-            r2_descriptor = r2_descriptor - self.r2_ref_geom
-
-        df_r2 = pd.DataFrame(r2_descriptor, columns=col_names)
+        if variant in ['inv-R2', 'delta-R2', 'RE']:
+            self._derived_model(variant)
+        
+        df_r2 = pd.DataFrame(self.r2_descriptor, columns=col_names)
 
         if save_csv:
             df_r2.to_csv("pairwise_distances.csv", index=False)
@@ -78,20 +109,37 @@ class R2(GetCoords):
         return df_r2
 
 class ZMatrix(GetCoords):
-    """
-    Construct a molecular descriptor derived from the Z-Matrix.
+    """Construct molecular descriptors using internal coordinates (Z-Matrix).
 
-    Functions:
-    ----------
-        get_distance (static): calculates the distances between two atoms
-        get_angle (static): calculate the angle bewtween three atoms
-        get_dihedral (static): calculate the dihedral bewtween four atoms
-        build_descriptor: return a dataframe with the Z-matrix for all molecules
+    This class does not require arguments in its constructor. All quantities related to
+    distances are given in angstrom, while the features derived from angles are provided
+    in degrees.
+
+    Attributes:
+       distancematrix: stores the full matrix of bond distances for all geometries.
+       connectivity: list of tuples with the indices of connected atoms based on a
+                         distance criterion of proximity.
+       angleconnectivity: list of tuples with the indices of three neighboring atoms for
+                              which the angle will be computed.
+       dihedralconnectivity: list of tuples with four indices of connected atoms for which
+                                 dihedral angle will be computed.
+       zmat_ref_geom: stores the Z-matrix calculated for the reference geometry. 
+
+    Methods:
+       get_distance (static): calculates the distances between two atoms.
+       get_angle (static): calculate the angle bewtween three atoms.
+       get_dihedral (static): calculate the dihedral bewtween four atoms.
+       get_bending (static): calculate the bending angle defined by six atoms of the molecule.
+       build_descriptor: return a dataframe with the Z-matrix for all molecules.
+
     """
 
     # Defining slots to optimize performance (RAM):
     __slots__ = ['distancematrix', 'connectivity', 'angleconnectivity', 
                  'dihedralconnectivity', 'zmat_ref_geom']
+
+    def __str__(self):
+        return "Generator of Z-Matrix descriptors from molecular geometries."
 
     def __init__(self):
 
@@ -102,13 +150,21 @@ class ZMatrix(GetCoords):
         self.angleconnectivity = None
         self.dihedralconnectivity = None
 
+        # Z-Matrix of the reference molecular geometry
         self.zmat_ref_geom = None
 
     @staticmethod
-    def get_distance(geom: np.ndarray, idx_atoms) -> np.float:
-        """
-        Auxiliary function to calculate the Euclidean distance between 
-        pair of atoms.
+    def get_distance(geom: np.ndarray, idx_atoms: list) -> np.float:
+        """Calculate the Euclidean distance between pair of atoms.
+
+        Args:
+           geom (np.array): a matrix (n_atoms x 3) having the Cartesian coordinates for
+                            a single molecule.
+           idx_atoms (list): a pair of indices for the selected atoms.
+
+        Returns:
+           `numpy.float`: distance (in Angstrom) between two selected atoms.
+
         """
         i, j = idx_atoms
         vec = geom[j] - geom[i]
@@ -118,9 +174,17 @@ class ZMatrix(GetCoords):
 
     @staticmethod
     def get_angle(geom: np.ndarray, idx_atoms: list) -> np.float:
-        """
-        Auxiliary function to calculate the angle between three atoms 
-        The output angle is given in degrees.
+        """Calculate the angle formed by three atoms.
+        
+        Args:
+           geom (np.array): a matrix (n_atoms x 3) having the Cartesian coordinates for
+                            a single molecule.
+           idx_atoms (list): a list of three indices corresponding to the atoms for which
+                             the angle will be calculated.
+
+        Returns:
+           `numpy.float`: angle (in degrees) between three selected atoms.
+
         """
         i, j, k = idx_atoms
         rij = geom[i] - geom[j]
@@ -134,10 +198,19 @@ class ZMatrix(GetCoords):
 
     @staticmethod
     def get_dihedral(geom: np.ndarray, idx_atoms: list) -> np.float:
-        """
-        This function calculates the dihedral angle between four atoms 
-        using the praxeolitic formula: 1 sqrt, 1 cross product.
-        The output angle is given in degrees.
+        """Calculate the dihedral angle formed by four atoms 
+        
+        .. note:: It uses the praxeolitic formula: 1 sqrt, 1 cross product.
+
+        Args:
+           geom (np.array): a matrix (n_atoms x 3) having the Cartesian coordinates for
+                            a single molecule.
+           idx_atoms (list): a list of four indices corresponding to the atoms for which
+                             the dihedral angle will be calculated.
+
+        Returns:
+           `numpy.float`: dihedral angle (in degrees) formed by four specified atoms.
+
         """
 
         if not isinstance(idx_atoms, list):
@@ -172,10 +245,19 @@ class ZMatrix(GetCoords):
 
     @staticmethod
     def get_bending(geom: np.ndarray, idx_atoms: list) -> np.float:
-        """
-        This function calculates the bending angle between two different
-        planes of the molecule defined by two sets of three atoms.
-        The output angle is given in degrees.
+        """Calculates the bending angle between two vectors that are 
+        perpendicular to different planes of the molecule as defined 
+        by two sets of three atoms.
+
+        Args:
+           geom (np.array): a matrix (n_atoms x 3) having the Cartesian coordinates for
+                            a single molecule.
+           idx_atoms (list): a list with two tuples each containing the three indices 
+                             corresponding to the atoms the defines a plane.
+
+        Returns:
+           `numpy.float`: bending angle (in degrees) formed by two molecular planes.
+
         """
 
         idx_ring1, idx_ring2 = idx_atoms
@@ -194,10 +276,10 @@ class ZMatrix(GetCoords):
 
         # Calculate the angle between the two normal vectors
         cos_theta = normal_to_ring1.dot(normal_to_ring2)
-        ang_between_rings = np.arccos(cos_theta)
-        ang_between_rings = np.degrees(ang_between_rings)
+        omega = np.arccos(cos_theta)
+        omega = np.degrees(omega)
         
-        return ang_between_rings    
+        return omega
 
     def _build_distance_matrix(self, xyz_matrix: np.ndarray):
         
@@ -210,13 +292,27 @@ class ZMatrix(GetCoords):
 
     def build_descriptor(self, all_geoms: np.ndarray, delta = False, 
                          save_csv=False):
-        """
-       'Z-Matrix Algorithm'
-        Build main components of zmatrix:
-        Connectivity vector
-        Distances between connected atoms (atom >= 1)
-        Angles between connected atoms (atom >= 2)
-        Dihedral angles between connected atoms (atom >= 3)
+        """Builder for the Z-Matrix based descriptor.
+
+        .. note:: By default, the algorithm will calculate the three main components
+                  of the Z-Matrix: bond distances, angles and dihedrals. An augmented 
+                  version of the Z-Matrix descriptor can be also obtained by calculating 
+                  additional distances, angles and dihedrals using the methods provided 
+                  in the class.
+
+        Args:
+           all_geoms (np.ndarray): a 3D array containing the list of XYZ matrices.
+           delta (bool): if True, the Z_matrix feature vector of each geometry will 
+                         be subtracted from the Z_Matrix of the reference geometry.
+                         The defult is False.
+           save_csv (bool): output a single csv file containing the Z-Matrix descriptor 
+                            computed for all geometries available the MD trajectories.
+                            The defult is False.
+    
+        Returns:
+           :df: Dataframe with (flattened) Z-Matrix descriptors for all geometries
+           :rtype: `~pandas.DataFrame` object
+
         """
 
         # Use a function inherited from GetCoords to read the coordinates
@@ -336,13 +432,13 @@ class ZMatrix(GetCoords):
         return df
 
     def transform(self,zmat_data,funct):
-        """
-        Apply a non-linear transformation to the delta Z-Matrix dataset.
+        """Apply a non-linear transformation to the delta Z-Matrix dataset.
 
         Implemented functions:
           -sigmoid: retuns a dataframe with values ranging from 0 to 1
           -tanh: hyperbolic tangent for bond distances and cosine for angles,
                  returns a dataframe with values in the range [-1,1]  
+                 
         """
         # Normalization functions
         sigmoid = np.vectorize(lambda x: 1 / (1 + np.exp(-x)))
