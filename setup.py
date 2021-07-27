@@ -19,6 +19,7 @@ setup(
     version=VERSION,
     author="Max Pinheiro Jr",
     author_email="<maxjr82@gmail.com>",
+    license="LGPLv3",
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
     long_description=long_description,
@@ -31,6 +32,8 @@ setup(
         "Intended Audience :: Computational chemistry",
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
+        "Topic :: Scientific/Engineering :: Chemistry",
+        "Topic :: Scientific/Engineering :: Physics"
     ]
     python_requires=">=3.7",
 )
