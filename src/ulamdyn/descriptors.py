@@ -427,7 +427,7 @@ class ZMatrix(GetCoords):
         df = pd.DataFrame(zmat_all, columns=col_names)
 
         if save_csv:
-            df.to_csv("zmatrix_all_geoms.csv", index=False)
+            df.to_csv("all_geoms_zmatrix.csv", index=False)
 
         return df
 

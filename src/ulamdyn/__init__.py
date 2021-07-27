@@ -9,11 +9,12 @@ data preprocessing, statistical and unsupervised learning analysis of
 
 ULaMDyn consists of five general modules:
 
-- DataLoader
-- DataWriter
+- Data_Loader
+- Data_Writer
 - Statistics
+- Kinetics
 - Descriptors
-- UnsupModels
+- Unsup_Models
 
 """
 
@@ -37,13 +38,15 @@ def export(func):
 from ulamdyn.data_loader import *
 from ulamdyn.data_writer import *
 from ulamdyn.descriptors import *
-from ulamdyn.unsup_models import *
 from ulamdyn.statistics import *
+from ulamdyn.kinetics import *
+from ulamdyn.unsup_models import *
+from ulamdyn.utilities import *
 
 filedir = os.path.dirname(__file__)
 
 __title__ = 'ULaMDyn'
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 __author__ = 'Max Pinheiro Jr'
 __email__ = 'maxjr82@gmail.com'
 __maintainer__ = 'Max Pinheiro Jr'

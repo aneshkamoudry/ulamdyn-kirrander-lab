@@ -18,7 +18,20 @@ except:
 from ulamdyn.data_loader import *
 from ulamdyn.descriptors import *
 
-def aggregate_data(df):
+def aggregate_data(data,vars_to_group=['time']):
+    skip_cols = ['time', 'State', 'TRAJ']
+    if vars_to_group != ['time']:
+        skip_cols = vars_to_group
+    col_names = data.columns.values.tolist()
+    skip_cols = list(set(col_names).intersection(set(skip_cols)))
+    vars_to_aggregate = {k: ['median', 'mean', 'std']
+                         for k in data.drop(skip_cols, axis=1).columns.values}
+    df_stats = data.groupby(vars_to_group, as_index=False).agg(vars_to_aggregate)
+    df_stats.columns = ['_'.join(col).strip() for col in df_stats.columns.values]
+    df_stats.columns = [col.rstrip('_') for col in df_stats.columns.values]
+    return df_stats
+
+def aggregate_by_time(df):
     cols_to_skip = ['time', 'State', 'TRAJ']
     col_names = df.columns.values.tolist()
     cols_to_skip = list(set(col_names).intersection(set(cols_to_skip)))
@@ -45,7 +58,7 @@ def calc_avg_occupations(df):
     df_occ.columns = ["Occ" + str(i) for i in df_occ.columns]
     return df_occ
 
-def add_column(dataframe, col_name, array):
+def _add_column(dataframe, col_name, array):
     try:
         dataframe[col_name] = array
     except:
@@ -115,14 +128,14 @@ def create_stats(selected_data):
         gc.align_geoms
         r2 = R2()
         df = r2.build_descriptor(gc.xyz, save_csv=False)
-        df = add_column(df,'time',time_vec)
-        df = add_column(df, 'RMSD', gc.rmsd)
+        df = _add_column(df,'time',time_vec)
+        df = _add_column(df, 'RMSD', gc.rmsd)
         df_r2_stats = aggregate_data(df)
 
         print("Calculating statistics for the Z-Matrix...\n")
         zmt = ZMatrix()
         df = zmt.build_descriptor(gc.xyz, save_csv=False)
-        df = add_column(df,'time',time_vec)
+        df = _add_column(df,'time',time_vec)
         df_zmt_stats = aggregate_data(df)
 
         all_stats = {'properties': df_prop_stats,
