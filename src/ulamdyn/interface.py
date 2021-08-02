@@ -18,6 +18,7 @@ try:
     import modin.pandas as pd
     import ray
 
+    ray.shutdown()
     ray.init()
 except:
     import pandas as pd

@@ -17,6 +17,7 @@ try:
     import modin.pandas as pd
     import ray
 
+    ray.shutdown()
     ray.init()
 except ModuleNotFoundError as e:
     import pandas as pd

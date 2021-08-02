@@ -1,8 +1,8 @@
-Python API documentation
-========================
+ulamdyn package
+===============
 
-.. Submodules
-.. ----------
+Submodules
+----------
 
 ulamdyn.data\_loader module
 ---------------------------
@@ -28,6 +28,22 @@ ulamdyn.descriptors module
    :undoc-members:
    :show-inheritance:
 
+ulamdyn.interface module
+------------------------
+
+.. automodule:: ulamdyn.interface
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ulamdyn.kinetics module
+-----------------------
+
+.. automodule:: ulamdyn.kinetics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ulamdyn.run\_analysis module
 ----------------------------
 
@@ -48,6 +64,14 @@ ulamdyn.unsup\_models module
 ----------------------------
 
 .. automodule:: ulamdyn.unsup_models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ulamdyn.utilities module
+------------------------
+
+.. automodule:: ulamdyn.utilities
    :members:
    :undoc-members:
    :show-inheritance:

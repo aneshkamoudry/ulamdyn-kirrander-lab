@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Index &mdash; ULaMDyn 0.0.1 documentation</title>
+  <title>Index &mdash; ULaMDyn 0.0.2 documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                0.0.1
+                0.0.2
               </div>
             
           
@@ -86,9 +89,9 @@
               
             
             
-              <p class="caption"><span class="caption-text">SOURCE DOCUMENTATION:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">SOURCE DOCUMENTATION:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ulamdyn.html">Python API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ulamdyn.html">ulamdyn package</a></li>
 </ul>
 
             
@@ -165,6 +168,7 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
@@ -176,6 +180,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#X"><strong>X</strong></a>
  | <a href="#Z"><strong>Z</strong></a>
  
@@ -183,17 +188,21 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ulamdyn.html#ulamdyn.statistics.add_column">add_column() (in module ulamdyn.statistics)</a>
+      <li><a href="ulamdyn.html#ulamdyn.statistics.aggregate_by_time">aggregate_by_time() (in module ulamdyn.statistics)</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.statistics.aggregate_data">aggregate_data() (in module ulamdyn.statistics)</a>
 </li>
+      <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.align_geoms">align_geoms (ulamdyn.data_loader.GetCoords property)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.align_geoms">align_geoms() (ulamdyn.data_loader.GetCoords property)</a>
-</li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetGradients.all_grads">all_grads (ulamdyn.data_loader.GetGradients attribute)</a>
 </li>
       <li><a href="ulamdyn.html#id1">angleconnectivity (ulamdyn.descriptors.ZMatrix attribute)</a>, <a href="ulamdyn.html#ulamdyn.descriptors.ZMatrix.angleconnectivity">[1]</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.atom_labels">atom_labels (ulamdyn.kinetics.KineticEnergy attribute)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.atom_mass">atom_mass (ulamdyn.kinetics.KineticEnergy attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -208,10 +217,12 @@
       <ul>
         <li><a href="ulamdyn.html#ulamdyn.data_loader.GetGradients.build_dataframe">(ulamdyn.data_loader.GetGradients method)</a>
 </li>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.build_dataframe">(ulamdyn.kinetics.KineticEnergy method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ulamdyn.html#ulamdyn.run_analysis.build_descriptor">build_descriptor() (in module ulamdyn.run_analysis)</a>
+      <li><a href="ulamdyn.html#ulamdyn.interface.build_descriptor">build_descriptor() (in module ulamdyn.interface)</a>
 
       <ul>
         <li><a href="ulamdyn.html#ulamdyn.descriptors.R2.build_descriptor">(ulamdyn.descriptors.R2 method)</a>
@@ -229,8 +240,14 @@
 </li>
       <li><a href="ulamdyn.html#ulamdyn.statistics.calc_ci">calc_ci() (in module ulamdyn.statistics)</a>
 </li>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.calc_per_atom">calc_per_atom() (ulamdyn.kinetics.KineticEnergy method)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.calc_per_molecule">calc_per_molecule() (ulamdyn.kinetics.KineticEnergy method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.unsup_models.Clustering">Clustering (class in ulamdyn.unsup_models)</a>
+</li>
       <li><a href="ulamdyn.html#id3">connectivity (ulamdyn.descriptors.ZMatrix attribute)</a>, <a href="ulamdyn.html#ulamdyn.descriptors.ZMatrix.connectivity">[1]</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.statistics.create_bootstrap_stats">create_bootstrap_stats() (in module ulamdyn.statistics)</a>
@@ -243,18 +260,16 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ulamdyn.html#ulamdyn.unsup_models.DimensionalityReduction.data_scaling">data_scaling() (ulamdyn.unsup_models.DimensionalityReduction property)</a>
-</li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.dataset">dataset (ulamdyn.data_loader.GetCoords attribute)</a>
 
       <ul>
         <li><a href="ulamdyn.html#ulamdyn.data_loader.GetProperties.dataset">(ulamdyn.data_loader.GetProperties attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetGradients.datasets">datasets (ulamdyn.data_loader.GetGradients attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ulamdyn.html#id4">dihedralconnectivity (ulamdyn.descriptors.ZMatrix attribute)</a>, <a href="ulamdyn.html#ulamdyn.descriptors.ZMatrix.dihedralconnectivity">[1]</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.unsup_models.DimensionalityReduction">DimensionalityReduction (class in ulamdyn.unsup_models)</a>
@@ -267,6 +282,8 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.energies">energies (ulamdyn.kinetics.KineticEnergy attribute)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetProperties.energies">energies() (ulamdyn.data_loader.GetProperties method)</a>
 </li>
   </ul></td>
@@ -281,10 +298,22 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.from_dyn">from_dyn() (ulamdyn.data_loader.GetCoords method)</a>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities.from_all_trajs">from_all_trajs() (ulamdyn.kinetics.GetVelocities class method)</a>
 </li>
+      <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.from_dyn">from_dyn() (ulamdyn.data_loader.GetCoords method)</a>
+
+      <ul>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities.from_dyn">(ulamdyn.kinetics.GetVelocities method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.from_h5">from_h5() (ulamdyn.data_loader.GetCoords static method)</a>
+
+      <ul>
+        <li><a href="ulamdyn.html#ulamdyn.data_loader.GetGradients.from_h5">(ulamdyn.data_loader.GetGradients static method)</a>
+</li>
+      </ul></li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetGradients.from_nxlog">from_nxlog() (ulamdyn.data_loader.GetGradients static method)</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.from_xyz">from_xyz() (ulamdyn.data_loader.GetCoords static method)</a>
@@ -315,19 +344,39 @@
         <li><a href="ulamdyn.html#id8">(ulamdyn.descriptors.ZMatrix static method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ulamdyn.html#ulamdyn.descriptors.ZMatrix.get_distance">get_distance() (ulamdyn.descriptors.ZMatrix method)</a>
 
       <ul>
         <li><a href="ulamdyn.html#id9">(ulamdyn.descriptors.ZMatrix static method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.interface.get_kinetic_energies">get_kinetic_energies() (in module ulamdyn.interface)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.utilities.get_num_atoms">get_num_atoms() (in module ulamdyn.utilities)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.utilities.get_nx_version">get_nx_version() (in module ulamdyn.utilities)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.interface.get_properties_data">get_properties_data() (in module ulamdyn.interface)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.utilities.get_traj_dirs">get_traj_dirs() (in module ulamdyn.utilities)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords">GetCoords (class in ulamdyn.data_loader)</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetGradients">GetGradients (class in ulamdyn.data_loader)</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetProperties">GetProperties (class in ulamdyn.data_loader)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities">GetVelocities (class in ulamdyn.kinetics)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.unsup_models.Clustering.hierarchical">hierarchical() (ulamdyn.unsup_models.Clustering method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -343,6 +392,12 @@
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy">KineticEnergy (class in ulamdyn.kinetics)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.unsup_models.Clustering.kmeans">kmeans() (ulamdyn.unsup_models.Clustering method)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.unsup_models.DimensionalityReduction.kpca">kpca() (ulamdyn.unsup_models.DimensionalityReduction method)</a>
 </li>
   </ul></td>
@@ -369,11 +424,17 @@
 </li>
         <li><a href="ulamdyn.html#module-ulamdyn.descriptors">ulamdyn.descriptors</a>
 </li>
+        <li><a href="ulamdyn.html#module-ulamdyn.interface">ulamdyn.interface</a>
+</li>
+        <li><a href="ulamdyn.html#module-ulamdyn.kinetics">ulamdyn.kinetics</a>
+</li>
         <li><a href="ulamdyn.html#module-ulamdyn.run_analysis">ulamdyn.run_analysis</a>
 </li>
         <li><a href="ulamdyn.html#module-ulamdyn.statistics">ulamdyn.statistics</a>
 </li>
         <li><a href="ulamdyn.html#module-ulamdyn.unsup_models">ulamdyn.unsup_models</a>
+</li>
+        <li><a href="ulamdyn.html#module-ulamdyn.utilities">ulamdyn.utilities</a>
 </li>
       </ul></li>
   </ul></td>
@@ -382,7 +443,17 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities.n_atoms">n_atoms (ulamdyn.kinetics.GetVelocities attribute)</a>
+
+      <ul>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.n_atoms">(ulamdyn.kinetics.KineticEnergy attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetProperties.num_states">num_states (ulamdyn.data_loader.GetProperties attribute)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.data_loader.GetProperties.nx_version">nx_version (ulamdyn.data_loader.GetProperties attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -412,6 +483,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ulamdyn.html#ulamdyn.descriptors.R2">R2 (class in ulamdyn.descriptors)</a>
 </li>
+      <li><a href="ulamdyn.html#ulamdyn.descriptors.R2.r2_descriptor">r2_descriptor (ulamdyn.descriptors.R2 attribute)</a>
+</li>
       <li><a href="ulamdyn.html#id0">r2_ref_geom (ulamdyn.descriptors.R2 attribute)</a>, <a href="ulamdyn.html#ulamdyn.descriptors.R2.r2_ref_geom">[1]</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.read_all_trajs">read_all_trajs() (ulamdyn.data_loader.GetCoords method)</a>
@@ -419,16 +492,22 @@
       <ul>
         <li><a href="ulamdyn.html#ulamdyn.data_loader.GetGradients.read_all_trajs">(ulamdyn.data_loader.GetGradients method)</a>
 </li>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities.read_all_trajs">(ulamdyn.kinetics.GetVelocities method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.read_eq_geom">read_eq_geom() (ulamdyn.data_loader.GetCoords method)</a>
 </li>
+      <li><a href="ulamdyn.html#ulamdyn.utilities.read_h5_nx">read_h5_nx() (in module ulamdyn.utilities)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.rmsd">rmsd (ulamdyn.data_loader.GetCoords attribute)</a>
 </li>
-      <li><a href="ulamdyn.html#ulamdyn.run_analysis.run_bootstrap">run_bootstrap() (in module ulamdyn.run_analysis)</a>
+      <li><a href="ulamdyn.html#ulamdyn.interface.run_bootstrap">run_bootstrap() (in module ulamdyn.interface)</a>
 </li>
-      <li><a href="ulamdyn.html#ulamdyn.run_analysis.run_dim_reduction">run_dim_reduction() (in module ulamdyn.run_analysis)</a>
+      <li><a href="ulamdyn.html#ulamdyn.interface.run_clustering">run_clustering() (in module ulamdyn.interface)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.interface.run_dim_reduction">run_dim_reduction() (in module ulamdyn.interface)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -436,19 +515,21 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.save_csv">save_csv() (ulamdyn.data_loader.GetCoords property)</a>
+      <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.save_csv">save_csv (ulamdyn.data_loader.GetCoords property)</a>
 
       <ul>
         <li><a href="ulamdyn.html#ulamdyn.data_loader.GetProperties.save_csv">(ulamdyn.data_loader.GetProperties property)</a>
 </li>
       </ul></li>
-      <li><a href="ulamdyn.html#ulamdyn.run_analysis.save_data">save_data() (in module ulamdyn.run_analysis)</a>
+      <li><a href="ulamdyn.html#ulamdyn.interface.save_data">save_data() (in module ulamdyn.interface)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ulamdyn.html#ulamdyn.data_writer.Geometries.save_xyz">save_xyz() (ulamdyn.data_writer.Geometries method)</a>
 </li>
-      <li><a href="ulamdyn.html#ulamdyn.run_analysis.save_xyz_hoppings">save_xyz_hoppings() (in module ulamdyn.run_analysis)</a>
+      <li><a href="ulamdyn.html#ulamdyn.interface.save_xyz_hoppings">save_xyz_hoppings() (in module ulamdyn.interface)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.unsup_models.Clustering.spectral">spectral() (ulamdyn.unsup_models.Clustering method)</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.statistics.stats_hopping">stats_hopping() (in module ulamdyn.statistics)</a>
 </li>
@@ -464,6 +545,10 @@
         <li><a href="ulamdyn.html#ulamdyn.data_loader.GetGradients.trajectories">(ulamdyn.data_loader.GetGradients attribute)</a>
 </li>
         <li><a href="ulamdyn.html#ulamdyn.data_loader.GetProperties.trajectories">(ulamdyn.data_loader.GetProperties attribute)</a>
+</li>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities.trajectories">(ulamdyn.kinetics.GetVelocities attribute)</a>
+</li>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.trajectories">(ulamdyn.kinetics.KineticEnergy attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -499,6 +584,20 @@
         <li><a href="ulamdyn.html#module-ulamdyn.descriptors">module</a>
 </li>
       </ul></li>
+      <li>
+    ulamdyn.interface
+
+      <ul>
+        <li><a href="ulamdyn.html#module-ulamdyn.interface">module</a>
+</li>
+      </ul></li>
+      <li>
+    ulamdyn.kinetics
+
+      <ul>
+        <li><a href="ulamdyn.html#module-ulamdyn.kinetics">module</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li>
@@ -522,6 +621,21 @@
         <li><a href="ulamdyn.html#module-ulamdyn.unsup_models">module</a>
 </li>
       </ul></li>
+      <li>
+    ulamdyn.utilities
+
+      <ul>
+        <li><a href="ulamdyn.html#module-ulamdyn.utilities">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities.veloc">veloc (ulamdyn.kinetics.GetVelocities attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 

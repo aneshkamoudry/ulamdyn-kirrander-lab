@@ -65,7 +65,7 @@ class Geometries:
                   for each molecule.
 
         :param geoms_array: a 3D array containing the list of XYZ matrices.
-        :type geoms_array: numpy.array
+        :type geoms_array: numpy.ndarray
         :param properties_data: dataframe containing the property values of the selected geometries, defaults to None.
         :type properties_data: pandas.DataFrame
         :param out_name: name of the XYZ file containing all the selected geometries, defaults to selected_geoms.xyz.

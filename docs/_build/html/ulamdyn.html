@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Python API documentation &mdash; ULaMDyn 0.0.1 documentation</title>
+  <title>ulamdyn package &mdash; ULaMDyn 0.0.2 documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -62,7 +65,7 @@
             
             
               <div class="version">
-                0.0.1
+                0.0.2
               </div>
             
           
@@ -87,15 +90,19 @@
               
             
             
-              <p class="caption"><span class="caption-text">SOURCE DOCUMENTATION:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">SOURCE DOCUMENTATION:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API documentation</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ulamdyn package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.data_loader">ulamdyn.data_loader module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.data_writer">ulamdyn.data_writer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.descriptors">ulamdyn.descriptors module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.interface">ulamdyn.interface module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.kinetics">ulamdyn.kinetics module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.run_analysis">ulamdyn.run_analysis module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.statistics">ulamdyn.statistics module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.unsup_models">ulamdyn.unsup_models module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ulamdyn.utilities">ulamdyn.utilities module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
@@ -147,7 +154,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Python API documentation</li>
+      <li>ulamdyn package</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -166,113 +173,171 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="python-api-documentation">
-<h1>Python API documentation<a class="headerlink" href="#python-api-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="ulamdyn-package">
+<h1>ulamdyn package<a class="headerlink" href="#ulamdyn-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
 <div class="section" id="module-ulamdyn.data_loader">
 <span id="ulamdyn-data-loader-module"></span><h2>ulamdyn.data_loader module<a class="headerlink" href="#module-ulamdyn.data_loader" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ulamdyn.data_loader.GetCoords">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ulamdyn.data_loader.</span></code><code class="sig-name descname"><span class="pre">GetCoords</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.data_loader.</span></span><span class="sig-name descname"><span class="pre">GetCoords</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Class used to read the Cartesian coordinates from Newton-X MD trajectories.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The Cartesian XYZ coordinates can be read either from RESULTS/dyn.out
-or from RESULTS/dyn.xyz file.</p>
+<p>The Cartesian XYZ coordinates can be read either from dyn.out/dyn.xyz
+files generated by the classical NX or from the h5 file of new NX.
+Repeated geometries will be skipped.</p>
 </div>
 <p>It also provides a function to calculate the root-mean-squared deviation (RMSD)
 between each geometry read from the MD trajectories and a reference geometry.
-Before calculating the RMSD, the two geometries are aligned using the Kabsch algorithm.</p>
+Before calculating the RMSD, the two geometries are aligned using the Kabsch algorithm
+(<a class="reference external" href="https://en.wikipedia.org/wiki/Kabsch_algorithm">https://en.wikipedia.org/wiki/Kabsch_algorithm</a>).</p>
 <p>This class does not require arguments in its constructor. All the outputs generate by
 the class are given in angstroms.</p>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">trajectories</span></code> (list): trajectories ID (TRAJXX) available in the working directory.</p>
-<p><code class="docutils literal notranslate"><span class="pre">labels</span></code> (np.ndarray): stores the sequence of atom labels.</p>
-<p><code class="docutils literal notranslate"><span class="pre">eq_xyz</span></code> (np.ndarray): stores the XYZ matrix of the reference geometry (geom.xyz).</p>
-<p><code class="docutils literal notranslate"><span class="pre">xyz</span></code> (np.ndarray): stores the XYZ matrices of all geometries read from the TRAJ directories.</p>
-<p><code class="docutils literal notranslate"><span class="pre">rmsd</span></code> (np.ndarray): vector of RMSD values between all geometries and the reference one.</p>
-<p><code class="docutils literal notranslate"><span class="pre">dataset</span></code> (pd.dataframe): stores a dataframe of the flattened XYZ matrices.</p>
+<p><code class="docutils literal notranslate"><span class="pre">labels</span></code> (numpy.ndarray): stores the sequence of atom labels.</p>
+<p><code class="docutils literal notranslate"><span class="pre">eq_xyz</span></code> (numpy.ndarray): stores the XYZ matrix of the reference geometry (geom.xyz).</p>
+<p><code class="docutils literal notranslate"><span class="pre">xyz</span></code> (numpy.ndarray): stores the XYZ matrices of all geometries read from the TRAJ directories.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rmsd</span></code> (numpy.ndarray): vector of RMSD values between all geometries and the reference one.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dataset</span></code> (pandas.dataframe): stores a dataframe of the flattened XYZ matrices.</p>
 </div></blockquote>
-<dl class="py method">
-<dt id="ulamdyn.data_loader.GetCoords.align_geoms">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">align_geoms</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.align_geoms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Align the current loaded geometry with respect to the reference geometry
-using the Kabsch algorithm, and computes the corresponding (optimal) RMSD.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.align_geoms">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">align_geoms</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.align_geoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to calculate the RMSD between the current and reference geometries.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Before calculating the RMSD, the method uses the Kabsch algorithm to find</p>
+</div>
+<p>the optimal alignment between the loaded molecular geometry for each time step t
+and the reference geometry.</p>
+<p>The calculated RMSD values will be stored in the class attribute
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">rmsd_values</span></code>, while the <code class="xref py py-attr docutils literal notranslate"><span class="pre">xyz</span></code>
+attribute will be updated with the aligned geometries.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetCoords.build_dataframe">
-<code class="sig-name descname"><span class="pre">build_dataframe</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.build_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a pandas DataFrame with all XYZ coordinates.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetCoords.dataset">
-<code class="sig-name descname"><span class="pre">dataset</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.dataset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetCoords.eq_xyz">
-<code class="sig-name descname"><span class="pre">eq_xyz</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.eq_xyz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="ulamdyn.data_loader.GetCoords.from_dyn">
-<code class="sig-name descname"><span class="pre">from_dyn</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.from_dyn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the coordinates from the dyn.out file of Newton-X.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="ulamdyn.data_loader.GetCoords.from_xyz">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">from_xyz</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyzfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.from_xyz" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the coordinates from the dyn.xyz file of Newton-X.</p>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.build_dataframe">
+<span class="sig-name descname"><span class="pre">build_dataframe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.build_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a pandas DataFrame containing the XYZ coordinates from all trajectories.</p>
+<p>After running this function, the class attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">dataset</span></code> will
+be updated with the loaded DataFrame object.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetCoords.labels">
-<code class="sig-name descname"><span class="pre">labels</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.labels" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.dataset">
+<span class="sig-name descname"><span class="pre">dataset</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.dataset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.eq_xyz">
+<span class="sig-name descname"><span class="pre">eq_xyz</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.eq_xyz" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetCoords.read_all_trajs">
-<code class="sig-name descname"><span class="pre">read_all_trajs</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.read_all_trajs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load the XYZ coordinates from all available trajectories, and
-storeas the values in the class variable <code class="docutils literal notranslate"><span class="pre">xyz</span></code> as a numpy array.</p>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.from_dyn">
+<span class="sig-name descname"><span class="pre">from_dyn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.from_dyn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get XYZ coordinates from the dyn.out file of classical Newton-X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the NX output file, dyn.out</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple containing an array of strings defining the atom labels, and a
+tensor of size (n_steps, n_atoms, 3) with all XYZ coordinates of a
+single MD trajectory.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple in the form (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a>, <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a>)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetCoords.read_eq_geom">
-<code class="sig-name descname"><span class="pre">read_eq_geom</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.read_eq_geom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the XYZ coordinates of a reference geometry (geom.xyz), and store
-the values in the class variable <code class="docutils literal notranslate"><span class="pre">eq_xyz</span></code>.</p>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.from_h5">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">from_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.from_h5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the XYZ coordinates from the .h5 file generated by the new Newton-X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the NX output file, usually dyn.h5</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple containing an array of strings defining the atom labels, and a
+tensor of size (n_steps, n_atoms, 3) with all XYZ coordinates of a
+single MD trajectory.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple in the form (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a>, <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.from_xyz">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">from_xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyzfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.from_xyz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get XYZ coordinates from the dyn.xyz file of classical Newton-X.</p>
+<p>This method has the same parameters and return type as in <code class="xref py py-meth docutils literal notranslate"><span class="pre">from_dyn()</span></code>.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetCoords.rmsd">
-<code class="sig-name descname"><span class="pre">rmsd</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.rmsd" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.labels">
+<span class="sig-name descname"><span class="pre">labels</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.labels" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetCoords.save_csv">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">save_csv</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.save_csv" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.read_all_trajs">
+<span class="sig-name descname"><span class="pre">read_all_trajs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.read_all_trajs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate the XYZ coordinates read from all available MD trajectories.</p>
+<p>After running this method, the class attributes <code class="xref py py-attr docutils literal notranslate"><span class="pre">labels</span></code>
+and <code class="xref py py-attr docutils literal notranslate"><span class="pre">xyz</span></code> will be updated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.read_eq_geom">
+<span class="sig-name descname"><span class="pre">read_eq_geom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.read_eq_geom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the XYZ coordinates of a reference geometry.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method should be executed before calculating the RMSD with the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">align_geoms()</span></code> function.</p>
+</div>
+<p>A file with name geom.xyz must be provided in the working directory (TRAJECTORIES).
+After reading the coordinates, the method will update the class attributes
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">labels</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">eq_xyz</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.rmsd">
+<span class="sig-name descname"><span class="pre">rmsd</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.rmsd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.save_csv">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">save_csv</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.save_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save all loaded geometries (raw format) as a csv file.</p>
+<p>If the RMSD has been calculated, it will be included as an extra column in the
+XYZ coordinates data set.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetCoords.trajectories">
-<code class="sig-name descname"><span class="pre">trajectories</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.trajectories" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.trajectories">
+<span class="sig-name descname"><span class="pre">trajectories</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.trajectories" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetCoords.xyz">
-<code class="sig-name descname"><span class="pre">xyz</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.xyz" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.xyz">
+<span class="sig-name descname"><span class="pre">xyz</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.xyz" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="ulamdyn.data_loader.GetGradients">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ulamdyn.data_loader.</span></code><code class="sig-name descname"><span class="pre">GetGradients</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetGradients" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.data_loader.</span></span><span class="sig-name descname"><span class="pre">GetGradients</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Class used to read the gradients (forces) from Newton-X MD trajectories.</p>
 <p>This class does not require arguments in its constructor. The outputs generate by
@@ -283,95 +348,188 @@ the class is given in eV/angstrom.</p>
 <p><code class="docutils literal notranslate"><span class="pre">dataset</span></code> (dict): dictionary of dataframes with the flattened gradient matrices.</p>
 </div></blockquote>
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetGradients.all_grads">
-<code class="sig-name descname"><span class="pre">all_grads</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.all_grads" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.all_grads">
+<span class="sig-name descname"><span class="pre">all_grads</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.all_grads" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetGradients.build_dataframe">
-<code class="sig-name descname"><span class="pre">build_dataframe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.build_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create and save a pandas dataframe with all available gradients.</p>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.build_dataframe">
+<span class="sig-name descname"><span class="pre">build_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.build_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a dataset (pandas.DataFrame object) with all gradients.</p>
+<p>The XYZ matrices with the gradients of each molecular geometry is flattened into a
+one dimensional vecto, such that every row of the dataset corresponds to one step of
+the MD trajectories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True enable the output of all gradient dataframes in a csv format,
+defaults to False</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetGradients.datasets">
-<code class="sig-name descname"><span class="pre">datasets</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.datasets" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.datasets">
+<span class="sig-name descname"><span class="pre">datasets</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.datasets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetGradients.from_nxlog">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">from_nxlog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.from_nxlog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read all available gradients from the nx.log file of Newton-X.</p>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.from_h5">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">from_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.from_h5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read XYZ gradients from a single trajectory generated by the new Newton-X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the NX output file in the .h5 format, usually dyn.h5.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>stacked XYZ gradients for all steps of a single MD trajectory, returned as
+as a dictionary of tensors (numpy.ndarray, one for each state) with shape
+(n_steps, n_atoms, 3).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetGradients.read_all_trajs">
-<code class="sig-name descname"><span class="pre">read_all_trajs</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.read_all_trajs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Store the gradients read from all trajectories as dictionary.</p>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.from_nxlog">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">from_nxlog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.from_nxlog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read XYZ gradients from one trajectory generated by the old Newton-X.</p>
+<p>This method has the same parameters and return type as in <code class="xref py py-meth docutils literal notranslate"><span class="pre">from_h5()</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.read_all_trajs">
+<span class="sig-name descname"><span class="pre">read_all_trajs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.read_all_trajs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read gradients from all MD trajectories and store into a dictionary.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetGradients.trajectories">
-<code class="sig-name descname"><span class="pre">trajectories</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.trajectories" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.trajectories">
+<span class="sig-name descname"><span class="pre">trajectories</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.trajectories" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="ulamdyn.data_loader.GetProperties">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ulamdyn.data_loader.</span></code><code class="sig-name descname"><span class="pre">GetProperties</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetProperties" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.data_loader.</span></span><span class="sig-name descname"><span class="pre">GetProperties</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Class used to read all properties available in the Newton-X MD trajectories.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
 <p>This class does not require arguments in its constructor. All the energy quantities
 processed by the class are transformed from Ha to eV. For the other properties, the
 original units used in Newton-X are kept.</p>
+</div>
 <blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">trajectories</span></code> (list): trajectories ID (TRAJXX) available in the working directory.
-<code class="docutils literal notranslate"><span class="pre">dataset</span></code> (pd.dataframe): stores a dataframe with all available properties.
-<code class="docutils literal notranslate"><span class="pre">num_states</span></code> (int): keeps track of the number of states considered in the MD simulations.</p>
-</div></blockquote>
-<blockquote>
-<div><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">save_csv</span></code>: saves all loaded properties (energies, oscillator strength and populations)</dt><dd><p>as a csv file.</p>
+<div><p><code class="docutils literal notranslate"><span class="pre">trajectories</span></code> (list): trajectories ID (TRAJXX) available in the working directory.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dataset</span></code> (pd.dataframe): stores a dataframe with all available properties.</p>
+<p><code class="docutils literal notranslate"><span class="pre">num_states</span></code> (int): keeps track of the number of states considered in the MD simulations.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">nx_version</span></code> (str): recognize the Newton-X version, can be either cs (classical series) or</dt><dd><p>ns (new series).</p>
 </dd>
 </dl>
-<p><code class="docutils literal notranslate"><span class="pre">energies</span></code>: reads/processes the total energies from the en.dat file.
-<code class="docutils literal notranslate"><span class="pre">oscillator_strength</span></code>: if available, reads the oscillator strength from the properties file.
+</div></blockquote>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">oscillator_strength</span></code>: if available, reads the oscillator strength from the properties file.
 <code class="docutils literal notranslate"><span class="pre">populations</span></code>: computes the states populations with data taken from dyn.out file.</p>
 </div></blockquote>
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetProperties.dataset">
-<code class="sig-name descname"><span class="pre">dataset</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.dataset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.dataset">
+<span class="sig-name descname"><span class="pre">dataset</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.dataset" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetProperties.energies">
-<code class="sig-name descname"><span class="pre">energies</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.energies" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.energies">
+<span class="sig-name descname"><span class="pre">energies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read / process the energy information from the en.dat (classical NX) or .h5 (new NX) file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a processed dataset with the information of all trajectories stacked, and containing
+the following columns “TRAJ”, “time”, “State”, “Total_Energy” plus the energy gaps
+between the accessible states (e.g., DE12) and binary columns to identify the hopping
+points (e.g., Hops_S21).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.num_states">
+<span class="sig-name descname"><span class="pre">num_states</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.num_states" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetProperties.num_states">
-<code class="sig-name descname"><span class="pre">num_states</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.num_states" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.nx_version">
+<span class="sig-name descname"><span class="pre">nx_version</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.nx_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetProperties.oscillator_strength">
-<code class="sig-name descname"><span class="pre">oscillator_strength</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.oscillator_strength" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.oscillator_strength">
+<span class="sig-name descname"><span class="pre">oscillator_strength</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.oscillator_strength" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect the oscillator strength information from the properties (classical NX)
+or .h5 (new NX) file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This information is not always available. If needed, check the Newton-X
+documentation to see what are the required keywords and methods.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a dataset with the oscillator strength information read from all available
+NX trajectories with one column for each transition between states.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.data_loader.GetProperties.populations">
-<code class="sig-name descname"><span class="pre">populations</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.populations" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.populations">
+<span class="sig-name descname"><span class="pre">populations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.populations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read / calculate the population of each state from the dyn.out (classical NX) or .h5 (new NX) file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the MD simulations were performed with the classical Newton-X, the
+populations will be calculated using the wavefunction coefficients. In
+the new Newton-X, the populations are already calculated and available
+in the .h5 file.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a dataset with the populations obtained from all available NX trajectories
+with one column per state; if the class variable <code class="xref py py-attr docutils literal notranslate"><span class="pre">dataset</span></code>
+has been already updated with some properties, the population data will be
+merged with the existing dataset.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
 
-<dl class="py method">
-<dt id="ulamdyn.data_loader.GetProperties.save_csv">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">save_csv</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.save_csv" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.save_csv">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">save_csv</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.save_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the dataset with all QM properties read from the Newton-X trajectories.</p>
+<p>The following properties are included in the dataset:</p>
+<ul class="simple">
+<li><p>trajectory index;</p></li>
+<li><p>simulation time;</p></li>
+<li><p>total energy;</p></li>
+<li><p>energy gaps between states (eV);</p></li>
+<li><p>oscillator strength (if available);</p></li>
+<li><p>state populations.</p></li>
+</ul>
+</dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.data_loader.GetProperties.trajectories">
-<code class="sig-name descname"><span class="pre">trajectories</span></code><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.trajectories" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.trajectories">
+<span class="sig-name descname"><span class="pre">trajectories</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.trajectories" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -380,26 +538,13 @@ original units used in Newton-X are kept.</p>
 <div class="section" id="module-ulamdyn.data_writer">
 <span id="ulamdyn-data-writer-module"></span><h2>ulamdyn.data_writer module<a class="headerlink" href="#module-ulamdyn.data_writer" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ulamdyn.data_writer.Geometries">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ulamdyn.data_writer.</span></code><code class="sig-name descname"><span class="pre">Geometries</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_writer.Geometries" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_writer.Geometries">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.data_writer.</span></span><span class="sig-name descname"><span class="pre">Geometries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_writer.Geometries" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class used to save XYZ coordinates for selected frames of MD trajectories.</p>
-<p>This class requires two positional arguments in its constructor:
-- atom labels (np.array)
-- list of property names (the default properties are trajectory ID and time)</p>
-<blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">labels</span></code> (np.array): array of atom labels used to write the XYZ coordinates file.
-<code class="docutils literal notranslate"><span class="pre">properties</span></code> (list): list of properties to be added in the comment line of the XYZ file.</p>
-</div></blockquote>
-<blockquote>
-<div><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">save_xyz</span></code>: reads a set of geometries (np.array) and corresponding properties data to</dt><dd><p>save this information in a XYZ file.</p>
-</dd>
-</dl>
-</div></blockquote>
+<p>Handle and save XYZ coordinates for selected frames of MD trajectories.</p>
 <dl class="py method">
-<dt id="ulamdyn.data_writer.Geometries.save_xyz">
-<code class="sig-name descname"><span class="pre">save_xyz</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoms_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_writer.Geometries.save_xyz" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.data_writer.Geometries.save_xyz">
+<span class="sig-name descname"><span class="pre">save_xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoms_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'selected_geoms.xyz'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_writer.Geometries.save_xyz" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save an XYZ file for a set of selected molecular geometries.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -409,18 +554,10 @@ for each molecule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>geoms_array</strong> (<em>np.array</em>) – a 3D array containing the list of XYZ matrices.</p></li>
-<li><p><strong>properties_data</strong> (<em>pd.dataframe</em>) – pandas dataframe containing the property values
-of the selected geometries.</p></li>
-<li><p><strong>out_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the XYZ file containing all the selected geometries.
-The default is selected_geoms.xyz.</p></li>
+<li><p><strong>geoms_array</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – a 3D array containing the list of XYZ matrices.</p></li>
+<li><p><strong>properties_data</strong> (<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)"><em>pandas.DataFrame</em></a>) – dataframe containing the property values of the selected geometries, defaults to None.</p></li>
+<li><p><strong>out_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the XYZ file containing all the selected geometries, defaults to selected_geoms.xyz.</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -431,29 +568,29 @@ The default is selected_geoms.xyz.</p></li>
 <div class="section" id="module-ulamdyn.descriptors">
 <span id="ulamdyn-descriptors-module"></span><h2>ulamdyn.descriptors module<a class="headerlink" href="#module-ulamdyn.descriptors" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ulamdyn.descriptors.R2">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ulamdyn.descriptors.</span></code><code class="sig-name descname"><span class="pre">R2</span></code><a class="headerlink" href="#ulamdyn.descriptors.R2" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.R2">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.descriptors.</span></span><span class="sig-name descname"><span class="pre">R2</span></span><a class="headerlink" href="#ulamdyn.descriptors.R2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ulamdyn.data_loader.GetCoords" title="ulamdyn.data_loader.GetCoords"><code class="xref py py-class docutils literal notranslate"><span class="pre">ulamdyn.data_loader.GetCoords</span></code></a></p>
 <p>Construct the R2 descriptor defined as the Euclidean distances between all
 (non-equivalent) pair of atoms.</p>
 <dl class="py attribute">
-<dt id="ulamdyn.descriptors.R2.r2_ref_geom">
-<code class="sig-name descname"><span class="pre">r2_ref_geom</span></code><a class="headerlink" href="#ulamdyn.descriptors.R2.r2_ref_geom" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.R2.r2_ref_geom">
+<span class="sig-name descname"><span class="pre">r2_ref_geom</span></span><a class="headerlink" href="#ulamdyn.descriptors.R2.r2_ref_geom" title="Permalink to this definition">¶</a></dt>
 <dd><p>stores the vector with the calculated R2 descriptor for the
 reference geometry (geom.xyz).</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.descriptors.R2.build_descriptor">
-<code class="sig-name descname"><span class="pre">build_descriptor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.R2.build_descriptor" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.R2.build_descriptor">
+<span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.R2.build_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a dataframe with R2-based descriptors for all molecular geometries.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>all_geoms</strong> (<em>np.ndarray</em>) – a 3D array containing the list of XYZ matrices.</p></li>
-<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the R2 feature vector of each geometry will be
-subtracted from the R2 vector of the reference geometry.
-The defult is False.</p></li>
+<li><p><strong>variant</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – used to choose a descriptor type derived from the R2 matrix.
+Options: inv-R2, delta-R2 and RE.
+The defult is None.</p></li>
 <li><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – output a single csv file containing the R2 descriptor
 computed for all geometries in the MD trajectories.
 The defult is False.</p></li>
@@ -469,96 +606,101 @@ The defult is False.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="id0">
-<code class="sig-name descname"><span class="pre">r2_ref_geom</span></code><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.R2.r2_descriptor">
+<span class="sig-name descname"><span class="pre">r2_descriptor</span></span><a class="headerlink" href="#ulamdyn.descriptors.R2.r2_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">r2_ref_geom</span></span><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.descriptors.R2.xyz_to_distances">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">xyz_to_distances</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><a class="headerlink" href="#ulamdyn.descriptors.R2.xyz_to_distances" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.R2.xyz_to_distances">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">xyz_to_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></span><a class="headerlink" href="#ulamdyn.descriptors.R2.xyz_to_distances" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="ulamdyn.descriptors.ZMatrix">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ulamdyn.descriptors.</span></code><code class="sig-name descname"><span class="pre">ZMatrix</span></code><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.descriptors.</span></span><span class="sig-name descname"><span class="pre">ZMatrix</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ulamdyn.data_loader.GetCoords" title="ulamdyn.data_loader.GetCoords"><code class="xref py py-class docutils literal notranslate"><span class="pre">ulamdyn.data_loader.GetCoords</span></code></a></p>
 <p>Construct molecular descriptors using internal coordinates (Z-Matrix).</p>
 <p>This class does not require arguments in its constructor. All quantities related to
 distances are given in angstrom, while the features derived from angles are provided
 in degrees.</p>
 <dl class="py attribute">
-<dt id="ulamdyn.descriptors.ZMatrix.distancematrix">
-<code class="sig-name descname"><span class="pre">distancematrix</span></code><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.distancematrix" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.distancematrix">
+<span class="sig-name descname"><span class="pre">distancematrix</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.distancematrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>stores the full matrix of bond distances for all geometries.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.descriptors.ZMatrix.connectivity">
-<code class="sig-name descname"><span class="pre">connectivity</span></code><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.connectivity" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.connectivity">
+<span class="sig-name descname"><span class="pre">connectivity</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.connectivity" title="Permalink to this definition">¶</a></dt>
 <dd><p>list of tuples with the indices of connected atoms based on a
 distance criterion of proximity.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.descriptors.ZMatrix.angleconnectivity">
-<code class="sig-name descname"><span class="pre">angleconnectivity</span></code><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.angleconnectivity" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.angleconnectivity">
+<span class="sig-name descname"><span class="pre">angleconnectivity</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.angleconnectivity" title="Permalink to this definition">¶</a></dt>
 <dd><p>list of tuples with the indices of three neighboring atoms for
 which the angle will be computed.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.descriptors.ZMatrix.dihedralconnectivity">
-<code class="sig-name descname"><span class="pre">dihedralconnectivity</span></code><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.dihedralconnectivity" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.dihedralconnectivity">
+<span class="sig-name descname"><span class="pre">dihedralconnectivity</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.dihedralconnectivity" title="Permalink to this definition">¶</a></dt>
 <dd><p>list of tuples with four indices of connected atoms for which
 dihedral angle will be computed.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="ulamdyn.descriptors.ZMatrix.zmat_ref_geom">
-<code class="sig-name descname"><span class="pre">zmat_ref_geom</span></code><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.zmat_ref_geom" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.zmat_ref_geom">
+<span class="sig-name descname"><span class="pre">zmat_ref_geom</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.zmat_ref_geom" title="Permalink to this definition">¶</a></dt>
 <dd><p>stores the Z-matrix calculated for the reference geometry.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.descriptors.ZMatrix.get_distance">
-<code class="sig-name descname"><span class="pre">get_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_distance" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_distance">
+<span class="sig-name descname"><span class="pre">get_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>calculates the distances between two atoms.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.descriptors.ZMatrix.get_angle">
-<code class="sig-name descname"><span class="pre">get_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_angle" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_angle">
+<span class="sig-name descname"><span class="pre">get_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_angle" title="Permalink to this definition">¶</a></dt>
 <dd><p>calculate the angle bewtween three atoms.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.descriptors.ZMatrix.get_dihedral">
-<code class="sig-name descname"><span class="pre">get_dihedral</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_dihedral" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_dihedral">
+<span class="sig-name descname"><span class="pre">get_dihedral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_dihedral" title="Permalink to this definition">¶</a></dt>
 <dd><p>calculate the dihedral bewtween four atoms.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.descriptors.ZMatrix.get_bending">
-<code class="sig-name descname"><span class="pre">get_bending</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_bending" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_bending">
+<span class="sig-name descname"><span class="pre">get_bending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_bending" title="Permalink to this definition">¶</a></dt>
 <dd><p>calculate the bending angle defined by six atoms of the molecule.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.descriptors.ZMatrix.build_descriptor">
-<code class="sig-name descname"><span class="pre">build_descriptor</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.build_descriptor" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.build_descriptor">
+<span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.build_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a dataframe with the Z-matrix for all molecules.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="id1">
-<code class="sig-name descname"><span class="pre">angleconnectivity</span></code><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">angleconnectivity</span></span><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="id2">
-<code class="sig-name descname"><span class="pre">build_descriptor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builder for the Z-Matrix based descriptor.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -588,23 +730,23 @@ The defult is False.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="id3">
-<code class="sig-name descname"><span class="pre">connectivity</span></code><a class="headerlink" href="#id3" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">connectivity</span></span><a class="headerlink" href="#id3" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="id4">
-<code class="sig-name descname"><span class="pre">dihedralconnectivity</span></code><a class="headerlink" href="#id4" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">dihedralconnectivity</span></span><a class="headerlink" href="#id4" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="id5">
-<code class="sig-name descname"><span class="pre">distancematrix</span></code><a class="headerlink" href="#id5" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">distancematrix</span></span><a class="headerlink" href="#id5" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="id6">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_angle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><a class="headerlink" href="#id6" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id6">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#id6" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the angle formed by three atoms.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -625,8 +767,8 @@ the angle will be calculated.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id7">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_bending</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><a class="headerlink" href="#id7" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id7">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_bending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#id7" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the bending angle between two vectors that are
 perpendicular to different planes of the molecule as defined
 by two sets of three atoms.</p>
@@ -649,8 +791,8 @@ corresponding to the atoms the defines a plane.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id8">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_dihedral</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><a class="headerlink" href="#id8" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id8">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_dihedral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#id8" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the dihedral angle formed by four atoms</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -675,8 +817,8 @@ the dihedral angle will be calculated.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id9">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><a class="headerlink" href="#id9" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id9">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#id9" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the Euclidean distance between pair of atoms.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -696,8 +838,8 @@ a single molecule.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.descriptors.ZMatrix.transform">
-<code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zmat_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">funct</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.transform" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zmat_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">funct</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply a non-linear transformation to the delta Z-Matrix dataset.</p>
 <dl>
 <dt>Implemented functions:</dt><dd><p>-sigmoid: retuns a dataframe with values ranging from 0 to 1
@@ -710,8 +852,150 @@ a single molecule.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="id10">
-<code class="sig-name descname"><span class="pre">zmat_ref_geom</span></code><a class="headerlink" href="#id10" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">zmat_ref_geom</span></span><a class="headerlink" href="#id10" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ulamdyn.interface">
+<span id="ulamdyn-interface-module"></span><h2>ulamdyn.interface module<a class="headerlink" href="#module-ulamdyn.interface" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.interface.build_descriptor">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">descriptor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">getcoords_obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.build_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.interface.get_kinetic_energies">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">get_kinetic_energies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.get_kinetic_energies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.interface.get_properties_data">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">get_properties_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmsd_vec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.get_properties_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.interface.run_bootstrap">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">run_bootstrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.run_bootstrap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.interface.run_clustering">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">run_clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.run_clustering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.interface.run_dim_reduction">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">run_dim_reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.run_dim_reduction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.interface.save_data">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">save_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_to_save</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.save_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.interface.save_xyz_hoppings">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">save_xyz_hoppings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states_pair</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.save_xyz_hoppings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ulamdyn.kinetics">
+<span id="ulamdyn-kinetics-module"></span><h2>ulamdyn.kinetics module<a class="headerlink" href="#module-ulamdyn.kinetics" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.kinetics.</span></span><span class="sig-name descname"><span class="pre">GetVelocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Collect velocities from all MD trajectories of Newton-X.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.from_all_trajs">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_all_trajs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.from_all_trajs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.from_dyn">
+<span class="sig-name descname"><span class="pre">from_dyn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.from_dyn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the velocities from one trajectory (dyn.out file) of Newton-X.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.n_atoms">
+<span class="sig-name descname"><span class="pre">n_atoms</span></span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.n_atoms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.read_all_trajs">
+<span class="sig-name descname"><span class="pre">read_all_trajs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.read_all_trajs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the atom velocities from all available trajectories, and
+store the stacked matrices in the class variable <code class="docutils literal notranslate"><span class="pre">veloc</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.trajectories">
+<span class="sig-name descname"><span class="pre">trajectories</span></span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.trajectories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.veloc">
+<span class="sig-name descname"><span class="pre">veloc</span></span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.veloc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.kinetics.</span></span><span class="sig-name descname"><span class="pre">KineticEnergy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.atom_labels">
+<span class="sig-name descname"><span class="pre">atom_labels</span></span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.atom_labels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.atom_mass">
+<span class="sig-name descname"><span class="pre">atom_mass</span></span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.atom_mass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.build_dataframe">
+<span class="sig-name descname"><span class="pre">build_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discretization_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_mols_per_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_atoms_per_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.build_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a pandas DataFrame containing the atomic kinetic energies.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.calc_per_atom">
+<span class="sig-name descname"><span class="pre">calc_per_atom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.calc_per_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the kinetic energy of each atom for all MD trajectories available.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.calc_per_molecule">
+<span class="sig-name descname"><span class="pre">calc_per_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_mols_per_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_atoms_per_mol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.calc_per_molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum the atomic contributions of kinetic energy for each molecule.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the current version, this function only supports two different types
+of molecules in the geom file, where the first one should always
+correspond to the solute. The function will be generalized in future
+versions to support any number of different molecules.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.energies">
+<span class="sig-name descname"><span class="pre">energies</span></span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.energies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.n_atoms">
+<span class="sig-name descname"><span class="pre">n_atoms</span></span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.n_atoms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.trajectories">
+<span class="sig-name descname"><span class="pre">trajectories</span></span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.trajectories" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -719,108 +1003,124 @@ a single molecule.</p></li>
 </div>
 <div class="section" id="module-ulamdyn.run_analysis">
 <span id="ulamdyn-run-analysis-module"></span><h2>ulamdyn.run_analysis module<a class="headerlink" href="#module-ulamdyn.run_analysis" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="ulamdyn.run_analysis.build_descriptor">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.run_analysis.</span></code><code class="sig-name descname"><span class="pre">build_descriptor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">descriptor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">getcoords_obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.run_analysis.build_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="ulamdyn.run_analysis.run_bootstrap">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.run_analysis.</span></code><code class="sig-name descname"><span class="pre">run_bootstrap</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.run_analysis.run_bootstrap" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="ulamdyn.run_analysis.run_dim_reduction">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.run_analysis.</span></code><code class="sig-name descname"><span class="pre">run_dim_reduction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.run_analysis.run_dim_reduction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="ulamdyn.run_analysis.save_data">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.run_analysis.</span></code><code class="sig-name descname"><span class="pre">save_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_to_save</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.run_analysis.save_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="ulamdyn.run_analysis.save_xyz_hoppings">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.run_analysis.</span></code><code class="sig-name descname"><span class="pre">save_xyz_hoppings</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states_pair</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.run_analysis.save_xyz_hoppings" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 <div class="section" id="module-ulamdyn.statistics">
 <span id="ulamdyn-statistics-module"></span><h2>ulamdyn.statistics module<a class="headerlink" href="#module-ulamdyn.statistics" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt id="ulamdyn.statistics.add_column">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></code><code class="sig-name descname"><span class="pre">add_column</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.add_column" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.statistics.aggregate_by_time">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">aggregate_by_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.aggregate_by_time" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="ulamdyn.statistics.aggregate_data">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></code><code class="sig-name descname"><span class="pre">aggregate_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.aggregate_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.statistics.aggregate_data">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">aggregate_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars_to_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['time']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.aggregate_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="ulamdyn.statistics.bootstrap">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></code><code class="sig-name descname"><span class="pre">bootstrap</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.bootstrap" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.statistics.bootstrap">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">bootstrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.bootstrap" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="ulamdyn.statistics.calc_avg_occupations">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></code><code class="sig-name descname"><span class="pre">calc_avg_occupations</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.calc_avg_occupations" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.statistics.calc_avg_occupations">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">calc_avg_occupations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.calc_avg_occupations" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="ulamdyn.statistics.calc_ci">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></code><code class="sig-name descname"><span class="pre">calc_ci</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.calc_ci" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.statistics.calc_ci">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">calc_ci</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.calc_ci" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a percentile range from an array of values.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="ulamdyn.statistics.create_bootstrap_stats">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></code><code class="sig-name descname"><span class="pre">create_bootstrap_stats</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ci_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">95</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.create_bootstrap_stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.statistics.create_bootstrap_stats">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">create_bootstrap_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ci_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">95</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.create_bootstrap_stats" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="ulamdyn.statistics.create_stats">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></code><code class="sig-name descname"><span class="pre">create_stats</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selected_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.create_stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.statistics.create_stats">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">create_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selected_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.create_stats" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="ulamdyn.statistics.stats_hopping">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></code><code class="sig-name descname"><span class="pre">stats_hopping</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.stats_hopping" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.statistics.stats_hopping">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">stats_hopping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.stats_hopping" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-ulamdyn.unsup_models">
 <span id="ulamdyn-unsup-models-module"></span><h2>ulamdyn.unsup_models module<a class="headerlink" href="#module-ulamdyn.unsup_models" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ulamdyn.unsup_models.DimensionalityReduction">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ulamdyn.unsup_models.</span></code><code class="sig-name descname"><span class="pre">DimensionalityReduction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.Clustering">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.unsup_models.</span></span><span class="sig-name descname"><span class="pre">Clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">51</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.Clustering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ulamdyn.unsup_models.Utils</span></code></p>
 <dl class="py method">
-<dt id="ulamdyn.unsup_models.DimensionalityReduction.data_scaling">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">data_scaling</span></code><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.data_scaling" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.Clustering.hierarchical">
+<span class="sig-name descname"><span class="pre">hierarchical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affinity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cosine'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_full_tree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'single'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.Clustering.hierarchical" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.unsup_models.DimensionalityReduction.isomap">
-<code class="sig-name descname"><span class="pre">isomap</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'minkowski'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.isomap" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.Clustering.kmeans">
+<span class="sig-name descname"><span class="pre">kmeans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k-means++'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convergence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.Clustering.kmeans" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="ulamdyn.unsup_models.DimensionalityReduction.kpca">
-<code class="sig-name descname"><span class="pre">kpca</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rbf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_inverse_transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.kpca" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="ulamdyn.unsup_models.DimensionalityReduction.pca">
-<code class="sig-name descname"><span class="pre">pca</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.pca" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="ulamdyn.unsup_models.DimensionalityReduction.tsne">
-<code class="sig-name descname"><span class="pre">tsne</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perplexity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter_without_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pca'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'barnes_hut'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">square_distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'legacy'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.tsne" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.Clustering.spectral">
+<span class="sig-name descname"><span class="pre">spectral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affinity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rbf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.Clustering.spectral" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.DimensionalityReduction">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.unsup_models.</span></span><span class="sig-name descname"><span class="pre">DimensionalityReduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ulamdyn.unsup_models.Utils</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.DimensionalityReduction.isomap">
+<span class="sig-name descname"><span class="pre">isomap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'minkowski'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.isomap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Isomap Embedding</p>
+<p>Non-linear dimensionality reduction through Isometric Mapping</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.DimensionalityReduction.kpca">
+<span class="sig-name descname"><span class="pre">kpca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rbf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_inverse_transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.kpca" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.DimensionalityReduction.pca">
+<span class="sig-name descname"><span class="pre">pca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.pca" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.unsup_models.DimensionalityReduction.tsne">
+<span class="sig-name descname"><span class="pre">tsne</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perplexity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter_without_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pca'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'barnes_hut'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">square_distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'legacy'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.unsup_models.DimensionalityReduction.tsne" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ulamdyn.utilities">
+<span id="ulamdyn-utilities-module"></span><h2>ulamdyn.utilities module<a class="headerlink" href="#module-ulamdyn.utilities" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.utilities.get_num_atoms">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.utilities.</span></span><span class="sig-name descname"><span class="pre">get_num_atoms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.utilities.get_num_atoms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.utilities.get_nx_version">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.utilities.</span></span><span class="sig-name descname"><span class="pre">get_nx_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traj_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.utilities.get_nx_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.utilities.get_traj_dirs">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.utilities.</span></span><span class="sig-name descname"><span class="pre">get_traj_dirs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.utilities.get_traj_dirs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ulamdyn.utilities.read_h5_nx">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.utilities.</span></span><span class="sig-name descname"><span class="pre">read_h5_nx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.utilities.read_h5_nx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-contents">
@@ -831,15 +1131,16 @@ data preprocessing, statistical and unsupervised learning analysis of
 (non-adiabatic) molecular dynamics simulations.</p>
 <p>ULaMDyn consists of five general modules:</p>
 <ul class="simple">
-<li><p>DataLoader</p></li>
-<li><p>DataWriter</p></li>
+<li><p>Data_Loader</p></li>
+<li><p>Data_Writer</p></li>
 <li><p>Statistics</p></li>
+<li><p>Kinetics</p></li>
 <li><p>Descriptors</p></li>
-<li><p>UnsupModels</p></li>
+<li><p>Unsup_Models</p></li>
 </ul>
 <dl class="py function">
-<dt id="ulamdyn.export">
-<code class="sig-prename descclassname"><span class="pre">ulamdyn.</span></code><code class="sig-name descname"><span class="pre">export</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.export" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.export">
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.</span></span><span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.export" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
