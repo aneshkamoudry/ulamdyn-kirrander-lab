@@ -35,6 +35,7 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -211,10 +212,10 @@ the class are given in angstroms.</p>
 <dd><p>Method to calculate the RMSD between the current and reference geometries.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Before calculating the RMSD, the method uses the Kabsch algorithm to find</p>
+<p>Before calculating the RMSD, the method uses the Kabsch algorithm to find
+the optimal alignment between the loaded molecular geometry for each time
+step t and the reference geometry.</p>
 </div>
-<p>the optimal alignment between the loaded molecular geometry for each time step t
-and the reference geometry.</p>
 <p>The calculated RMSD values will be stored in the class attribute
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">rmsd_values</span></code>, while the <code class="xref py py-attr docutils literal notranslate"><span class="pre">xyz</span></code>
 attribute will be updated with the aligned geometries.</p>
@@ -267,7 +268,7 @@ single MD trajectory.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>tuple containing an array of strings defining the atom labels, and a
-tensor of size (n_steps, n_atoms, 3) with all XYZ coordinates of a
+tensor of shape (n_steps, n_atoms, 3) with all XYZ coordinates of a
 single MD trajectory.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
@@ -318,9 +319,10 @@ After reading the coordinates, the method will update the class attributes
 <dl class="py property">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.save_csv">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">save_csv</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.save_csv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save all loaded geometries (raw format) as a csv file.</p>
+<dd><p>Save all loaded geometries (raw format) into a csv file.</p>
 <p>If the RMSD has been calculated, it will be included as an extra column in the
 XYZ coordinates data set.</p>
+<p>The default name of the output file is all_coordinates.csv.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -339,7 +341,7 @@ XYZ coordinates data set.</p>
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.data_loader.</span></span><span class="sig-name descname"><span class="pre">GetGradients</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class used to read the gradients (forces) from Newton-X MD trajectories.</p>
+<p>Class used to read the QM gradients from Newton-X MD trajectories.</p>
 <p>This class does not require arguments in its constructor. The outputs generate by
 the class is given in eV/angstrom.</p>
 <blockquote>
@@ -362,7 +364,8 @@ the MD trajectories.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True enable the output of all gradient dataframes in a csv format,
-defaults to False</p>
+defaults to False. The default name of the outputed dataset is
+all_gradients_s[n].csv, where <em>n</em> is the number of the state.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -424,16 +427,9 @@ original units used in Newton-X are kept.</p>
 </div>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">trajectories</span></code> (list): trajectories ID (TRAJXX) available in the working directory.</p>
-<p><code class="docutils literal notranslate"><span class="pre">dataset</span></code> (pd.dataframe): stores a dataframe with all available properties.</p>
-<p><code class="docutils literal notranslate"><span class="pre">num_states</span></code> (int): keeps track of the number of states considered in the MD simulations.</p>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">nx_version</span></code> (str): recognize the Newton-X version, can be either cs (classical series) or</dt><dd><p>ns (new series).</p>
-</dd>
-</dl>
-</div></blockquote>
-<blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">oscillator_strength</span></code>: if available, reads the oscillator strength from the properties file.
-<code class="docutils literal notranslate"><span class="pre">populations</span></code>: computes the states populations with data taken from dyn.out file.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dataset</span></code> (pd.dataframe): store a dataframe with all available properties.</p>
+<p><code class="docutils literal notranslate"><span class="pre">num_states</span></code> (int): keep track of the number of states considered in the MD simulation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">nx_version</span></code> (str): identify the Newton-X version, can be either cs (classical series) or ns (new series).</p>
 </div></blockquote>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.dataset">
@@ -480,7 +476,10 @@ documentation to see what are the required keywords and methods.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>a dataset with the oscillator strength information read from all available
-NX trajectories with one column for each transition between states.</p>
+NX trajectories with one column for each transition between states; if the
+class variable <code class="xref py py-attr docutils literal notranslate"><span class="pre">dataset</span></code> has been already
+updated with some properties, the oscillator strength data will be merged
+with the existing properties dataset.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
@@ -571,36 +570,39 @@ for each molecule.</p>
 <dt class="sig sig-object py" id="ulamdyn.descriptors.R2">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.descriptors.</span></span><span class="sig-name descname"><span class="pre">R2</span></span><a class="headerlink" href="#ulamdyn.descriptors.R2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ulamdyn.data_loader.GetCoords" title="ulamdyn.data_loader.GetCoords"><code class="xref py py-class docutils literal notranslate"><span class="pre">ulamdyn.data_loader.GetCoords</span></code></a></p>
-<p>Construct the R2 descriptor defined as the Euclidean distances between all
-(non-equivalent) pair of atoms.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.R2.r2_ref_geom">
-<span class="sig-name descname"><span class="pre">r2_ref_geom</span></span><a class="headerlink" href="#ulamdyn.descriptors.R2.r2_ref_geom" title="Permalink to this definition">¶</a></dt>
-<dd><p>stores the vector with the calculated R2 descriptor for the
-reference geometry (geom.xyz).</p>
-</dd></dl>
-
+<p>Class used to convert the XYZ coordinates of molecular geometries into R2-type of descriptors.</p>
+<p>The R2 descriptor is defined as the (flattened) matrix of all pairwise Euclidean distances
+between all atoms in the molecule. Since the matrix is symmetric with respect to the interchange
+of atom indices (i.e., Dij = Dji) only the lower triangular portion of the R2 matrix will be
+outputed in the final data set.</p>
+<p>This class also provides a method to compute other molecular descriptors derived from the R2
+distance matrix. They are:</p>
+<ul class="simple">
+<li><p>inverse R2 -&gt; defined as <span class="math notranslate nohighlight">\(1/R_{ij}\)</span>, similarly to the Coulomb matrix descriptor.</p></li>
+<li><p>delta R2 -&gt; difference between the R2 vector of the current geometry in time <em>t</em> and the equivalent R2 vector of a reference geometry (typically the ground-state geometry), <span class="math notranslate nohighlight">\(R_{ij}(t) - R_{ij}(ref)\)</span>.</p></li>
+<li><p>RE -&gt; R2 vector normalized relative to equilibrium geometry, <span class="math notranslate nohighlight">\(R_{ij}(eq)/R_{ij}(t)\)</span>. For more details, check the reference <a class="reference external" href="https://aip.scitation.org/doi/10.1063/1.4989536">J. Chem. Phys. 146, 244108 (2017)</a>.</p></li>
+</ul>
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.descriptors.R2.build_descriptor">
 <span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.R2.build_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a dataframe with R2-based descriptors for all molecular geometries.</p>
+<dd><p>Generate a dataframe with R2-based descriptors for all molecular geometries.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>all_geoms</strong> (<em>np.ndarray</em>) – a 3D array containing the list of XYZ matrices.</p></li>
-<li><p><strong>variant</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – used to choose a descriptor type derived from the R2 matrix.
-Options: inv-R2, delta-R2 and RE.
-The defult is None.</p></li>
-<li><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – output a single csv file containing the R2 descriptor
-computed for all geometries in the MD trajectories.
-The defult is False.</p></li>
+<li><p><strong>all_geoms</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – tensor of shape (nsamples, natoms, 3) containing the stacked
+XYZ coordinates read from all available MD trajectories.</p></li>
+<li><p><strong>variant</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – type of R2 descriptor, defaults to None.</p></li>
+<li><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True export the data set with all calculated descriptors in
+a csv format with name pairwise_distances.csv, defaults to False.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Dataframe with the R2 descriptors for all geometries</p>
+<dd class="field-even"><p>a dataframe object of shape (nsamples, natoms * (natoms - 1)/2), where
+each row is a vector with the R2-based descriptor computed for a given
+molecular geometry.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><cite>pandas.DataFrame</cite></p>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -611,14 +613,28 @@ The defult is False.</p></li>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">r2_ref_geom</span></span><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.R2.r2_ref_geom">
+<span class="sig-name descname"><span class="pre">r2_ref_geom</span></span><a class="headerlink" href="#ulamdyn.descriptors.R2.r2_ref_geom" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.descriptors.R2.xyz_to_distances">
 <em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">xyz_to_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></span><a class="headerlink" href="#ulamdyn.descriptors.R2.xyz_to_distances" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Calculate the pairwise distance matrix for a given XYZ geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>xyz_matrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – Cartesian coordinates of a molecular structure given as a
+matrix of shape (n_atoms, 3).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>vector of size <span class="math notranslate nohighlight">\(n_{atoms} * (n_{atoms} - 1)/2\)</span> containing the
+lower triangular portion of the R2 matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -626,81 +642,32 @@ The defult is False.</p></li>
 <dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.descriptors.</span></span><span class="sig-name descname"><span class="pre">ZMatrix</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ulamdyn.data_loader.GetCoords" title="ulamdyn.data_loader.GetCoords"><code class="xref py py-class docutils literal notranslate"><span class="pre">ulamdyn.data_loader.GetCoords</span></code></a></p>
-<p>Construct molecular descriptors using internal coordinates (Z-Matrix).</p>
+<p>Class used to generate molecular descriptors using internal coordinates (Z-Matrix).</p>
 <p>This class does not require arguments in its constructor. All quantities related to
 distances are given in angstrom, while the features derived from angles are provided
 in degrees.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.distancematrix">
-<span class="sig-name descname"><span class="pre">distancematrix</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.distancematrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>stores the full matrix of bond distances for all geometries.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.connectivity">
-<span class="sig-name descname"><span class="pre">connectivity</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.connectivity" title="Permalink to this definition">¶</a></dt>
-<dd><p>list of tuples with the indices of connected atoms based on a
-distance criterion of proximity.</p>
-</dd></dl>
-
+<p>In addition to the standard Z-Matrix, the class also provides a method to compute other
+variants of the Z-Matrix molecular descriptors:</p>
+<ul class="simple">
+<li><p>delta Z-Matrix -&gt; difference between the Z-Matrix representation of the current geometry in time <em>t</em> and the Z-Matrix of a reference geometry.</p></li>
+<li><p>tanh Z-Matrix -&gt; hyperbolic tangent transformation on all features of delta Z-Matrix.</p></li>
+<li><p>sig Z-Matrix -&gt; sigmoid transformation on all features of delta Z-Matrix.</p></li>
+</ul>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">distancematrix</span></code> (numpy.ndarray): stores the full matrix of bond distances for all geometries.</p>
+<p><code class="docutils literal notranslate"><span class="pre">connectivity</span></code> (list): indices of connected atoms based on a distance criterion of proximity.</p>
+<p><code class="docutils literal notranslate"><span class="pre">angleconnectivity</span></code> (list): indices of three neighboring atoms to compute angles.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dihedralconnectivity</span></code> (list): four indices of neighboring atoms to calculate dihedrals.</p>
+<p><code class="docutils literal notranslate"><span class="pre">zmat_ref_geom</span></code> (numpy.ndarray): stores the Z-matrix calculated for the reference geometry.</p>
+</div></blockquote>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.angleconnectivity">
 <span class="sig-name descname"><span class="pre">angleconnectivity</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.angleconnectivity" title="Permalink to this definition">¶</a></dt>
-<dd><p>list of tuples with the indices of three neighboring atoms for
-which the angle will be computed.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.dihedralconnectivity">
-<span class="sig-name descname"><span class="pre">dihedralconnectivity</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.dihedralconnectivity" title="Permalink to this definition">¶</a></dt>
-<dd><p>list of tuples with four indices of connected atoms for which
-dihedral angle will be computed.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.zmat_ref_geom">
-<span class="sig-name descname"><span class="pre">zmat_ref_geom</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.zmat_ref_geom" title="Permalink to this definition">¶</a></dt>
-<dd><p>stores the Z-matrix calculated for the reference geometry.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_distance">
-<span class="sig-name descname"><span class="pre">get_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_distance" title="Permalink to this definition">¶</a></dt>
-<dd><p>calculates the distances between two atoms.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_angle">
-<span class="sig-name descname"><span class="pre">get_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_angle" title="Permalink to this definition">¶</a></dt>
-<dd><p>calculate the angle bewtween three atoms.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_dihedral">
-<span class="sig-name descname"><span class="pre">get_dihedral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_dihedral" title="Permalink to this definition">¶</a></dt>
-<dd><p>calculate the dihedral bewtween four atoms.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_bending">
-<span class="sig-name descname"><span class="pre">get_bending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_bending" title="Permalink to this definition">¶</a></dt>
-<dd><p>calculate the bending angle defined by six atoms of the molecule.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.build_descriptor">
-<span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.build_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd><p>return a dataframe with the Z-matrix for all molecules.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">angleconnectivity</span></span><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.build_descriptor">
+<span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.build_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builder for the Z-Matrix based descriptor.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -730,45 +697,44 @@ The defult is False.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id3">
-<span class="sig-name descname"><span class="pre">connectivity</span></span><a class="headerlink" href="#id3" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.connectivity">
+<span class="sig-name descname"><span class="pre">connectivity</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.connectivity" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id4">
-<span class="sig-name descname"><span class="pre">dihedralconnectivity</span></span><a class="headerlink" href="#id4" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.dihedralconnectivity">
+<span class="sig-name descname"><span class="pre">dihedralconnectivity</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.dihedralconnectivity" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id5">
-<span class="sig-name descname"><span class="pre">distancematrix</span></span><a class="headerlink" href="#id5" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.distancematrix">
+<span class="sig-name descname"><span class="pre">distancematrix</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.distancematrix" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id6">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#id6" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the angle formed by three atoms.</p>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_angle">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the angle formed by three selected atoms.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>geom</strong> (<em>np.array</em>) – a matrix (n_atoms x 3) having the Cartesian coordinates for
-a single molecule.</p></li>
-<li><p><strong>idx_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – a list of three indices corresponding to the atoms for which
-the angle will be calculated.</p></li>
+<li><p><strong>geom</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.</p></li>
+<li><p><strong>idx_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – a list of three indices corresponding to the atoms for which the angle
+will be calculated.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>angle (in degrees) between three selected atoms.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><cite>numpy.float</cite></p>
+<dd class="field-odd"><p>numpy.float</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id7">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_bending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#id7" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_bending">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_bending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_bending" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the bending angle between two vectors that are
 perpendicular to different planes of the molecule as defined
 by two sets of three atoms.</p>
@@ -791,48 +757,43 @@ corresponding to the atoms the defines a plane.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id8">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_dihedral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#id8" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the dihedral angle formed by four atoms</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>It uses the praxeolitic formula: 1 sqrt, 1 cross product.</p>
-</div>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_dihedral">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_dihedral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_dihedral" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the dihedral angle formed by four selected atoms.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>geom</strong> (<em>np.array</em>) – a matrix (n_atoms x 3) having the Cartesian coordinates for
-a single molecule.</p></li>
-<li><p><strong>idx_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – a list of four indices corresponding to the atoms for which
-the dihedral angle will be calculated.</p></li>
+<li><p><strong>geom</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.</p></li>
+<li><p><strong>idx_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – a list of four indices to select the atoms for which the dihedral angle
+will be calculated.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>dihedral angle (in degrees) formed by four specified atoms.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><cite>numpy.float</cite></p>
+<dd class="field-odd"><p>numpy.float</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id9">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#id9" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the Euclidean distance between pair of atoms.</p>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_distance">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the Euclidean distance between a pair of atoms.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>geom</strong> (<em>np.array</em>) – a matrix (n_atoms x 3) having the Cartesian coordinates for
-a single molecule.</p></li>
-<li><p><strong>idx_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – a pair of indices for the selected atoms.</p></li>
+<li><p><strong>geom</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.</p></li>
+<li><p><strong>idx_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – a pair of indices corresponding to the atoms for which the distance will
+be calculated.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>distance (in Angstrom) between two selected atoms.</p>
+<dd class="field-even"><p>Euclidean distance (in Angstrom) between two selected atoms.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><cite>numpy.float</cite></p>
+<dd class="field-odd"><p>numpy.float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -852,8 +813,8 @@ a single molecule.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id10">
-<span class="sig-name descname"><span class="pre">zmat_ref_geom</span></span><a class="headerlink" href="#id10" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.zmat_ref_geom">
+<span class="sig-name descname"><span class="pre">zmat_ref_geom</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.zmat_ref_geom" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

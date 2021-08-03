@@ -23,27 +23,48 @@ filedir = os.path.dirname(__file__)
 
 
 class R2(GetCoords):
-    """Construct the R2 descriptor defined as the Euclidean distances between all
-    (non-equivalent) pair of atoms.
+    """Class used to convert the XYZ coordinates of molecular geometries into R2-type of descriptors.
 
-    Attributes:
-       r2_ref_geom: stores the vector with the calculated R2 descriptor for the
-                    reference geometry (geom.xyz).
+    The R2 descriptor is defined as the (flattened) matrix of all pairwise Euclidean distances
+    between all atoms in the molecule. Since the matrix is symmetric with respect to the interchange
+    of atom indices (i.e., Dij = Dji) only the lower triangular portion of the R2 matrix will be
+    outputed in the final data set.
+
+    This class also provides a method to compute other molecular descriptors derived from the R2
+    distance matrix. They are:
+
+    - inverse R2 -> defined as :math:`1/R_{ij}`, similarly to the Coulomb matrix descriptor.
+    - delta R2 -> difference between the R2 vector of the current geometry in time *t* and the equivalent R2 vector of a reference geometry (typically the ground-state geometry), :math:`R_{ij}(t) - R_{ij}(ref)`.
+    - RE -> R2 vector normalized relative to equilibrium geometry, :math:`R_{ij}(eq)/R_{ij}(t)`. For more details, check the reference `J. Chem. Phys. 146, 244108 (2017) <https://aip.scitation.org/doi/10.1063/1.4989536>`_.
 
     """
 
     __slots__ = ["r2_ref_geom", "r2_descriptor"]
 
-    def __str__(self):
-        return "Generator of R2 descriptor from molecular geometries."
+    def __repr__(self) -> str:
+        """Provide a string representation of the class.
+
+        :return: Short description of the class functionality.
+        :rtype: str
+        """
+        return "Generator of R2-based descriptors from molecular geometries."
 
     def __init__(self):
+        """Class initializer."""
         self.r2_ref_geom = None
         self.r2_descriptor = None
 
     @staticmethod
     def xyz_to_distances(xyz_matrix: np.ndarray) -> np.ndarray:
+        """Calculate the pairwise distance matrix for a given XYZ geometry.
 
+        :param xyz_matrix: Cartesian coordinates of a molecular structure given as a
+                           matrix of shape (n_atoms, 3).
+        :type xyz_matrix: numpy.ndarray
+        :return: vector of size :math:`n_{atoms} x (n_{atoms} - 1)/2` containing the
+                 lower triangular portion of the R2 matrix.
+        :rtype: numpy.ndarray
+        """
         n_atoms = len(xyz_matrix)
         distance_matrix = np.zeros((n_atoms, n_atoms))
 
@@ -71,21 +92,20 @@ class R2(GetCoords):
                 self.r2_descriptor = self.r2_ref_geom / self.r2_descriptor
 
     def build_descriptor(self, all_geoms: np.ndarray, variant=None, save_csv=False):
+        """Generate a dataframe with R2-based descriptors for all molecular geometries.
 
-        """Create a dataframe with R2-based descriptors for all molecular geometries.
-
-        Args:
-           all_geoms (np.ndarray): a 3D array containing the list of XYZ matrices.
-           variant (str): used to choose a descriptor type derived from the R2 matrix.
-                          Options: inv-R2, delta-R2 and RE.
-                          The defult is None.
-           save_csv (bool): output a single csv file containing the R2 descriptor
-                            computed for all geometries in the MD trajectories.
-                            The defult is False.
-
-        Returns:
-           `pandas.DataFrame`: Dataframe with the R2 descriptors for all geometries
-
+        :param all_geoms: tensor of shape (nsamples, natoms, 3) containing the stacked
+                          XYZ coordinates read from all available MD trajectories.
+        :type all_geoms: numpy.ndarray
+        :param variant: type of R2 descriptor, defaults to None.
+        :type variant: str, optional
+        :param save_csv: if True export the data set with all calculated descriptors in
+                         a csv format with name pairwise_distances.csv, defaults to False.
+        :type save_csv: bool, optional
+        :return: a dataframe object of shape (nsamples, natoms * (natoms - 1)/2), where
+                 each row is a vector with the R2-based descriptor computed for a given
+                 molecular geometry.
+        :rtype: pandas.DataFrame
         """
         n_samples, n_atoms, _ = all_geoms.shape
         id_atom_pairs = np.tril_indices(n_atoms, -1)
@@ -112,28 +132,26 @@ class R2(GetCoords):
 
 
 class ZMatrix(GetCoords):
-    """Construct molecular descriptors using internal coordinates (Z-Matrix).
+    """Class used to generate molecular descriptors using internal coordinates (Z-Matrix).
 
     This class does not require arguments in its constructor. All quantities related to
     distances are given in angstrom, while the features derived from angles are provided
     in degrees.
 
-    Attributes:
-       distancematrix: stores the full matrix of bond distances for all geometries.
-       connectivity: list of tuples with the indices of connected atoms based on a
-                         distance criterion of proximity.
-       angleconnectivity: list of tuples with the indices of three neighboring atoms for
-                              which the angle will be computed.
-       dihedralconnectivity: list of tuples with four indices of connected atoms for which
-                                 dihedral angle will be computed.
-       zmat_ref_geom: stores the Z-matrix calculated for the reference geometry.
+    In addition to the standard Z-Matrix, the class also provides a method to compute other
+    variants of the Z-Matrix molecular descriptors:
 
-    Methods:
-       get_distance (static): calculates the distances between two atoms.
-       get_angle (static): calculate the angle bewtween three atoms.
-       get_dihedral (static): calculate the dihedral bewtween four atoms.
-       get_bending (static): calculate the bending angle defined by six atoms of the molecule.
-       build_descriptor: return a dataframe with the Z-matrix for all molecules.
+    - delta Z-Matrix -> difference between the Z-Matrix representation of the current geometry in time *t* and the Z-Matrix of a reference geometry.
+    - tanh Z-Matrix -> hyperbolic tangent transformation on all features of delta Z-Matrix.
+    - sig Z-Matrix -> sigmoid transformation on all features of delta Z-Matrix.
+
+    Data attributes:
+    ----------------
+       ``distancematrix`` (numpy.ndarray): stores the full matrix of bond distances for all geometries.\n
+       ``connectivity`` (list): indices of connected atoms based on a distance criterion of proximity.\n
+       ``angleconnectivity`` (list): indices of three neighboring atoms to compute angles.\n
+       ``dihedralconnectivity`` (list): four indices of neighboring atoms to calculate dihedrals.\n
+       ``zmat_ref_geom`` (numpy.ndarray): stores the Z-matrix calculated for the reference geometry.
 
     """
 
@@ -146,11 +164,11 @@ class ZMatrix(GetCoords):
         "zmat_ref_geom",
     ]
 
-    def __str__(self):
+    def __repr__(self):
         return "Generator of Z-Matrix descriptors from molecular geometries."
 
     def __init__(self):
-
+        """Class initializer."""
         self.distancematrix = None
 
         # Internal Coordinate Connectivity
@@ -163,16 +181,15 @@ class ZMatrix(GetCoords):
 
     @staticmethod
     def get_distance(geom: np.ndarray, idx_atoms: list) -> np.float:
-        """Calculate the Euclidean distance between pair of atoms.
+        """Calculate the Euclidean distance between a pair of atoms.
 
-        Args:
-           geom (np.array): a matrix (n_atoms x 3) having the Cartesian coordinates for
-                            a single molecule.
-           idx_atoms (list): a pair of indices for the selected atoms.
-
-        Returns:
-           `numpy.float`: distance (in Angstrom) between two selected atoms.
-
+        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
+        :type geom: numpy.ndarray
+        :param idx_atoms: a pair of indices corresponding to the atoms for which the distance will
+                          be calculated.
+        :type idx_atoms: list
+        :return: Euclidean distance (in Angstrom) between two selected atoms.
+        :rtype: numpy.float
         """
         i, j = idx_atoms
         vec = geom[j] - geom[i]
@@ -182,17 +199,15 @@ class ZMatrix(GetCoords):
 
     @staticmethod
     def get_angle(geom: np.ndarray, idx_atoms: list) -> np.float:
-        """Calculate the angle formed by three atoms.
+        """Calculate the angle formed by three selected atoms.
 
-        Args:
-           geom (np.array): a matrix (n_atoms x 3) having the Cartesian coordinates for
-                            a single molecule.
-           idx_atoms (list): a list of three indices corresponding to the atoms for which
-                             the angle will be calculated.
-
-        Returns:
-           `numpy.float`: angle (in degrees) between three selected atoms.
-
+        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
+        :type geom: numpy.ndarray
+        :param idx_atoms: a list of three indices corresponding to the atoms for which the angle
+                          will be calculated.
+        :type idx_atoms: list
+        :return: angle (in degrees) between three selected atoms.
+        :rtype: numpy.float
         """
         i, j, k = idx_atoms
         rij = geom[i] - geom[j]
@@ -206,21 +221,16 @@ class ZMatrix(GetCoords):
 
     @staticmethod
     def get_dihedral(geom: np.ndarray, idx_atoms: list) -> np.float:
-        """Calculate the dihedral angle formed by four atoms
+        """Calculate the dihedral angle formed by four selected atoms.
 
-        .. note:: It uses the praxeolitic formula: 1 sqrt, 1 cross product.
-
-        Args:
-           geom (np.array): a matrix (n_atoms x 3) having the Cartesian coordinates for
-                            a single molecule.
-           idx_atoms (list): a list of four indices corresponding to the atoms for which
-                             the dihedral angle will be calculated.
-
-        Returns:
-           `numpy.float`: dihedral angle (in degrees) formed by four specified atoms.
-
+        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
+        :type geom: numpy.ndarray
+        :param idx_atoms: a list of four indices to select the atoms for which the dihedral angle
+                          will be calculated.
+        :type idx_atoms: list
+        :return: dihedral angle (in degrees) formed by four specified atoms.
+        :rtype: numpy.float
         """
-
         if not isinstance(idx_atoms, list):
             idx_atoms = list(idx_atoms)
 

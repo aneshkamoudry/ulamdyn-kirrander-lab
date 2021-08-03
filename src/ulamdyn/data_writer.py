@@ -18,6 +18,9 @@ __all__ = ["Geometries"]
 class Geometries:
     """Handle and save XYZ coordinates for selected frames of MD trajectories."""
 
+    def __repr__(self) -> str:
+        return "Module to export molecular geometries in xyz format."
+
     def __init__(self, atom_labels, add_properties=list()):
         """Class initialization.
 

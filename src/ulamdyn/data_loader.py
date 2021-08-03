@@ -59,8 +59,8 @@ class GetCoords:
     # Defining slots to optimize performance (RAM):
     __slots__ = ["trajectories", "labels", "eq_xyz", "xyz", "rmsd", "dataset"]
 
-    def __str__(self):
-        return "Data handler class for molecular geometries."
+    def __repr__(self) -> str:
+        return "Data loader class for molecular geometries."
 
     def __init__(self):
         """Class initialization."""
@@ -356,8 +356,8 @@ class GetGradients:
     # Defining slots to optimize memory access performance (RAM):
     __slots__ = ["trajectories", "all_grads", "datasets"]
 
-    def __str__(self):
-        return "Data handler class for atomic forces (gradients)."
+    def __repr__(self) -> str:
+        return "Data loader class for QM gradients."
 
     def __init__(self):
         """Class initializer."""
@@ -538,9 +538,9 @@ class GetProperties:
 
     __slots__ = ["trajectories", "dataset", "num_states", "nx_version"]
 
-    def __str__(self):
+    def __repr__(self) -> str:
         return (
-            "Data handler class for (quantum/classical) properties of MD trajectories."
+            "Data loader class for (quantum/classical) properties of MD trajectories."
         )
 
     def __init__(self):

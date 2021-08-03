@@ -40,7 +40,8 @@ extensions = [
     u'sphinx.ext.napoleon',
     u'sphinx.ext.todo',
     u'sphinx.ext.mathjax',
-    u'sphinx.ext.intersphinx'
+    u'sphinx.ext.intersphinx',
+    u'sphinx.ext.autosectionlabel'
 #    u'sphinx.ext.viewcode',
 ]
 
