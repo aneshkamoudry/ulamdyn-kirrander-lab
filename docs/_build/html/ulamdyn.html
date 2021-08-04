@@ -627,7 +627,7 @@ molecular geometry.</p>
 matrix of shape (n_atoms, 3).</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>vector of size <span class="math notranslate nohighlight">\(n_{atoms} * (n_{atoms} - 1)/2\)</span> containing the
+<dd class="field-even"><p>vector of size <span class="math notranslate nohighlight">\(n_{atoms} x (n_{atoms} - 1)/2\)</span> containing the
 lower triangular portion of the R2 matrix.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
@@ -667,31 +667,36 @@ variants of the Z-Matrix molecular descriptors:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.build_descriptor">
-<span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.build_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builder for the Z-Matrix based descriptor.</p>
+<span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_geoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_to_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.build_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the standard Z-Matrix descriptor and other variants.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>By default, the algorithm will calculate the three main components
-of the Z-Matrix: bond distances, angles and dihedrals. An augmented
-version of the Z-Matrix descriptor can be also obtained by calculating
-additional distances, angles and dihedrals using the methods provided
+<p>By default, the algorithm will calculate the three main components of the
+Z-Matrix: <em>bond distances</em>, <em>angles</em> and <em>dihedrals</em>. An augmented version
+of the Z-Matrix descriptor can be also obtained by calculating additional
+distances, angles, dihedrals and/or bending angles using the methods provided
 in the class.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>all_geoms</strong> (<em>np.ndarray</em>) – a 3D array containing the list of XYZ matrices.</p></li>
-<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the Z_matrix feature vector of each geometry will
-be subtracted from the Z_Matrix of the reference geometry.
-The defult is False.</p></li>
-<li><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – output a single csv file containing the Z-Matrix descriptor
-computed for all geometries available the MD trajectories.
-The defult is False.</p></li>
+<li><p><strong>all_geoms</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – tensor of shape (nsamples, natoms, 3) containing the stacked XYZ
+coordinates read from all available MD trajectories.</p></li>
+<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True, the Z_matrix feature vector of each geometry will be subtracted
+from the Z_Matrix of the reference geometry, defaults to False.</p></li>
+<li><p><strong>apply_to_delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – select a nonlinear function to apply as a transformation (sigmooid
+or hyperbolic tangent) on the delta Z-matrix, defaults to None.</p></li>
+<li><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if true save a single csv file named all_geoms_zmatrix.csv containing
+the Z-Matrix descriptors computed for all geometries available the MD
+trajectories., defaults to False.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>df: Dataframe with (flattened) Z-Matrix descriptors for all geometries
-:rtype: <cite>~pandas.DataFrame</cite> object</p>
+<dd class="field-even"><p>a dataframe object with the (flattened) Z-Matrix descriptors stacked for all
+MD geometries.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -735,23 +740,31 @@ will be calculated.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.get_bending">
 <em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_bending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.get_bending" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the bending angle between two vectors that are
-perpendicular to different planes of the molecule as defined
-by two sets of three atoms.</p>
+<dd><p>Calculate the bending angle between two planes of the molecule.</p>
+<p>This method is particularly useful to describe large out-of-plane distortions in the
+molecular structure that involves more than four atoms. The bending angle is calculated
+by first defining two vectors each one perpendicular to different molecular planes
+formed by two sets of three atoms. Then, the angle between the two vectors is obtained
+by calculating the inverse cosine of the scalar product between these vectors.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, the bending angle is not used to construct the Z-Matrix descriptor.
+It can be used to construct an augmented version of the Z-Matrix that better
+captures changes in the molecular structure during the dynamics.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>geom</strong> (<em>np.array</em>) – a matrix (n_atoms x 3) having the Cartesian coordinates for
-a single molecule.</p></li>
-<li><p><strong>idx_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – a list with two tuples each containing the three indices
-corresponding to the atoms the defines a plane.</p></li>
+<li><p><strong>geom</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.</p></li>
+<li><p><strong>idx_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – a list of lists with three atom indices in each, used to define two
+molecular planes for which the angle will be calculated.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>bending angle (in degrees) formed by two molecular planes.</p>
+<dd class="field-even"><p>bending angle (in degrees) defined by six specified atoms.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><cite>numpy.float</cite></p>
+<dd class="field-odd"><p>np.float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -798,20 +811,6 @@ be calculated.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.transform">
-<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zmat_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">funct</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply a non-linear transformation to the delta Z-Matrix dataset.</p>
-<dl>
-<dt>Implemented functions:</dt><dd><p>-sigmoid: retuns a dataframe with values ranging from 0 to 1
--tanh: hyperbolic tangent for bond distances and cosine for angles,</p>
-<blockquote>
-<div><p>returns a dataframe with values in the range [-1,1]</p>
-</div></blockquote>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="ulamdyn.descriptors.ZMatrix.zmat_ref_geom">
 <span class="sig-name descname"><span class="pre">zmat_ref_geom</span></span><a class="headerlink" href="#ulamdyn.descriptors.ZMatrix.zmat_ref_geom" title="Permalink to this definition">¶</a></dt>
@@ -824,7 +823,7 @@ be calculated.</p></li>
 <span id="ulamdyn-interface-module"></span><h2>ulamdyn.interface module<a class="headerlink" href="#module-ulamdyn.interface" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="ulamdyn.interface.build_descriptor">
-<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">descriptor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">getcoords_obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.build_descriptor" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.interface.</span></span><span class="sig-name descname"><span class="pre">build_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">getcoords_obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.interface.build_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -869,16 +868,67 @@ be calculated.</p></li>
 <dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.kinetics.</span></span><span class="sig-name descname"><span class="pre">GetVelocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Collect velocities from all MD trajectories of Newton-X.</p>
+<p>Class used to collect velocities from all MD trajectories of Newton-X.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.from_all_trajs">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_all_trajs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.from_all_trajs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Wrapper function to collect the MD velocities without instantiating the class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – define the total number of atoms to consider in the velocities dataset,
+defaults to None. If None, the value will be taken from the geom.xyz file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the full velocities data set given as a tensor of shape (n_steps, n_atoms, 3).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.from_dyn">
-<span class="sig-name descname"><span class="pre">from_dyn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.from_dyn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the velocities from one trajectory (dyn.out file) of Newton-X.</p>
+<span class="sig-name descname"><span class="pre">from_dyn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.from_dyn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read velocities from a single trajectory of Newton-X.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The final velocities dataset will contains information only for the first
+set of n_atoms, as defined by the class attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">n_atoms</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the NX output file containing the velocities, dyn.out.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tensor of shape (n_steps, n_atoms, 3) with all velocities data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.from_h5">
+<span class="sig-name descname"><span class="pre">from_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.from_h5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read velocitis from the .h5 file generated by the new Newton-X.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The full velocities dataset will be sliced to select only the first
+set of n_atoms, as defined by the class attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">n_atoms</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the NX output file, usually dyn.h5.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tensor of shape (n_steps, n_atoms, 3) with all velocities data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -889,8 +939,9 @@ be calculated.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.kinetics.GetVelocities.read_all_trajs">
 <span class="sig-name descname"><span class="pre">read_all_trajs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.GetVelocities.read_all_trajs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load the atom velocities from all available trajectories, and
-store the stacked matrices in the class variable <code class="docutils literal notranslate"><span class="pre">veloc</span></code>.</p>
+<dd><p>Concatenate the XYZ velocities read from all available MD trajectories.</p>
+<p>After running this method, the class attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">n_atoms</span></code>
+will be updated with the full dataset of velocities read from the Newton-X output files.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -922,26 +973,70 @@ store the stacked matrices in the class variable <code class="docutils literal n
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.build_dataframe">
 <span class="sig-name descname"><span class="pre">build_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discretization_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_mols_per_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_atoms_per_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.build_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a pandas DataFrame containing the atomic kinetic energies.</p>
+<dd><p>Create a dataset containing the kinetic energies splitted by atoms or molecules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>discretization_level</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – how to split the kinetic energy, defaults to “atom”</p></li>
+<li><p><strong>n_mols_per_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – number of molecules per subsystem, typically one solute and
+several solvent molecules as in QM/MM, defaults to None.</p></li>
+<li><p><strong>n_atoms_per_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – number of atoms in each molecular subsystem, defaults to None.</p></li>
+<li><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – export the dataset with the computed kinetic energies as a csv file,
+defaults to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a structured dataset with the values of kinetic energies computed for all
+trajectories, where each row corresponds to one time step of a given trajectory
+and the columns refer to the discretization level (atoms or molecules).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.calc_per_atom">
-<span class="sig-name descname"><span class="pre">calc_per_atom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.calc_per_atom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the kinetic energy of each atom for all MD trajectories available.</p>
+<span class="sig-name descname"><span class="pre">calc_per_atom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.calc_per_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the kinetic energy of each atom for all MD trajectories available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>matrix with the kinetic energy of the selected atoms arranged in columns.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.calc_per_molecule">
-<span class="sig-name descname"><span class="pre">calc_per_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_mols_per_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_atoms_per_mol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.calc_per_molecule" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">calc_per_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_mols_per_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_atoms_per_mol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.calc_per_molecule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sum the atomic contributions of kinetic energy for each molecule.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>In the current version, this function only supports two different types
-of molecules in the geom file, where the first one should always
-correspond to the solute. The function will be generalized in future
-versions to support any number of different molecules.</p>
+<p>In the current version, this function only supports two different types of
+molecules in the geom file, where the first set of atoms in the geom file
+should always correspond to the solute. The function will be generalized in
+future versions to support any number of different molecules.</p>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_mols_per_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – give the number of molecules in each one of the two subsystems,
+typically one solute and several solvent molecules as in QM/MM.</p></li>
+<li><p><strong>n_atoms_per_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – how many atoms exist in each molecular subsystem.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a matrix of shape (n_samples, n_mols_1 + n_mols_2) with the kinetic energy of
+each molecule in the system arranged in columns.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)">numpy.ndarray</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">

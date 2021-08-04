@@ -272,7 +272,7 @@ class GetCoords:
                 atom_labels, xyz = self.from_xyz(xyzfile)
                 all_geoms.append(xyz)
             else:
-                print("\nFile dyn.out or dyn.xyz not available.")
+                print("\nNX output file not found.")
                 print("Check the directory %s" % trj + "/RESULTS" + "\n")
 
         self.xyz = np.concatenate(all_geoms, axis=0)

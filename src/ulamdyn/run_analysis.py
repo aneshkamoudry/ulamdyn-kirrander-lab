@@ -93,6 +93,17 @@ if __name__ == "__main__":
         help="Select the molecular descriptor to be used in the unsupervised\
                               learning analysis.",
     )
+
+    parser.add_argument(
+        "--transform",
+        required=False,
+        type=str,
+        metavar="",
+        default=None,
+        help="Apply a nonlinear transformation (sigmoid or tanh) on delta type of\
+              descriptors learning analysis.",
+    )
+
     parser.add_argument(
         "--data_scaler",
         required=False,

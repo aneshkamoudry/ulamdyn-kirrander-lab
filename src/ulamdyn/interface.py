@@ -43,7 +43,7 @@ def get_properties_data(rmsd_vec=None):
     try:
         df = pd.read_csv("all_properties.csv")
         print("Loading properties data from existing csv...\n")
-    except:
+    except FileNotFoundError:
         gp = GetProperties()
         df = gp.energies()
         df = gp.oscillator_strength()
@@ -94,7 +94,10 @@ def save_data(data_to_save):
         gg.build_dataframe(save_csv=True)
 
 
-def build_descriptor(descriptor, getcoords_obj):
+def build_descriptor(args, getcoords_obj):
+    descriptor = args.descriptor
+    transform = args.transform
+
     all_aligned_geoms = getcoords_obj.xyz
     # getcoords_obj.xyz is a variable of the class object
     # that stores all XYZ coordinates as a numpy array of
@@ -113,7 +116,9 @@ def build_descriptor(descriptor, getcoords_obj):
         zmt = ZMatrix()
         dfs_dict = {
             "Zmat": zmt.build_descriptor(all_aligned_geoms),
-            "delta-Zmat": zmt.build_descriptor(all_aligned_geoms, delta=True),
+            "delta-Zmat": zmt.build_descriptor(
+                all_aligned_geoms, delta=True, apply_to_delta=transform
+            ),
         }
         df_zmt = dfs_dict[descriptor]
         df_zmt.to_csv(descriptor + ".csv", index=False)
@@ -136,7 +141,7 @@ def run_dim_reduction(args):
     rmsd_vals = gc.rmsd
 
     # Step 2: create the dataset to apply the dimensionality reduction model.
-    df = build_descriptor(args.descriptor, gc)
+    df = build_descriptor(args, gc)
 
     # Step 3: build the dataset of properties that can be used for colormap.
     df_props = get_properties_data(rmsd_vals)
@@ -183,7 +188,7 @@ def run_clustering(args):
     rmsd_vals = gc.rmsd
 
     # Step 2: create the dataset to apply the dimensionality reduction model.
-    df = build_descriptor(args.descriptor, gc)
+    df = build_descriptor(args, gc)
 
     # Step 3: build the dataset of properties that can be used for colormap.
     df_props = get_properties_data(rmsd_vals)
@@ -242,8 +247,9 @@ def run_clustering(args):
     print("Creating statistics for Z-Matrix data based on clusters...\n")
     try:
         df_zmt = pd.read_csv("all_geoms_zmatrix.csv")
-    except:
-        df_zmt = build_descriptor("Zmat", gc)
+    except FileNotFoundError:
+        zmt = ZMatrix()
+        df_zmt = zmt.build_descriptor(gc.xyz)
 
     df_zmt = df_zmt.merge(df_labels, left_index=True, right_index=True, how="right")
     df_zmt_stats = aggregate_data(df_zmt, groupby_clusters)

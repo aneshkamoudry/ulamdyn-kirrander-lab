@@ -61,7 +61,7 @@ class R2(GetCoords):
         :param xyz_matrix: Cartesian coordinates of a molecular structure given as a
                            matrix of shape (n_atoms, 3).
         :type xyz_matrix: numpy.ndarray
-        :return: vector of size :math:`n_{atoms} x (n_{atoms} - 1)/2` containing the
+        :return: vector of size :math:`n_{atoms} (n_{atoms} - 1)/2` containing the
                  lower triangular portion of the R2 matrix.
         :rtype: numpy.ndarray
         """
@@ -263,21 +263,26 @@ class ZMatrix(GetCoords):
 
     @staticmethod
     def get_bending(geom: np.ndarray, idx_atoms: list) -> np.float:
-        """Calculates the bending angle between two vectors that are
-        perpendicular to different planes of the molecule as defined
-        by two sets of three atoms.
+        """Calculate the bending angle between two planes of the molecule.
 
-        Args:
-           geom (np.array): a matrix (n_atoms x 3) having the Cartesian coordinates for
-                            a single molecule.
-           idx_atoms (list): a list with two tuples each containing the three indices
-                             corresponding to the atoms the defines a plane.
+        This method is particularly useful to describe large out-of-plane distortions in the
+        molecular structure that involves more than four atoms. The bending angle is calculated
+        by first defining two vectors each one perpendicular to different molecular planes
+        formed by two sets of three atoms. Then, the angle between the two vectors is obtained
+        by calculating the inverse cosine of the scalar product between these vectors.
 
-        Returns:
-           `numpy.float`: bending angle (in degrees) formed by two molecular planes.
+        .. note:: By default, the bending angle is not used to construct the Z-Matrix descriptor.
+                  It can be used to construct an augmented version of the Z-Matrix that better
+                  captures changes in the molecular structure during the dynamics.
 
+        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
+        :type geom: numpy.ndarray
+        :param idx_atoms: a list of lists with three atom indices in each, used to define two
+                          molecular planes for which the angle will be calculated.
+        :type idx_atoms: list
+        :return: bending angle (in degrees) defined by six specified atoms.
+        :rtype: np.float
         """
-
         idx_ring1, idx_ring2 = idx_atoms
 
         # Calculate the vector perpendicular to the plan of the first ring
@@ -310,30 +315,86 @@ class ZMatrix(GetCoords):
                 )
                 self.distancematrix[j][i] = self.distancematrix[i][j]
 
-    def build_descriptor(self, all_geoms: np.ndarray, delta=False, save_csv=False):
-        """Builder for the Z-Matrix based descriptor.
+    @property
+    def _gen_column_labels(self):
+        col_names = list()
+        # Column labels for bond distances
+        col_names += [
+            "r" + "".join(map(str, np.array(idx) + 1)) for idx in self.connectivity
+        ]
+        # Column labels for angles
+        col_names += [
+            "a" + "".join(map(str, np.array(idx) + 1)) for idx in self.angleconnectivity
+        ]
+        # Column labels for dihedrals
+        col_names += [
+            "d" + "".join(map(str, np.array(idx) + 1))
+            for idx in self.dihedralconnectivity
+        ]
+        return col_names
 
-        .. note:: By default, the algorithm will calculate the three main components
-                  of the Z-Matrix: bond distances, angles and dihedrals. An augmented
-                  version of the Z-Matrix descriptor can be also obtained by calculating
-                  additional distances, angles and dihedrals using the methods provided
+    def _transform(self, zmat_data, funct):
+        """Apply a non-linear transformation to the delta Z-Matrix dataset.
+
+        Functions implemented:
+        ----------------------
+          -sigmoid: retuns a dataframe with values ranging from 0 to 1
+          -tanh: hyperbolic tangent for bond distances and cosine for angles,
+                 returns a dataframe with values in the range [-1,1]
+
+        :param zmat_data: dataset will delta Z-matrix descriptors.
+        :type zmat_data: numpy.ndarray
+        """
+        # Normalization functions
+        sigmoid = np.vectorize(lambda x: 1 / (1 + np.exp(-x)))
+        tanh = np.vectorize(
+            lambda x: (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+        )
+
+        # col_names = zmat_data.columns.tolist()
+        # zmat_data = zmat_data.values
+
+        if funct.lower() == "sigmoid":
+            zmat_data = sigmoid(zmat_data)
+
+        if funct.lower() == "tanh":
+            bond_features = len(self.connectivity)
+            angle_features = bond_features + 1
+            zmat_data[:, :bond_features] = tanh(zmat_data[:, :bond_features])
+            zmat_data[:, angle_features:] = np.cos(zmat_data[:, angle_features:])
+
+        # df = pd.DataFrame(zmat_data, columns=col_names)
+
+        return zmat_data
+
+    def build_descriptor(
+        self, all_geoms: np.ndarray, delta=False, apply_to_delta=None, save_csv=False
+    ):
+        """Construct the standard Z-Matrix descriptor and other variants.
+
+        .. note:: By default, the algorithm will calculate the three main components of the
+                  Z-Matrix: *bond distances*, *angles* and *dihedrals*. An augmented version
+                  of the Z-Matrix descriptor can be also obtained by calculating additional
+                  distances, angles, dihedrals and/or bending angles using the methods provided
                   in the class.
 
-        Args:
-           all_geoms (np.ndarray): a 3D array containing the list of XYZ matrices.
-           delta (bool): if True, the Z_matrix feature vector of each geometry will
-                         be subtracted from the Z_Matrix of the reference geometry.
-                         The defult is False.
-           save_csv (bool): output a single csv file containing the Z-Matrix descriptor
-                            computed for all geometries available the MD trajectories.
-                            The defult is False.
-
-        Returns:
-           :df: Dataframe with (flattened) Z-Matrix descriptors for all geometries
-           :rtype: `~pandas.DataFrame` object
-
+        :param all_geoms: tensor of shape (nsamples, natoms, 3) containing the stacked XYZ
+                          coordinates read from all available MD trajectories.
+        :type all_geoms: numpy.ndarray
+        :param delta: if True, the Z_matrix feature vector of each geometry will be subtracted
+                      from the Z_Matrix of the reference geometry, defaults to False.
+        :type delta: bool, optional
+        :param apply_to_delta: select a nonlinear function to apply as a transformation (sigmooid
+                          or hyperbolic tangent) on the delta Z-matrix, defaults to None.
+        :type apply_to_delta: str, optional
+        :param save_csv: if true save a single csv file named all_geoms_zmatrix.csv containing
+                         the Z-Matrix descriptors computed for all geometries available the MD
+                         trajectories., defaults to False.
+        :type save_csv: bool, optional
+        :return: a dataframe object with the (flattened) Z-Matrix descriptors stacked for all
+                 MD geometries.
+        :rtype: pandas.DataFrame
         """
-
         # Use a function inherited from GetCoords to read the coordinates
         # of a reference geometry
         self.read_eq_geom()
@@ -427,25 +488,6 @@ class ZMatrix(GetCoords):
             for j, idx in enumerate(self.dihedralconnectivity):
                 dihedrals[i][j] = self.get_dihedral(geom, idx)
 
-        col_names = list()
-        # Column labels for bond distances
-        col_names += [
-            "r" + "".join(map(str, np.array(idx) + 1)) for idx in self.connectivity
-        ]
-        # Column labels for angles
-        col_names += [
-            "a" + "".join(map(str, np.array(idx) + 1)) for idx in self.angleconnectivity
-        ]
-        # Column labels for dihedrals
-        col_names += [
-            "d" + "".join(map(str, np.array(idx) + 1))
-            for idx in self.dihedralconnectivity
-        ]
-
-        df_zmat_refgeom = pd.DataFrame(
-            self.zmat_ref_geom.reshape(1, -1), columns=col_names
-        )
-
         zmat_all = np.hstack((distances, angles, dihedrals))
 
         if delta:
@@ -454,40 +496,13 @@ class ZMatrix(GetCoords):
             select_angles = len(self.connectivity) + 1
             zmat_all[:, select_angles:] *= np.pi / 180
 
+            if apply_to_delta:
+                zmat_all = self._transform(zmat_all, apply_to_delta)
+
+        col_names = self._gen_column_labels
         df = pd.DataFrame(zmat_all, columns=col_names)
 
         if save_csv:
             df.to_csv("all_geoms_zmatrix.csv", index=False)
-
-        return df
-
-    def transform(self, zmat_data, funct):
-        """Apply a non-linear transformation to the delta Z-Matrix dataset.
-
-        Implemented functions:
-          -sigmoid: retuns a dataframe with values ranging from 0 to 1
-          -tanh: hyperbolic tangent for bond distances and cosine for angles,
-                 returns a dataframe with values in the range [-1,1]
-
-        """
-        # Normalization functions
-        sigmoid = np.vectorize(lambda x: 1 / (1 + np.exp(-x)))
-        tanh = np.vectorize(
-            lambda x: (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
-        )
-
-        col_names = zmat_data.columns.tolist()
-        zmat_data = zmat_data.values
-
-        if funct.lower() == "sigmoid":
-            zmat_data = sigmoid(zmat_data)
-
-        if funct.lower() == "tanh":
-            bond_features = len(self.connectivity)
-            angle_features = bond_features + 1
-            zmat_data[:, :bond_features] = tanh(zmat_data[:, :bond_features])
-            zmat_data[:, angle_features:] = np.cos(zmat_data[:, angle_features:])
-
-        df = pd.DataFrame(zmat_data, columns=col_names)
 
         return df
