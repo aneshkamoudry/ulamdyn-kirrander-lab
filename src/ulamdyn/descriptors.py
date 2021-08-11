@@ -1,5 +1,5 @@
-## Author: Max Pinheiro Jr <maxjr82@gmail.com>
-## Date: 03/10/2021
+# Author: Max Pinheiro Jr <maxjr82@gmail.com>
+# Date: 03/10/2021
 
 import os
 import sys
@@ -105,7 +105,7 @@ class R2(GetCoords):
         :return: a dataframe object of shape (nsamples, natoms * (natoms - 1)/2), where
                  each row is a vector with the R2-based descriptor computed for a given
                  molecular geometry.
-        :rtype: pandas.DataFrame
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
         n_samples, n_atoms, _ = all_geoms.shape
         id_atom_pairs = np.tril_indices(n_atoms, -1)

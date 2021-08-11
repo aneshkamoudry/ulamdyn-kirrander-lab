@@ -45,9 +45,10 @@ extensions = [
 #    u'sphinx.ext.viewcode',
 ]
 
-intersphinx_mapping = {'numpy': ('https://docs.scipy.org/doc/numpy/', None),
+intersphinx_mapping = {'https://docs.python.org/3': None,
+                       'numpy': ('https://docs.scipy.org/doc/numpy/', None),
                        'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None),
-                       'https://docs.python.org/3': None}
+                       'modin': ('https://modin.readthedocs.io/en/latest/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

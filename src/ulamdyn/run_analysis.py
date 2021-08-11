@@ -202,11 +202,7 @@ if __name__ == "__main__":
         save_xyz_hoppings(args.save_xyz_hops)
 
     if args.create_stats is not None:
-        data_dict = create_stats(args.create_stats)
-        for key in data_dict.keys():
-            csv_name = "stats_" + key + ".csv"
-            df = data_dict[key]
-            df.to_csv(csv_name, index=False, header=True, float_format="%.8f")
+        data_dict = create_stats(args.create_stats, save_csv=True)
 
     if args.bootstrap is not None:
         run_bootstrap(args)

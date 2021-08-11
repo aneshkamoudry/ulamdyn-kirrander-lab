@@ -1,5 +1,6 @@
-## Author: Max Pinheiro Jr <maxjr82@gmail.com>
-## Date: May 17 2021
+"""Auxiliary functions and constants used by the main modules."""
+# Author: Max Pinheiro Jr <maxjr82@gmail.com>
+# Date: May 17 2021
 from __future__ import (
     absolute_import,
     division,

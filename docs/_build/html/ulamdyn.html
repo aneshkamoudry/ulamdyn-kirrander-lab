@@ -208,8 +208,8 @@ the class are given in angstroms.</p>
 </div></blockquote>
 <dl class="py property">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.align_geoms">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">align_geoms</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.align_geoms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method to calculate the RMSD between the current and reference geometries.</p>
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">align_geoms</span></span><em class="property"><span class="pre">:</span> <span class="pre">None</span></em><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.align_geoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the RMSD between the current and reference geometries.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Before calculating the RMSD, the method uses the Kabsch algorithm to find
@@ -223,7 +223,7 @@ attribute will be updated with the aligned geometries.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.build_dataframe">
-<span class="sig-name descname"><span class="pre">build_dataframe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.build_dataframe" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">build_dataframe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.build_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a pandas DataFrame containing the XYZ coordinates from all trajectories.</p>
 <p>After running this function, the class attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">dataset</span></code> will
 be updated with the loaded DataFrame object.</p>
@@ -291,7 +291,7 @@ single MD trajectory.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.read_all_trajs">
-<span class="sig-name descname"><span class="pre">read_all_trajs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.read_all_trajs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">read_all_trajs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.read_all_trajs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Concatenate the XYZ coordinates read from all available MD trajectories.</p>
 <p>After running this method, the class attributes <code class="xref py py-attr docutils literal notranslate"><span class="pre">labels</span></code>
 and <code class="xref py py-attr docutils literal notranslate"><span class="pre">xyz</span></code> will be updated.</p>
@@ -299,7 +299,7 @@ and <code class="xref py py-attr docutils literal notranslate"><span class="pre"
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.read_eq_geom">
-<span class="sig-name descname"><span class="pre">read_eq_geom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.read_eq_geom" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">read_eq_geom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.read_eq_geom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the XYZ coordinates of a reference geometry.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -318,7 +318,7 @@ After reading the coordinates, the method will update the class attributes
 
 <dl class="py property">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetCoords.save_csv">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">save_csv</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.save_csv" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">save_csv</span></span><em class="property"><span class="pre">:</span> <span class="pre">None</span></em><a class="headerlink" href="#ulamdyn.data_loader.GetCoords.save_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save all loaded geometries (raw format) into a csv file.</p>
 <p>If the RMSD has been calculated, it will be included as an extra column in the
 XYZ coordinates data set.</p>
@@ -356,7 +356,7 @@ the class is given in eV/angstrom.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.build_dataframe">
-<span class="sig-name descname"><span class="pre">build_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.build_dataframe" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">build_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.build_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a dataset (pandas.DataFrame object) with all gradients.</p>
 <p>The XYZ matrices with the gradients of each molecular geometry is flattened into a
 one dimensional vecto, such that every row of the dataset corresponds to one step of
@@ -403,7 +403,7 @@ as a dictionary of tensors (numpy.ndarray, one for each state) with shape
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetGradients.read_all_trajs">
-<span class="sig-name descname"><span class="pre">read_all_trajs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.read_all_trajs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">read_all_trajs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#ulamdyn.data_loader.GetGradients.read_all_trajs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read gradients from all MD trajectories and store into a dictionary.</p>
 </dd></dl>
 
@@ -442,13 +442,13 @@ original units used in Newton-X are kept.</p>
 <dd><p>Read / process the energy information from the en.dat (classical NX) or .h5 (new NX) file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a processed dataset with the information of all trajectories stacked, and containing
-the following columns “TRAJ”, “time”, “State”, “Total_Energy” plus the energy gaps
-between the accessible states (e.g., DE12) and binary columns to identify the hopping
-points (e.g., Hops_S21).</p>
+<dd class="field-odd"><p>a processed dataset with the information of all trajectories stacked, and
+containing the following columns “TRAJ”, “time”, “State”, “Total_Energy” plus
+the energy gaps between the accessible states (e.g., DE12) and binary columns
+to identify the hopping points (e.g., Hops_S21).</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -482,7 +482,7 @@ updated with some properties, the oscillator strength data will be merged
 with the existing properties dataset.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -500,20 +500,20 @@ in the .h5 file.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a dataset with the populations obtained from all available NX trajectories
-with one column per state; if the class variable <code class="xref py py-attr docutils literal notranslate"><span class="pre">dataset</span></code>
+<dd class="field-odd"><p>a dataset with the populations obtained from all available NX trajectories with
+one column per state; if the class variable <code class="xref py py-attr docutils literal notranslate"><span class="pre">dataset</span></code>
 has been already updated with some properties, the population data will be
 merged with the existing dataset.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="ulamdyn.data_loader.GetProperties.save_csv">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">save_csv</span></span><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.save_csv" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">save_csv</span></span><em class="property"><span class="pre">:</span> <span class="pre">None</span></em><a class="headerlink" href="#ulamdyn.data_loader.GetProperties.save_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save the dataset with all QM properties read from the Newton-X trajectories.</p>
 <p>The following properties are included in the dataset:</p>
 <ul class="simple">
@@ -602,7 +602,7 @@ each row is a vector with the R2-based descriptor computed for a given
 molecular geometry.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -627,7 +627,7 @@ molecular geometry.</p>
 matrix of shape (n_atoms, 3).</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>vector of size <span class="math notranslate nohighlight">\(n_{atoms} x (n_{atoms} - 1)/2\)</span> containing the
+<dd class="field-even"><p>vector of size <span class="math notranslate nohighlight">\(n_{atoms} (n_{atoms} - 1)/2\)</span> containing the
 lower triangular portion of the R2 matrix.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
@@ -960,6 +960,7 @@ will be updated with the full dataset of velocities read from the Newton-X outpu
 <dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ulamdyn.kinetics.</span></span><span class="sig-name descname"><span class="pre">KineticEnergy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class used to calculate the atomic or molecular components of the MD kinetic energy.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="ulamdyn.kinetics.KineticEnergy.atom_labels">
 <span class="sig-name descname"><span class="pre">atom_labels</span></span><a class="headerlink" href="#ulamdyn.kinetics.KineticEnergy.atom_labels" title="Permalink to this definition">¶</a></dt>
@@ -1062,46 +1063,154 @@ each molecule in the system arranged in columns.</p>
 </div>
 <div class="section" id="module-ulamdyn.statistics">
 <span id="ulamdyn-statistics-module"></span><h2>ulamdyn.statistics module<a class="headerlink" href="#module-ulamdyn.statistics" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="ulamdyn.statistics.aggregate_by_time">
-<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">aggregate_by_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.aggregate_by_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<p>Module to perform statistical analysis of MD datasets.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="ulamdyn.statistics.aggregate_data">
 <span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">aggregate_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars_to_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['time']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.aggregate_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Calculate the basic statistical descriptors for a given dataset.</p>
+<p>The statistical quantities calculated by the function are <em>mean</em> and <em>median</em>
+to describe the central tendency, and <em>standard deviation</em> to measure the
+variability or dispersion of the data. So each feature of the original input
+dataset will be unfolded into three new columns identified with the suffixes
+‘_median’, ‘_mean’ and ‘_std’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)"><em>pandas.DataFrame</em></a>) – input dataset containing the information extracted from all MD
+trajectories.</p></li>
+<li><p><strong>vars_to_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>, </em><em>optional</em>) – set of variables used by the function to group the data,
+defaults to [“time”]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ulamdyn.statistics.bootstrap">
 <span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">bootstrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.bootstrap" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Estimate the mean by resampling the data with replacement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataframe</strong> (<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)"><em>pandas.DataFrame</em></a><em> | </em><a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)"><em>modin.pandas.dataframe.DataFrame</em></a>) – input dataset having the quantities extrated from all available
+MD trajectories; the dataset must contain the ‘TRAJ’ and ‘time’
+columns</p></li>
+<li><p><strong>n_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – number of trajectories considered in each round of the resampling,
+defaults to None</p></li>
+<li><p><strong>n_repeats</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – number of resampling to be performed, defaults to 1000</p></li>
+<li><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if true outputs the final bootstrapped data in a csv file,
+defaults to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataset containing all the bootstrapped data with estimated mean</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ulamdyn.statistics.calc_avg_occupations">
 <span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">calc_avg_occupations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.calc_avg_occupations" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ulamdyn.statistics.calc_ci">
-<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">calc_ci</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.calc_ci" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a percentile range from an array of values.</p>
+<dd><p>Calculate the fraction of trajectories in each state as a function of time.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The fraction of trajectories (occupation) is an important quantity to
+assess the quality of the surface hopping (SH) simulations. It should be
+compared to the population of each state averaged over all trajectories,
+which is provided by the method <code class="xref py py-meth docutils literal notranslate"><span class="pre">aggregate_data()</span></code>. If the
+ensemble of SH trajectories is statistically converged, the occupation
+and the average population should match.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)"><em>pandas.DataFrame</em></a><em> | </em><a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)"><em>modin.pandas.dataframe.DataFrame</em></a>) – properties dataset with information collected from the available
+MD trajectories</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a new dataset with the occupations calculated for each state</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ulamdyn.statistics.create_bootstrap_stats">
 <span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">create_bootstrap_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ci_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">95</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.create_bootstrap_stats" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generate the descriptive statistics for the bootstrapped data within a given confidence interval.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>boot_data</strong> (<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)"><em>pandas.DataFrame</em></a><em> | </em><a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)"><em>modin.pandas.dataframe.DataFrame</em></a>) – bootstrapped dataframe generate by the <code class="xref py py-meth docutils literal notranslate"><span class="pre">bootstrap()</span></code> function</p></li>
+<li><p><strong>ci_level</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Size of the confidence interval to draw when aggregating the data (by time)
+to estimate the statistical descriptors (median, mean, std), defaults to 95</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataframe grouped by the simulation time with each feature of the original dataset
+unfolded into three columns representing the statistical descriptors and other two columns storing the values for the lowest and highest variability as defined by the
+confidence interval</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ulamdyn.statistics.create_stats">
-<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">create_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selected_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.create_stats" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">create_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selected_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.create_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create datasets with the statistical summary of the requested quantities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>selected_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – type of data used as input to compute the descriptive statistical
+properties using the <code class="xref py py-meth docutils literal notranslate"><span class="pre">aggregate_data()</span></code> function</p></li>
+<li><p><strong>save_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if true exports the calculated statistics for each dataframe in a csv
+format, defaults to false</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>one or several datasets containing the median, mean and standard deviation
+calculated for each feature of the input as a function of time; if the
+attribute is equal to ‘all’, the statistics will be calculated for the
+properties and descriptors (R2 and Z-Matrix) datasets.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a>(<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a>) | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a>(<a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a>)</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ulamdyn.statistics.stats_hopping">
 <span class="sig-prename descclassname"><span class="pre">ulamdyn.statistics.</span></span><span class="sig-name descname"><span class="pre">stats_hopping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.statistics.stats_hopping" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generate a statistical summary for the hopping points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dataframe</strong> (<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)"><em>pandas.DataFrame</em></a><em> | </em><a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)"><em>modin.pandas.dataframe.DataFrame</em></a>) – properties dataset with information collected from the available
+MD trajectories</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a new dataset containing the total number of hops per trajectory and
+the minimum and maximum time in which the hops between each pair of
+electronic states occur.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.3.1)">pandas.DataFrame</a> | <a class="reference external" href="https://modin.readthedocs.io/en/latest/flow/modin/pandas/dataframe.html#modin.pandas.dataframe.DataFrame" title="(in Modin v0.10.1+31.gecf2a44.dirty)">modin.pandas.dataframe.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ulamdyn.unsup_models">
@@ -1158,6 +1267,7 @@ each molecule in the system arranged in columns.</p>
 </div>
 <div class="section" id="module-ulamdyn.utilities">
 <span id="ulamdyn-utilities-module"></span><h2>ulamdyn.utilities module<a class="headerlink" href="#module-ulamdyn.utilities" title="Permalink to this headline">¶</a></h2>
+<p>Auxiliary functions and constants used by the main modules.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="ulamdyn.utilities.get_num_atoms">
 <span class="sig-prename descclassname"><span class="pre">ulamdyn.utilities.</span></span><span class="sig-name descname"><span class="pre">get_num_atoms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ulamdyn.utilities.get_num_atoms" title="Permalink to this definition">¶</a></dt>
