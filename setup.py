@@ -42,7 +42,7 @@ setup(
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering :: Chemistry",
         "Topic :: Scientific/Engineering :: Physics"
-    ]
+    ],
     python_requires=">=3.7",
 )
 

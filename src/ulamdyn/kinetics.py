@@ -170,6 +170,7 @@ class GetVelocities:
 
 
 class KineticEnergy:
+    """Class used to calculate the atomic or molecular components of the MD kinetic energy."""
 
     # Defining slots to optimize performance (RAM):
     __slots__ = ["trajectories", "n_atoms", "energies", "atom_mass", "atom_labels"]

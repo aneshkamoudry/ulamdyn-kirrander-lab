@@ -82,7 +82,7 @@ class GetCoords:
         self.dataset = None
 
     @property
-    def save_csv(self):
+    def save_csv(self) -> None:
         """Save all loaded geometries (raw format) into a csv file.
 
         If the RMSD has been calculated, it will be included as an extra column in the
@@ -100,7 +100,7 @@ class GetCoords:
 
         df.to_csv("all_coordinates.csv", index=False, header=True)
 
-    def build_dataframe(self):
+    def build_dataframe(self) -> None:
         """Create a pandas DataFrame containing the XYZ coordinates from all trajectories.
 
         After running this function, the class attribute :attr:`~ulamdyn.GetCoords.dataset` will
@@ -247,7 +247,7 @@ class GetCoords:
 
         return (atom_labels, xyz_array)
 
-    def read_all_trajs(self):
+    def read_all_trajs(self) -> None:
         """Concatenate the XYZ coordinates read from all available MD trajectories.
 
         After running this method, the class attributes :attr:`~ulamdyn.GetCoords.labels`
@@ -278,7 +278,7 @@ class GetCoords:
         self.xyz = np.concatenate(all_geoms, axis=0)
         self.labels = atom_labels
 
-    def read_eq_geom(self):
+    def read_eq_geom(self) -> None:
         """Read the XYZ coordinates of a reference geometry.
 
         .. note:: This method should be executed before calculating the RMSD with the
@@ -300,8 +300,8 @@ class GetCoords:
             print("-----------------------------------------------------------\n")
 
     @property
-    def align_geoms(self):
-        """Method to calculate the RMSD between the current and reference geometries.
+    def align_geoms(self) -> None:
+        """Calculate the RMSD between the current and reference geometries.
 
         .. note:: Before calculating the RMSD, the method uses the Kabsch algorithm to find
                   the optimal alignment between the loaded molecular geometry for each time
@@ -459,7 +459,7 @@ class GetGradients:
 
         return grads_dict
 
-    def read_all_trajs(self):
+    def read_all_trajs(self) -> None:
         """Read gradients from all MD trajectories and store into a dictionary."""
         all_grads = dict()
         for trj in self.trajectories:
@@ -487,7 +487,7 @@ class GetGradients:
         for k in all_grads.keys():
             self.all_grads[k] = np.concatenate(all_grads[k], axis=0)
 
-    def build_dataframe(self, save_csv=False):
+    def build_dataframe(self, save_csv=False) -> None:
         """Generate a dataset (pandas.DataFrame object) with all gradients.
 
         The XYZ matrices with the gradients of each molecular geometry is flattened into a
@@ -560,7 +560,7 @@ class GetProperties:
         self.nx_version = get_nx_version(self.trajectories[0])
 
     @property
-    def save_csv(self):
+    def save_csv(self) -> None:
         """Save the dataset with all QM properties read from the Newton-X trajectories.
 
         The following properties are included in the dataset:
@@ -701,11 +701,11 @@ class GetProperties:
     def energies(self):
         """Read / process the energy information from the en.dat (classical NX) or .h5 (new NX) file.
 
-        :return: a processed dataset with the information of all trajectories stacked, and containing
-                 the following columns "TRAJ", "time", "State", "Total_Energy" plus the energy gaps
-                 between the accessible states (e.g., DE12) and binary columns to identify the hopping
-                 points (e.g., Hops_S21).
-        :rtype: pandas.DataFrame
+        :return: a processed dataset with the information of all trajectories stacked, and
+                 containing the following columns "TRAJ", "time", "State", "Total_Energy" plus
+                 the energy gaps between the accessible states (e.g., DE12) and binary columns
+                 to identify the hopping points (e.g., Hops_S21).
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
         if self.nx_version == "cs":
             all_energies = self._energies_from_dat()
@@ -866,7 +866,7 @@ class GetProperties:
                  class variable :attr:`~ulamdyn.GetProperties.dataset` has been already
                  updated with some properties, the oscillator strength data will be merged
                  with the existing properties dataset.
-        :rtype: pandas.DataFrame
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
 
         if self.nx_version == "cs":
@@ -942,11 +942,11 @@ class GetProperties:
                   the new Newton-X, the populations are already calculated and available
                   in the .h5 file.
 
-        :return: a dataset with the populations obtained from all available NX trajectories
-                 with one column per state; if the class variable :attr:`~ulamdyn.GetProperties.dataset`
+        :return: a dataset with the populations obtained from all available NX trajectories with
+                 one column per state; if the class variable :attr:`~ulamdyn.GetProperties.dataset`
                  has been already updated with some properties, the population data will be
                  merged with the existing dataset.
-        :rtype: pandas.DataFrame
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
         if self.nx_version == "cs":
             all_populations = self._populations_from_txt()
