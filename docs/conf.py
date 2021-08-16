@@ -37,9 +37,10 @@ version = ulmd.__version__
 extensions = [
     u'sphinx.ext.autodoc',
 #    u'sphinx.ext.autosummary',
-    u'sphinx.ext.napoleon',
     u'sphinx.ext.todo',
     u'sphinx.ext.mathjax',
+    u'sphinx.ext.coverage',
+    u'sphinx.ext.napoleon',
     u'sphinx.ext.intersphinx',
     u'sphinx.ext.autosectionlabel'
 #    u'sphinx.ext.viewcode',

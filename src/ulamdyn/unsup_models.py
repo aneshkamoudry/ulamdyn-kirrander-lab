@@ -18,7 +18,7 @@ try:
 
     ray.shutdown()
     ray.init()
-except:
+except ModuleNotFoundError:
     import pandas as pd
 
 try:
@@ -35,9 +35,10 @@ try:
     from sklearn.cluster import AgglomerativeClustering
     from sklearn.metrics import silhouette_score
     from sklearn.metrics import calinski_harabasz_score
-except:
+except ModuleNotFoundError as e:
     print("Required sklearn modules were not found.")
     print("Please make sure that sklearn library has been installed.")
+    print(e)
 
 __all__ = ["DimensionalityReduction", "Clustering"]
 
@@ -71,14 +72,46 @@ class Utils:
 
 
 class DimensionalityReduction(Utils):
-    def __str__(self):
-        return "Unsupervised learning models for dimensionality reduction."
+    """Class used to find a low dimensional representation of MD trajectories data."""
+
+    def __repr__(self) -> str:
+        """Provide a string representation of the class.
+
+        :return: Short description of the class functionality.
+        :rtype: str
+        """
+        return "Unsupervised learning methods for dimensionality reduction."
 
     def __init__(self, data, n_samples=None, scaler=None, random_state=42, n_cpus=-1):
+        """Class initializer for dimensionality reduction.
+
+        :param data: Dataset of molecular geometries (or properties) extracted from the
+                     available MD trajectories.
+        :type data: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        :param n_samples: If the value is not None, the dimensionality reduction analysis
+                          will be performed on a randomly selected subsample of the original
+                          dataset, defaults to None.
+        :type n_samples: int, optional
+        :param scaler: Define one of the three available methods (MinMax, Standard and Robust),
+                       to rescale the original dataset before applying a dimensionality
+                       reduction algorithm, defaults to None.
+        :type scaler: str, optional
+        :param random_state: Determines the random number generator for reproducible results
+                             across multiple function calls, defaults to 42.
+        :type random_state: int, optional
+        :param n_cpus: Set up he number of parallel jobs to run the dimensionality reduction
+                       methods. This parameter works only for the
+                       :meth:`~ulamdyn.DimensionalityReduction.kpca`,
+                       :meth:`~ulamdyn.DimensionalityReduction.isomap`, and
+                       :meth:`~ulamdyn.DimensionalityReduction.tsne` methods,
+                       defaults to -1 which means all processors will be used.
+        :type n_cpus: int, optional
+        """
         self.df = data
-        if n_samples is not None:
-            self.df = data.sample(n_samples)
         self.indices = self.df.index.values
+
+        if n_samples is not None:
+            self._sample_data(n_samples)
 
         self.scaler = scaler
         if self.scaler is not None:
@@ -86,6 +119,10 @@ class DimensionalityReduction(Utils):
 
         self.random_state = random_state
         self.n_cpus = n_cpus
+
+    def _sample_data(self, n_samples):
+        self.df = self.df.sample(n_samples)
+        self.indices = self.df.index.values
 
     def _run_model(self, model, data):
 
@@ -101,11 +138,27 @@ class DimensionalityReduction(Utils):
         return df
 
     def pca(self, n_components=2, calc_error=False, save_errors=False):
+        """Perform a linear dimensionality reduction using principal component analysis.
 
+        .. note:: By default the percentage of variance explained by each of the selected
+                  components will be printed after the PCA analysis.
+
+        :param n_components: Number of principal components to keep, defaults to 2.
+        :type n_components: int, optional.
+        :param calc_error: If True, the reconstruction error between the original and the
+                           projected data will be calculated, defaults to False.
+        :type calc_error: bool, optional
+        :param save_errors: If True, save to a csv file the reconstruction error calculated
+                            for each sample, defaults to False.
+        :type save_errors: bool, optional
+        :return: a new dataset with the transformed values where the selected components
+                 are stored in columns.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        """
         if not self.scaler:
             warning_msg = "---------------------------------------------------\n"
             warning_msg += "WARNING:\n"
-            warning_msg += "The data is not properly scaled!\n"
+            warning_msg += "The input data has not been standardized!\n"
             warning_msg += "This may lead to unreliable results for PCA.\n"
             warning_msg += "---------------------------------------------------\n"
             print(warning_msg)
@@ -164,7 +217,38 @@ class DimensionalityReduction(Utils):
         alpha=1.0,
         fit_inverse_transform=False,
     ):
+        """Perform a nonlinear dimensionality reduction using kernel PCA.
 
+        :param n_components: Number of components (features) to keep after KPCA
+                             transformation, defaults to 2.
+        :type n_components: int, optional
+        :param kernel: Kernel function used in the transformation. The possible values are
+                       'linear', 'poly', 'rbf', 'sigmoid', 'cosine' or precomputed',
+                       defaults to "rbf".
+        :type kernel: str, optional
+        :param gamma: Kernel coefficient for rbf, poly and sigmoid kernels. Ignored by other
+                      kernels. If gamma is None, then it is set to 1/n_features.
+                      Defaults to None.
+        :type gamma: float, optional
+        :param degree: Degree of polynomial kernel. Ignored by other kernels. Defaults to 4.
+        :type degree: int, optional
+        :param coef0: Independent term in poly and sigmoid kernels. Ignored by other kernels.
+                      Defaults to 1.
+        :type coef0: int, optional
+        :param kernel_params: Parameters (keyword arguments) and values for kernel passed as
+                              callable object. Ignored by other kernels. Defaults to None.
+        :type kernel_params: dict, optional
+        :param alpha: Hyperparameter of the ridge regression that learns the inverse transform
+                      (when fit_inverse_transform=True), defaults to 1.0.
+        :type alpha: float, optional
+        :param fit_inverse_transform: Hyperparameter of the ridge regression that learns the
+                                      inverse transform (when fit_inverse_transform=True),
+                                      defaults to False.
+        :type fit_inverse_transform: bool, optional
+        :return: a new dataset with the transformed values where the selected components
+                 are stored in columns.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        """
         model = KernelPCA(
             n_components=n_components,
             kernel=kernel,
@@ -196,12 +280,38 @@ class DimensionalityReduction(Utils):
         metric_params=None,
         calc_error=False,
     ):
-        """Isomap Embedding
+        """Perform a nonlinear dimensionality reduction through Isometric Mapping.
 
-        Non-linear dimensionality reduction through Isometric Mapping
-
+        :param n_components: Number of coordinates (features) for the low-dimensional
+                             manifold, defaults to 2.
+        :type n_components: int, optional
+        :param n_neighbors: Number of neighbors to consider around each point,
+                            defaults to 10.
+        :type n_neighbors: int, optional
+        :param neighbors_algorithm: Method used for nearest neighbors search,
+                                    defaults to "auto"
+        :type neighbors_algorithm: str, optional
+        :param metric: The metric to use when calculating distance between instances in
+                       a feature array. If metric is a string or callable, it must be one
+                       of the options allowed by sklearn.metrics.pairwise_distances for its
+                       metric parameter. If metric is “precomputed”, X is assumed to be a
+                       distance matrix and must be square. Defaults to "minkowski".
+        :type metric: str or callable, optional
+        :param p: Parameter for the Minkowski metric from
+                  sklearn.metrics.pairwise pairwise_distances. When p = 1, this is equivalent
+                  to using manhattan_distance (l1), and euclidean_distance (l2) for p = 2.
+                  For arbitrary p, minkowski_distance (l_p) is used. Defaults to 2.
+        :type p: int, optional
+        :param metric_params: Additional keyword arguments for the metric function.
+                              Defaults to None.
+        :type metric_params: dict, optional
+        :param calc_error: If True, the reconstruction error between the original and the
+                           projected data will be calculated, defaults to False.
+        :type calc_error: bool, optional
+        :return: a new dataset with the transformed values where the coordinates of the
+                 low-dimensional manifold are stored in columns.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
-
         model = Isomap(
             n_components=n_components,
             n_neighbors=n_neighbors,
@@ -235,10 +345,64 @@ class DimensionalityReduction(Utils):
         init="pca",
         verbose=1,
         method="barnes_hut",
-        angle=0.5,
-        square_distances="legacy",
     ):
+        """Perform the t-distributed Stochastic Neighbor Embedding analysis.
 
+        :param n_components: Number of coordinates (features) for the low-dimensional
+                             embbeding, defaults to 2.
+        :type n_components: int, optional
+        :param perplexity: This hyperparameter is used to control the attention between local
+                           and global aspects of the data, in a certain sense, by guessing the
+                           number of close neighbors each point has. Larger datasets usually
+                           require a larger perplexity. Consider selecting a value between 5
+                           and 50. Different values can result in significantly different
+                           results. Defaults to 40.0.
+        :type perplexity: float, optional
+        :param learning_rate: The learning rate for t-SNE is usually in the range [10.0,
+                              1000.0]. If the learning rate is too high, the data may look
+                              like a ‘ball’ with any point approximately equidistant from its
+                              nearest neighbours. If the learning rate is too low, most points
+                              may look compressed in a dense cloud with few outliers. If the
+                              cost function gets stuck in a bad local minimum increasing the
+                              learning rate may help. Defaults to 200.0
+        :type learning_rate: float, optional
+        :param n_iter: Maximum number of iterations for the optimization. Should be at least 250.
+                       Defaults to 2000.
+        :type n_iter: int, optional
+        :param n_iter_without_progress: Maximum number of iterations without progress before we
+                                        abort the optimization, used after 250 initial iterations
+                                        with early exaggeration. Note that progress is only checked
+                                        every 50 iterations so this value is rounded to the next
+                                        multiple of 50. Defaults to 400.
+        :type n_iter_without_progress: int, optional
+        :param metric: The metric to use when calculating distance between instances in a feature
+                       array. If metric is a string, it must be one of the options allowed by scipy.
+                       spatial.distance.pdist for its metric parameter, or a metric listed in
+                       pairwise.PAIRWISE_DISTANCE_FUNCTIONS. If metric is “precomputed”, X is
+                       assumed to be a distance matrix. Alternatively, if metric is a callable
+                       function, it is called on each pair of instances (rows) and the resulting
+                       value recorded. The callable should take two arrays from X as input and
+                       return a value indicating the distance between them. The default is
+                       “euclidean” which is interpreted as squared euclidean distance.
+                       Defaults to "euclidean".
+        :type metric: str or callable, optional
+        :param init: Initialization of embedding. Possible options are 'random', 'pca', and a
+                     numpy array of shape (n_samples, n_components). PCA initialization cannot
+                     be used with precomputed distances and is usually more globally stable than
+                     random initialization. Defaults to "pca".
+        :type init: str, optional
+        :param verbose: Verbosity level. Defaults to 1
+        :type verbose: int, optional
+        :param method: By default the gradient calculation algorithm uses Barnes-Hut
+                       approximation running in O(NlogN) time. method=’exact’ will run on the
+                       slower, but exact, algorithm in O(N^2) time. The exact algorithm should be
+                       used when nearest-neighbor errors need to be better than 3%. However, the
+                       exact method cannot scale to millions of examples. Defaults to "barnes_hut".
+        :type method: str, optional
+        :return: a new dataset with the transformed values where the coordinates of the
+                 low-dimensional manifold are stored in columns.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        """
         model = TSNE(
             n_components=n_components,
             perplexity=perplexity,
@@ -249,8 +413,6 @@ class DimensionalityReduction(Utils):
             init=init,
             verbose=verbose,
             method=method,
-            angle=angle,
-            square_distances=square_distances,
             n_jobs=self.n_cpus,
             random_state=self.random_state,
         )
@@ -388,7 +550,6 @@ class Clustering(Utils):
         compute_full_tree="auto",
         linkage="single",
         distance_threshold=None,
-        compute_distances=False,
     ):
 
         if isinstance(distance_threshold, float):
@@ -405,7 +566,6 @@ class Clustering(Utils):
             compute_full_tree=compute_full_tree,
             linkage=linkage,
             distance_threshold=distance_threshold,
-            compute_distances=compute_distances,
         )
 
         df_labels = self._run_model(model, self.df)

@@ -24,6 +24,9 @@ try:
 except ModuleNotFoundError as e:
     import pandas as pd
 
+    print("Modin package is not available.")
+    print("The standard pandas library will be used.")
+
 from itertools import combinations
 from ulamdyn.utilities import *
 
@@ -60,6 +63,11 @@ class GetCoords:
     __slots__ = ["trajectories", "labels", "eq_xyz", "xyz", "rmsd", "dataset"]
 
     def __repr__(self) -> str:
+        """Provide a string representation of the class.
+
+        :return: Short description of the class functionality.
+        :rtype: str
+        """
         return "Data loader class for molecular geometries."
 
     def __init__(self):

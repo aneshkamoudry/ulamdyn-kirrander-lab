@@ -11,8 +11,11 @@ try:
 
     ray.shutdown()
     ray.init()
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     import pandas as pd
+
+    print("Modin package is not available.")
+    print("The standard pandas library will be used.")
 
 from itertools import combinations
 from ulamdyn.data_loader import GetCoords

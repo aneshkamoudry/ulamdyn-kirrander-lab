@@ -19,8 +19,11 @@ try:
 
     ray.shutdown()
     ray.init()
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     import pandas as pd
+
+    print("Modin package is not available.")
+    print("The standard pandas library will be used.")
 
 from ulamdyn.data_loader import GetCoords, GetProperties
 from ulamdyn.descriptors import R2, ZMatrix
