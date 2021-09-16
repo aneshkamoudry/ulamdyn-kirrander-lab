@@ -1,3 +1,4 @@
+"""Classes and methods used to ML descriptors from molecular geometries."""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: 03/10/2021
 
@@ -7,10 +8,7 @@ import numpy as np
 
 try:
     import modin.pandas as pd
-    import ray
 
-    ray.shutdown()
-    ray.init()
 except ModuleNotFoundError:
     import pandas as pd
 

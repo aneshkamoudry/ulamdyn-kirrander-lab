@@ -29,7 +29,7 @@ class Geometries:
         :param add_properties: list of properties to be added in the comment line of the XYZ file, defaults to ["TRAJ", "time"]
         :type add_properties: list()
         """
-        self.labels = atom_labels
+        self.labels = atom_labels.reshape(-1,1)
         self.properties = ["TRAJ", "time"]
 
         if len(add_properties) != 0:
@@ -77,19 +77,16 @@ class Geometries:
         n_atoms = len(self.labels)
         geoms_string = ""
         comment_line = ""
+        mask = '{:<6s} {:12.8f} {:12.8f} {:12.8f} \n'
 
         for n, xyz in enumerate(geoms_array):
-            xyz = np.round(xyz, 8)
-            xyz = np.concatenate((self.labels, xyz), axis=1)
-            xyz_str = [str(i).strip("[]") for i in xyz]
 
             if properties_data is not None:
                 comment_line = self._info(properties_data, n, self.properties)
 
             geoms_string += str(n_atoms) + "\n" + comment_line + "\n"
-            geoms_string += "\n".join(xyz_str)
-            geoms_string = geoms_string.replace("'", "")
-            geoms_string += "\n"
+            for l, atom_coords in zip(self.labels, xyz):
+                geoms_string += mask.format(l[0],*atom_coords)
 
         with open(out_name, "w") as out:
             out.write(geoms_string)

@@ -1,5 +1,5 @@
-## Author: Max Pinheiro Jr <maxjr82@gmail.com>
-## Date: March 10, 2021
+# Author: Max Pinheiro Jr <maxjr82@gmail.com>
+# Date: March 10, 2021
 from __future__ import (
     absolute_import,
     division,
@@ -13,15 +13,6 @@ import sys
 import time
 import argparse
 import numpy as np
-
-try:
-    import modin.pandas as pd
-    import ray
-
-    ray.shutdown()
-    ray.init()
-except:
-    import pandas as pd
 
 from ulamdyn.data_loader import *
 from ulamdyn.data_writer import *

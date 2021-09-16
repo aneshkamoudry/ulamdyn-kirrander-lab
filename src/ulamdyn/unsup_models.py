@@ -1,5 +1,6 @@
-## Author: Max Pinheiro Jr <maxjr82@gmail.com>
-## Date: April 2, 2021
+"""Base classes and methods used to perform unsupervised learning analysis."""
+# Author: Max Pinheiro Jr <maxjr82@gmail.com>
+# Date: April 2, 2021
 from __future__ import (
     absolute_import,
     division,
@@ -8,16 +9,12 @@ from __future__ import (
     with_statement,
 )
 
-import os
-import sys
 import numpy as np
+from joblib import dump, load
 
 try:
     import modin.pandas as pd
-    import ray
 
-    ray.shutdown()
-    ray.init()
 except ModuleNotFoundError:
     import pandas as pd
 
@@ -28,7 +25,7 @@ try:
     from sklearn.preprocessing import StandardScaler
 
     from sklearn.decomposition import PCA, KernelPCA
-    from sklearn.manifold import TSNE, Isomap, SpectralEmbedding
+    from sklearn.manifold import TSNE, Isomap
 
     from sklearn.cluster import KMeans
     from sklearn.cluster import SpectralClustering
@@ -185,7 +182,7 @@ class DimensionalityReduction(Utils):
 
         if calc_error:
             X_reconstructed = model.inverse_transform(df_transformed.values)
-            squared_errors = (self.df - X_reconstructed) ** 2
+            squared_errors = (self.df.values - X_reconstructed) ** 2
             col_labels = ["SE" + str(i + 1) for i in range(squared_errors.shape[1])]
             if save_errors:
                 df_errors = pd.DataFrame(squared_errors, columns=col_labels)
@@ -275,7 +272,7 @@ class DimensionalityReduction(Utils):
         n_components=2,
         n_neighbors=10,
         neighbors_algorithm="auto",
-        metric="minkowski",
+        metric="cosine",
         p=2,
         metric_params=None,
         calc_error=False,
@@ -295,7 +292,7 @@ class DimensionalityReduction(Utils):
                        a feature array. If metric is a string or callable, it must be one
                        of the options allowed by sklearn.metrics.pairwise_distances for its
                        metric parameter. If metric is “precomputed”, X is assumed to be a
-                       distance matrix and must be square. Defaults to "minkowski".
+                       distance matrix and must be square. Defaults to "cosine".
         :type metric: str or callable, optional
         :param p: Parameter for the Minkowski metric from
                   sklearn.metrics.pairwise pairwise_distances. When p = 1, this is equivalent
@@ -427,12 +424,40 @@ class DimensionalityReduction(Utils):
 
 
 class Clustering(Utils):
-    def __str__(self):
+    """Class used to find groups of similar geometries in the MD trajectories data."""
+
+    def __repr__(self) -> str:
+        """Provide a string representation of the class.
+
+        :return: Short description of the class functionality.
+        :rtype: str
+        """
         return "Clustering methods."
 
     def __init__(
-        self, data, n_samples=None, scaler=None, random_state=51, n_cpus=-1, verbosity=0
+        self, data, n_samples=None, scaler=None, random_state=42, n_cpus=-1, verbosity=0
     ):
+        """Class initializer for Clustering methods.
+
+        :param data: Dataset with all molecular geometries (or QM properties) extracted from
+                     the loaded MD trajectories.
+        :type data: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        :param n_samples: Size of the subsample selected randomly from the original data to
+                          perform the clustering analysis, defaults to None.
+        :type n_samples: int, optional
+        :param scaler: Define one of the three available methods (MinMax, Standard and Robust),
+                       to rescale the original dataset before applying the Clustering
+                       algorithm, defaults to None.
+        :type scaler: str, optional
+        :param random_state: Determines the random number generator for reproducible results
+                             across multiple function calls, defaults to 42.
+        :type random_state: int, optional
+        :param n_cpus: Set up he number of parallel jobs to run the clustering analysis,
+                       defaults to -1.
+        :type n_cpus: int, optional
+        :param verbosity: Control the level of printed information, defaults to 0.
+        :type verbosity: int, optional
+        """
         self.df = data
         if n_samples is not None:
             self.df = data.sample(n_samples)
@@ -476,7 +501,7 @@ class Clustering(Utils):
         if isinstance(model.n_clusters, list):
             range_n_clusters = np.array(model.n_clusters)
         elif model.n_clusters == "best":
-            range_n_clusters = np.arange(2, 13)
+            range_n_clusters = np.arange(2, 15)
 
         print("Evaluate clustering performance:\n")
         scores_silhouette = list()
@@ -510,10 +535,47 @@ class Clustering(Utils):
         n_clusters=5,
         init="k-means++",
         n_init=500,
-        max_iter=2000,
+        max_iter=1000,
         convergence=1e-06,
+        save_model=True,
     ):
+        """Perform K-Means clustering.
 
+        :param n_clusters: The number of clusters to form that corresponds also to the
+                           number of cluster centroids to generate, defaults to 5.
+                           If a list is passed, the k-means algorithm will be run for all
+                           n_clusters in the list, whereas if the argument is equal to
+                           'best', consecutive runs will be performed with n_clusters
+                           varying in the range of [2, 15]. In both cases, the final results
+                           will be the best output labels with respect to the clustering
+                           performance on the silhouette and Calinski-Harabasz scores.
+        :type n_clusters: int, list or str optional
+        :param init: Method for initialization:
+                     - 'k-means++' -> selects initial cluster centers for k-mean clustering
+                                      in a smart way to speed up convergence.
+                     - 'random' -> choose n_clusters observations (rows) at random from data
+                                   for the initial centroids.
+                     - If an array is passed, it should be of shape (n_clusters, n_features)
+                       and gives the initial centers.
+                     Defaults to "k-means++".
+        :type init: str or array, optional
+        :param n_init: Number of time the k-means algorithm will be run with different
+                       centroid seeds. The final results will be the best output of n_init
+                       consecutive runs in terms of loss function, defaults to 500.
+        :type n_init: int, optional
+        :param max_iter: Maximum number of iterations of the k-means algorithm for a single
+                         run, defaults to 1000
+        :type max_iter: int, optional
+        :param convergence: Relative tolerance with regards to Frobenius norm of the
+                            difference in the cluster centers of two consecutive iterations
+                            to declare convergence, defaults to 1e-06.
+        :type convergence: float, optional
+        :param save_model: Store the trained parameters of the model in a binary file,
+                           defaults to True.
+        :type save_model: bool, optional
+        :return: Dataframe of shape (n_samples,) with cluster labels for each data point.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        """
         print("\n***********************************************")
         print("*  Starting the K-Means clustering analysis:  *")
         print("***********************************************\n")
@@ -534,11 +596,17 @@ class Clustering(Utils):
             k_best = self._opt_num_clusters(model)
             clean_model.n_clusters = k_best
             model = clean_model
+        elif isinstance(model.n_clusters, int):
+            pass
         else:
             print("ERROR:\n Invalid option!")
             return None
 
         df_labels = self._run_model(model, self.df)
+
+        if save_model:
+            filename = "kmeans_nc" + str(n_clusters) + ".joblib"
+            dump(model, filename)
 
         return df_labels
 
@@ -547,11 +615,49 @@ class Clustering(Utils):
         n_clusters=5,
         affinity="cosine",
         connectivity=None,
-        compute_full_tree="auto",
         linkage="single",
         distance_threshold=None,
+        save_model=True,
     ):
+        """Perform a hierarchical cluster analysis based on the agglomerative.
 
+        :param n_clusters: The number of clusters to find. It must be None if
+                           distance_threshold is not None, defaults to 5.
+        :type n_clusters: int, optional
+        :param affinity: Metric used to compute the linkage. Can be "euclidean", "l1",
+                         "l2", "manhattan", "cosine", or "precomputed". If linkage is "ward",
+                         only "euclidean" is accepted. If "precomputed", a distance matrix
+                         (instead of a similarity matrix) is needed as input for the fit
+                         method, defaults to "cosine".
+        :type affinity: str, optional
+        :param connectivity: Connectivity matrix. Defines for each sample the neighboring
+                             samples following a given structure of the data. This can be a
+                             connectivity matrix itself or a callable that transforms the data
+                             into a connectivity matrix, such as derived from kneighbors_graph.
+                             Default is None, i.e, the hierarchical clustering algorithm is
+                             unstructured.
+        :type connectivity: array-like or callable, optional
+        :param linkage: Define the linkage criterion to build the tree. It determines which
+                        distance to use between sets of observation. The algorithm will merge
+                        the pairs of cluster that minimize this criterion. The options are:
+
+                          * 'ward' -> minimizes the variance of the clusters being merged.
+                          * 'average' -> uses the average of the distances of each observation of the two sets.
+                          * 'complete' or 'maximum' -> uses the maximum distances between all observations of the two sets.
+                          * 'single' -> uses the minimum of the distances between all observations of the two sets.
+
+                        The default is "single".
+        :type linkage: str, optional
+        :param distance_threshold: The linkage distance threshold above which, clusters will not
+                                   be merged. If not None, n_clusters must be None and
+                                   compute_full_tree must be True, defaults to None.
+        :type distance_threshold: float, optional
+        :param save_model: Store the trained parameters of the model in a binary file,
+                           defaults to True.
+        :type save_model: bool, optional
+        :return: Dataframe of shape (n_samples,) with cluster labels for each data point.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        """
         if isinstance(distance_threshold, float):
             n_clusters = None
 
@@ -563,7 +669,6 @@ class Clustering(Utils):
             n_clusters=n_clusters,
             affinity=affinity,
             connectivity=connectivity,
-            compute_full_tree=compute_full_tree,
             linkage=linkage,
             distance_threshold=distance_threshold,
         )
@@ -577,6 +682,10 @@ class Clustering(Utils):
         print("  Number of leaves in the hierarchical tree:\n")
         print("  n_leaves = {}".format(model.n_leaves_))
 
+        if save_model:
+            filename = "hierarchical_nc" + str(n_clusters) + ".joblib"
+            dump(model, filename)
+
         return df_labels
 
     def spectral(
@@ -584,14 +693,75 @@ class Clustering(Utils):
         n_clusters=5,
         n_components=10,
         n_init=100,
-        gamma=0.005,
         affinity="rbf",
+        gamma=0.01,
         n_neighbors=20,
         degree=3,
         coef0=1,
         kernel_params=None,
+        save_model=True,
     ):
+        """Apply clustering to a projection of the normalized Laplacian.
 
+        Note that Spectral Clustering is a highly expensive method due to the computation
+        of the affinity matrix. Hence, this method is recommended only for small to medium
+        size datasets (n_samples < 10000).
+
+        .. note:: This method is equivalent to kernel k-means
+                  (https://dl.acm.org/doi/10.1145/1014052.1014118). Spectral
+                  clustering is recommended for non-linearly separable dataset,
+                  where the individual clusters have a highly non-convex shape.
+
+        :param n_clusters: The number of clusters to form which in this case corresponds
+                           to the dimension of the projection subspace. The default is 5.
+
+                           If a list is passed, the k-means algorithm will be run for all
+                           n_clusters in the list, whereas if the argument is equal to
+                           'best', consecutive runs will be performed with n_clusters
+                           varying in the range of [2, 15]. In both cases, the final results
+                           will be the best output labels with respect to the clustering
+                           performance on the silhouette and Calinski-Harabasz scores.
+        :type n_clusters: int, optional
+        :param n_components: Number of eigenvectors to use for the spectral embedding,
+                             defaults to 10
+        :type n_components: int, optional
+        :param n_init: Number of time the k-means algorithm will be run with different centroid
+                       seeds. The final results will be the best output of n_init consecutive
+                       runs in terms of inertia. Only used if assign_labels='kmeans'. The
+                       default is 100.
+        :type n_init: int, optional
+        :param affinity: Method used to construct the affinity matrix. The available options are:
+                         - 'nearest_neighbors': construct the affinity matrix by computing a
+                         graph of nearest neighbors.
+                         - 'rbf': construct the affinity matrix using a radial basis function
+                         (RBF) kernel.
+                         - 'precomputed_nearest_neighbors': interpret X as a sparse graph of
+                         precomputed distances, and construct a binary affinity matrix from
+                         the n_neighbors nearest neighbors of each instance.
+                         - one of the kernels supported by pairwise_kernels.
+                         The default method is "rbf".
+        :type affinity: str or callable, optional
+        :param gamma: Kernel coefficient for rbf, poly, sigmoid, laplacian and chi2 kernels.
+                      Ignored for affinity='nearest_neighbors'. Defaults to 0.01.
+        :type gamma: float, optional
+        :param n_neighbors: Number of neighbors to use when constructing the affinity matrix
+                            using the nearest neighbors method. Ignored for affinity='rbf',
+                            defaults to 20.
+        :type n_neighbors: int, optional
+        :param degree: Degree of the polynomial kernel. Ignored by other kernels. Defaults to 3.
+        :type degree: int, optional
+        :param coef0: Zero coefficient for polynomial and sigmoid kernels. Ignored by other
+                      kernels. Defaults to 1.
+        :type coef0: int, optional
+        :param kernel_params: Parameters (keyword arguments) and values for kernel passed as
+                              callable object. Ignored by other kernels. Defaults to None.
+        :param save_model: Store the trained parameters of the model in a binary file,
+                           defaults to True.
+        :type save_model: bool, optional
+        :type kernel_params: dict or str, optional
+        :return: Dataframe of shape (n_samples,) with cluster labels for each data point.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        """
         print("\n************************************************")
         print("*  Starting the Spectral clustering analysis:  *")
         print("************************************************\n")
@@ -615,10 +785,16 @@ class Clustering(Utils):
             k_best = self._opt_num_clusters(model)
             clean_model.n_clusters = k_best
             model = clean_model
+        elif isinstance(model.n_clusters, int):
+            pass
         else:
             print("ERROR:\n Invalid option!")
             return None
 
         df_labels = self._run_model(model, self.df)
+
+        if save_model:
+            filename = "spectral_nc" + str(n_clusters) + ".joblib"
+            dump(model, filename)
 
         return df_labels

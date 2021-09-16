@@ -1,4 +1,4 @@
-"""Module to perform statistical analysis of MD datasets."""
+"""Module to perform statistical analysis of the MD datasets."""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: April 25, 2021
 from __future__ import (
@@ -15,10 +15,7 @@ import numpy as np
 
 try:
     import modin.pandas as pd
-    import ray
 
-    ray.shutdown()
-    ray.init()
 except ModuleNotFoundError:
     import pandas as pd
 

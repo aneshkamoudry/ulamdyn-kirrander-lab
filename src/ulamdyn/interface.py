@@ -1,5 +1,5 @@
-## Author: Max Pinheiro Jr <maxjr82@gmail.com>
-## Date: May 13, 2021
+# Author: Max Pinheiro Jr <maxjr82@gmail.com>
+# Date: May 13, 2021
 from __future__ import (
     absolute_import,
     division,
@@ -10,16 +10,11 @@ from __future__ import (
 
 import os
 import sys
-import time
-import argparse
 import numpy as np
 
 try:
     import modin.pandas as pd
-    import ray
 
-    ray.shutdown()
-    ray.init()
 except:
     import pandas as pd
 
@@ -49,8 +44,8 @@ def get_properties_data(rmsd_vec=None):
         df = gp.oscillator_strength()
         df = gp.populations()
 
-    df_ekin = get_kinetic_energies()
-    df = pd.concat([df, df_ekin], axis=1)
+        df_ekin = get_kinetic_energies()
+        df = pd.concat([df, df_ekin], axis=1)
 
     if rmsd_vec is not None:
         try:
@@ -74,12 +69,6 @@ def save_data(data_to_save):
         gc.read_all_trajs()
         gc.align_geoms
         gc.save_csv
-        print("Saving the full properties dataframe...\n")
-        gp = GetProperties()
-        df = gp.energies()
-        df = gp.oscillator_strength()
-        df = gp.populations()
-        gp.save_csv
         print("Saving the R2 descriptor dataframe...\n")
         r2 = R2()
         all_geoms = gc.xyz.copy()
@@ -87,6 +76,9 @@ def save_data(data_to_save):
         print("Saving the Z-Matrix descriptor dataframe...\n")
         zmt = ZMatrix()
         df = zmt.build_descriptor(all_geoms, save_csv=True)
+        print("Saving the full properties dataframe...\n")
+        df = get_properties_data()
+        df.to_csv("all_properties.csv", index=False)
 
     elif data_to_save == "gradients":
         print("Saving the XYZ gradients for each available state as dataframes...\n")

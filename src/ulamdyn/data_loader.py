@@ -1,5 +1,5 @@
-## Author: Max Pinheiro Jr <maxjr82@gmail.com>
-## Date: March 10 2021
+# Author: Max Pinheiro Jr <maxjr82@gmail.com>
+# Date: March 10 2021
 from __future__ import (
     absolute_import,
     division,
@@ -10,22 +10,15 @@ from __future__ import (
 
 import os
 import sys
-import glob
 import rmsd
 import h5py
 import numpy as np
 
 try:
     import modin.pandas as pd
-    import ray
 
-    ray.shutdown()
-    ray.init()
 except ModuleNotFoundError as e:
     import pandas as pd
-
-    print("Modin package is not available.")
-    print("The standard pandas library will be used.")
 
 from itertools import combinations
 from ulamdyn.utilities import *
@@ -365,6 +358,11 @@ class GetGradients:
     __slots__ = ["trajectories", "all_grads", "datasets"]
 
     def __repr__(self) -> str:
+        """Provide a string representation of the class.
+
+        :return: Short description of the class functionality.
+        :rtype: str
+        """
         return "Data loader class for QM gradients."
 
     def __init__(self):
