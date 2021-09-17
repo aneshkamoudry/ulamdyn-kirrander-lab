@@ -550,13 +550,10 @@ class Clustering(Utils):
                            will be the best output labels with respect to the clustering
                            performance on the silhouette and Calinski-Harabasz scores.
         :type n_clusters: int, list or str optional
-        :param init: Method for initialization:
-                     - 'k-means++' -> selects initial cluster centers for k-mean clustering
-                                      in a smart way to speed up convergence.
-                     - 'random' -> choose n_clusters observations (rows) at random from data
-                                   for the initial centroids.
-                     - If an array is passed, it should be of shape (n_clusters, n_features)
-                       and gives the initial centers.
+        :param init: Method for initialization :
+                     + 'k-means++' -> selects initial cluster centers for k-mean clustering in a smart way to speed up convergence.
+                     + 'random' -> choose n_clusters observations (rows) at random from data for the initial centroids.
+                     + If an array is passed, it should be of shape (n_clusters, n_features) and gives the initial centers.
                      Defaults to "k-means++".
         :type init: str or array, optional
         :param n_init: Number of time the k-means algorithm will be run with different
@@ -639,13 +636,11 @@ class Clustering(Utils):
         :type connectivity: array-like or callable, optional
         :param linkage: Define the linkage criterion to build the tree. It determines which
                         distance to use between sets of observation. The algorithm will merge
-                        the pairs of cluster that minimize this criterion. The options are:
-
-                          * 'ward' -> minimizes the variance of the clusters being merged.
-                          * 'average' -> uses the average of the distances of each observation of the two sets.
-                          * 'complete' or 'maximum' -> uses the maximum distances between all observations of the two sets.
-                          * 'single' -> uses the minimum of the distances between all observations of the two sets.
-
+                        the pairs of cluster that minimize this criterion. The options are :
+                        + 'ward' -> minimizes the variance of the clusters being merged.
+                        + 'average' -> uses the average of the distances of each observation of the two sets.
+                        + 'complete' or 'maximum' -> uses the maximum distances between all observations of the two sets.
+                        + 'single' -> uses the minimum of the distances between all observations of the two sets.
                         The default is "single".
         :type linkage: str, optional
         :param distance_threshold: The linkage distance threshold above which, clusters will not
@@ -730,15 +725,11 @@ class Clustering(Utils):
                        runs in terms of inertia. Only used if assign_labels='kmeans'. The
                        default is 100.
         :type n_init: int, optional
-        :param affinity: Method used to construct the affinity matrix. The available options are:
-                         - 'nearest_neighbors': construct the affinity matrix by computing a
-                         graph of nearest neighbors.
-                         - 'rbf': construct the affinity matrix using a radial basis function
-                         (RBF) kernel.
-                         - 'precomputed_nearest_neighbors': interpret X as a sparse graph of
-                         precomputed distances, and construct a binary affinity matrix from
-                         the n_neighbors nearest neighbors of each instance.
-                         - one of the kernels supported by pairwise_kernels.
+        :param affinity: Method used to construct the affinity matrix. The available options are :
+                         + 'nearest_neighbors': construct the affinity matrix by computing a graph of nearest neighbors.
+                         + 'rbf': construct the affinity matrix using a radial basis function (RBF) kernel.
+                         + 'precomputed_nearest_neighbors': interpret X as a sparse graph of precomputed distances, and construct a binary affinity matrix from the n_neighbors nearest neighbors of each instance.
+                         + one of the kernels supported by pairwise_kernels.
                          The default method is "rbf".
         :type affinity: str or callable, optional
         :param gamma: Kernel coefficient for rbf, poly, sigmoid, laplacian and chi2 kernels.

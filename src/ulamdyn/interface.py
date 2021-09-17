@@ -43,6 +43,7 @@ def get_properties_data(rmsd_vec=None):
         df = gp.energies()
         df = gp.oscillator_strength()
         df = gp.populations()
+        df = gp.nac_norm()
 
         df_ekin = get_kinetic_energies()
         df = pd.concat([df, df_ekin], axis=1)
@@ -80,10 +81,15 @@ def save_data(data_to_save):
         df = get_properties_data()
         df.to_csv("all_properties.csv", index=False)
 
-    elif data_to_save == "gradients":
+    elif data_to_save.lower() == "gradients":
         print("Saving the XYZ gradients for each available state as dataframes...\n")
         gg = GetGradients()
         gg.build_dataframe(save_csv=True)
+
+    elif data_to_save.lower() == "nacs":
+        print("Saving the NACs for each state pair as separated dataframes...\n")
+        gnac = GetCouplings()
+        gnac.build_dataframe(save_csv=True)
 
 
 def build_descriptor(args, getcoords_obj):
