@@ -952,12 +952,6 @@ class GetProperties:
         cols_reordered = base_cols + list(set(all_cols) - set(base_cols))
         df = df[cols_reordered]
 
-        print("------------------------------------------------")
-        print("  The size of the energies data set is\n ")
-        print("    Number of geometries = {}".format(df.shape[0]))
-        print("      Number of features = {}".format(df.shape[1]))
-        print("------------------------------------------------")
-
         self._update_properties(df)
         df = self.dataset
 
@@ -1049,10 +1043,10 @@ class GetProperties:
     def oscillator_strength(self):
         """Collect the oscillator strength from properties file.
 
-        The information can be read from either classical or new series NX.
-
-        .. note:: This information is not always available. If needed, check the Newton-X
-                  documentation to see what are the required keywords and methods.
+        .. note:: The oscillator strength (OSS) is not always available in the output.
+                  If needed, check the Newton-Xdocumentation to see what are the required
+                  keywords and methods. The OSS data can be read from either classical or
+                  new series NX trajectories.
 
         :return: a dataset with the oscillator strength information read from all available
                  NX trajectories with one column for each transition between states; if the
@@ -1185,6 +1179,97 @@ class GetProperties:
         df.columns = col_names
 
         self._update_properties(df)
+        df = self.dataset
+
+        return df
+
+    def _mcscf_coefs_from_txt(self):
+
+        all_mcscf_coefs = dict()
+
+        for trj in self.trajectories:
+
+            print("Reading MCSCF coefficients from %s" % trj + "...")
+            try:
+                nxlog = trj + "/RESULTS/nx.log"
+                f = open(nxlog, "r")
+            except FileNotFoundError:
+                print("\n-------------------------------------------------")
+                print("The file nx.log was not found or is corrupted.")
+                print("Check the %s/RESULTS directory." % trj)
+                print("-------------------------------------------------\n")
+                continue
+
+            read_coefs = False
+            hopping = False
+            n_state = 0
+            lines = f.readlines()
+            # Start reading the properties file
+            for line in lines:
+
+                if "FINISHING STEP" in line:
+                    n_state = 0
+                    hopping = False
+
+                if "Time of hopping" in line:
+                    hopping = True
+
+                if "csf       coeff" in line and not hopping:
+                    read_coefs = True
+                    n_state += 1
+                    state_id = "S" + str(n_state)
+                    if state_id not in all_mcscf_coefs.keys():
+                        all_mcscf_coefs[state_id] = []
+                    continue
+
+                if len(line.split()) == 0:
+                    read_coefs = False
+
+                if read_coefs and "-----" not in line:
+                    coef = np.float_(line.split()[2])
+                    all_mcscf_coefs[state_id].append(coef)
+
+            f.close()
+
+        for state in all_mcscf_coefs.keys():
+            all_mcscf_coefs[state] = np.array(all_mcscf_coefs[state], dtype=np.float64)
+            all_mcscf_coefs[state] = all_mcscf_coefs[state].reshape(-1, 3)
+
+        return all_mcscf_coefs
+
+    def mcscf_coefs(self):
+        """Collect the squared coefficients of the MCSCF wavefunction.
+
+        .. note:: This method works only for MD trajectories generated with Columbus.
+
+        :return: a dataset with the three highest MCSCF coefficients for each electronic
+                 state read from the NX output per state; if the class variable
+                 :attr:`~ulamdyn.GetProperties.dataset` has been already updated with some
+                 properties, the population data will be merged with the existing dataset.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        """
+        if self.nx_version == "cs":
+            all_mcscf_coefs = self._mcscf_coefs_from_txt()
+        elif self.nx_version == "ns":
+            # all_mcscf_coefs = self._mcscf_coefs_from_h5()
+            print("This function is not available yet for the new NX.")
+            return
+        else:
+            print("ERROR:")
+            print("Newton-X version not recognized!")
+            return
+
+        dfs = []
+        for k in all_mcscf_coefs.keys():
+            num_coefs = all_mcscf_coefs[k].shape[1]
+            col_names = [k + "_mcscf_c" + str(i + 1) for i in range(num_coefs)]
+            df = pd.DataFrame(all_mcscf_coefs[k])
+            df.columns = col_names
+            dfs.append(df)
+
+        dfs = pd.concat(dfs, axis=1)
+
+        self._update_properties(dfs)
         df = self.dataset
 
         return df

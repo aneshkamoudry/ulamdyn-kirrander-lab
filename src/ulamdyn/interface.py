@@ -42,6 +42,7 @@ def get_properties_data(rmsd_vec=None):
         gp = GetProperties()
         df = gp.energies()
         df = gp.oscillator_strength()
+        df = gp.mcscf_coefs()
         df = gp.populations()
         df = gp.nac_norm()
 
