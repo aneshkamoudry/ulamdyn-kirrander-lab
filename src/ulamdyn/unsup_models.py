@@ -134,6 +134,30 @@ class DimensionalityReduction(Utils):
 
         return df
 
+    def _create_pca_importance(self, pca):
+
+        df_importance = pd.DataFrame(pca.components_)
+        df_importance.columns = self.df.columns
+        df_importance = df_importance.apply(np.abs)
+        df_importance = df_importance.transpose()
+        num_pcs = df_importance.shape[1]
+
+        # Generate column names
+        col_names = [f"PC{i}" for i in range(1, num_pcs + 1)]
+        df_importance.columns = col_names
+
+        print("***********************************")
+        print("*     PCA feature importance:     *")
+        print("***********************************\n")
+
+        for pc in df_importance.columns:
+            top_5_features = df_importance[pc].sort_values(ascending=False)[:5]
+            print(), print("Top 5 features for {} \n".format(pc))
+            print(top_5_features)
+        print()
+
+        return df_importance
+
     def pca(self, n_components=2, calc_error=False, save_errors=False):
         """Perform a linear dimensionality reduction using principal component analysis.
 
@@ -179,6 +203,8 @@ class DimensionalityReduction(Utils):
             if count > 5:
                 break
         print("")
+
+        df_importance = self._create_pca_importance(model)
 
         if calc_error:
             X_reconstructed = model.inverse_transform(df_transformed.values)

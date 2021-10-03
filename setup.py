@@ -34,6 +34,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     install_requires=['numpy', 'h5py', 'rmsd', 'pandas', 'scikit-learn', 'joblib'],
+    extras_require={'modin': ['modin']},
     keywords=['python', 'chemistry', 'dimensionality reduction', 'clustering', 'molecular dynamics'],
     classifiers=[
         "Development Status :: 2 - Improving code and documentation",
