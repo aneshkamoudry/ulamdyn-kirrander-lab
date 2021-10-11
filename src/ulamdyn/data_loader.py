@@ -770,8 +770,9 @@ class GetProperties:
         + total energy;
         + energy gaps between states (eV);
         + oscillator strength (if available);
-        + norm of the nonadiabatic coupling matrices (if available);
         + states population.
+        + norm of the nonadiabatic coupling matrices (if available);
+        + three highest MCSSCF coefficients per state (only for NX/Columbus);
         """
         if self.dataset is not None:
             df = self.dataset.copy()

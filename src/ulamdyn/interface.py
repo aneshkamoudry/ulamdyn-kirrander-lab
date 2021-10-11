@@ -92,6 +92,15 @@ def save_data(data_to_save):
         gnac = GetCouplings()
         gnac.build_dataframe(save_csv=True)
 
+    elif data_to_save.lower() == "vibspec":
+        print("Saving the vibrational (power) spectra for all MD trajectories...\n")
+        vs = VibrationalSpectra()
+        df_spec = vs.build_dataframe()
+        gp = GetProperties()
+        df_prop = gp.energies()
+        df = pd.concat([df_prop[["TRAJ", "State"]], df_spec], axis=1)
+        df.to_csv("all_vibrational_spectra.csv", index=False, header=True)
+
 
 def build_descriptor(args, getcoords_obj):
     descriptor = args.descriptor
