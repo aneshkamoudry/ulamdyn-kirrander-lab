@@ -311,13 +311,7 @@ def save_xyz_hoppings(states_pair):
 def run_bootstrap(args):
 
     print("Loading the all properties data...\n")
-    try:
-        df = pd.read_csv("all_properties.csv")
-    except:
-        gp = GetProperties()
-        df = gp.energies()
-        df = gp.oscillator_strength()
-        df = gp.populations()
+    df = get_properties_data()
 
     print("Running the bootstrap algorithm...\n")
 

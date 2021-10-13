@@ -20,6 +20,7 @@ except ModuleNotFoundError as e:
     import pandas as pd
 
 from scipy.fftpack import fft, fftfreq
+from scipy.ndimage.filters import gaussian_filter1d as gaussian
 
 from ulamdyn.utilities import *
 
@@ -195,37 +196,9 @@ class KineticEnergy:
             self.n_atoms = int(n_atoms)
 
         self.energies = None
-        self.atom_labels, self.atom_mass = self._get_labels_masses
-
-    @property
-    def _get_labels_masses(self):
-
-        traj = self.trajectories[0]
-        if os.path.isfile(traj + "/geom.orig"):
-            # This is the file name for new Newton-X
-            nx_geom_file = traj + "/geom.orig"
-        else:
-            # This is the standard geom input file in classical Newton-X
-            nx_geom_file = traj + "/geom"
-        try:
-            data = np.loadtxt(
-                nx_geom_file,
-                usecols=(0, 5),
-                unpack=True,
-                dtype={"names": ("labels", "masses"), "formats": ("U1", "float")},
-            )
-            atom_labels, atom_mass = data
-            atom_labels = atom_labels[: self.n_atoms]
-            atom_mass = atom_mass[: self.n_atoms] * PROTON_MASS
-
-        except Exception as e:
-            print("--------------------------------------------------------------")
-            print("ERROR:                                                        ")
-            print("geom file not found or n_atoms is larger than atom_mass array.")
-            print("Check the content of TRAJ%s directory" % traj)
-            print("--------------------------------------------------------------")
-
-        return (atom_labels, atom_mass)
+        self.atom_labels, self.atom_mass = get_labels_masses(
+            self.trajectories[0], self.n_atoms
+        )
 
     @staticmethod
     def _atom_speed(veloc_xyz: np.ndarray):
@@ -339,31 +312,19 @@ class VibrationalSpectra(GetVelocities):
     def __init__(self, n_atoms=None) -> None:
         """Class initializer."""
         super().__init__(n_atoms=n_atoms)
-        self.nx_version = get_nx_version(self.trajectories[0])
         self.spectrum = None
+        self.mass = get_labels_masses(self.trajectories[0], n_atoms)[1]
+        self.dt = self._get_time_step
 
     @property
     def _get_time_step(self):
 
-        if self.nx_version == "cs":
-            control_input = self.trajectories[0] + "/control.dyn"
-        elif self.nx_version == "ns":
-            control_input = self.trajectories[0] + "/configuration.inp"
-        else:
-            print("ERROR:")
-            print("Newton-X version not recognized!")
-            return
-
-        with open(control_input, "r") as nxinp:
-            for line in nxinp:
-                if len(line.split()) > 0:
-                    keyword = line.split()[0]
-                    if keyword == "dt":
-                        dt = float(line.split("=")[1].split()[0])
+        control = read_nx_control(self.trajectories[0])
+        dt = control.get("dt")
         return dt
 
     @staticmethod
-    def calc_pdos(Vel, dt):
+    def calc_pdos(Vel, dt, mass=None):
         """Calculate the power spectrum of the velocity auto-correlation function.
 
         :param Vel: tensor of shape (n_steps, n_atoms, 3) with atomic velocities collected
@@ -371,10 +332,17 @@ class VibrationalSpectra(GetVelocities):
         :type Vel: numpy.ndarray
         :param dt: time step used to integrate the classical equations.
         :type dt: float
-        :return: two-columns array containing the calculated frequencies (cm^-1) in the first
-                 columns and the density of states in the second one (a.u.)
+        :param mass: if provided, rescale the velocities by the atomic mass of each
+                     specie; the default is None.
+        :type dt: numpy.ndarray
+        :return: two-columns array containing the calculated frequencies (cm^-1) in the
+                 first columns and the density of states in the second one (a.u.)
         :rtype: numpy.ndarray
         """
+        if mass is not None:
+            mass = mass.reshape(-1, 1)
+            Vel = mass * Vel
+
         n_steps = Vel.shape[0]
         Vel = Vel.reshape(n_steps, -1).T
 
@@ -383,25 +351,31 @@ class VibrationalSpectra(GetVelocities):
         vac2 /= np.linalg.norm(vac2, axis=1)[:, None]
         vac2 = np.mean(vac2, axis=0)
 
-        # power spectrum (phonon density of states)
+        # power spectrum (vibrational density of states)
         pdos = np.abs(fft(vac2)) ** 2
-        # spectrum is symmetric
         pdos /= np.linalg.norm(pdos) / 2
 
-        # Frequency in cm^-1
+        # Convert the frequencies from Petahertz to cm^-1
         freq = fftfreq(2 * n_steps - 1, dt) * 33356.4095198152
 
         freq = freq[:n_steps]
         pdos = pdos[:n_steps]
+
+        # pdos = gaussian(pdos, sigma=50)
+
         traj_spec = np.array([freq, pdos]).T
 
         return traj_spec
 
-    def calc_all_trajs(self):
+    def calc_all_trajs(self, mass_weighted=True):
         """Calculate the vibrational spectra for each MD trajectory."""
 
         all_vib_spec = list()
-        dt = self._get_time_step
+        mass = None
+        dt = self.dt
+
+        if mass_weighted:
+            mass = self.mass
 
         for trj in self.trajectories:
             print("Computing power spectra for %s" % trj + "...")
@@ -419,7 +393,7 @@ class VibrationalSpectra(GetVelocities):
                 print("Check the directory %s" % trj + "/RESULTS" + "\n")
                 continue
 
-            spec = self.calc_pdos(veloc, dt)
+            spec = self.calc_pdos(veloc, dt, mass)
             all_vib_spec.append(spec)
 
         all_vib_spec = np.concatenate(all_vib_spec, axis=0)

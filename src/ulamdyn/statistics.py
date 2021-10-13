@@ -24,7 +24,7 @@ except ModuleNotFoundError:
 
 from ulamdyn.data_loader import GetCoords, GetProperties
 from ulamdyn.descriptors import R2, ZMatrix
-from ulamdyn.kinetics import KineticEnergy
+from ulamdyn.kinetics import KineticEnergy, VibrationalSpectra
 
 
 def aggregate_data(data, vars_to_group=["time"]):
@@ -175,6 +175,7 @@ def create_stats(selected_data, save_csv=False):
         gp = GetProperties()
         df = gp.energies()
         df = gp.oscillator_strength()
+        df = gp.mcscf_coefs()
         df = gp.populations()
 
         time_vec = df["time"].values
@@ -217,6 +218,18 @@ def create_stats(selected_data, save_csv=False):
         df.insert(loc=0, column="time", value=time_vec)
         df_ekin_stats = aggregate_data(df)
         all_stats["ekinetics"] = df_ekin_stats
+
+    elif selected_data.lower() == "vibspec":
+        print("Calculating statistics for the vibrational spectra dataset...\n")
+        gp = GetProperties()
+        df = gp.energies()
+        time_vec = df["time"].values
+
+        vs = VibrationalSpectra()
+        df = vs.build_dataframe()
+        df.insert(loc=0, column="time", value=time_vec)
+        df_spec_stats = aggregate_data(df)
+        all_stats["vibspec"] = df_spec_stats
 
     else:
         print("--------------------------------------")
