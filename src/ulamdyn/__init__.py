@@ -47,14 +47,18 @@ from ulamdyn.unsup_models import *
 from ulamdyn.utilities import *
 from ulamdyn.interface import *
 
+from ulamdyn._version import get_versions
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 filedir = os.path.dirname(__file__)
 
 __title__ = "ULaMDyn"
-__version__ = "0.0.2"
+__version__ = _version.get_versions()['version']
 __author__ = "Max Pinheiro Jr"
 __email__ = "maxjr82@gmail.com"
 __maintainer__ = "Max Pinheiro Jr"
 __license__ = "LGPLv3"
 __copyright__ = "Copyright 2021 Max Pinheiro"
+
+del get_versions

@@ -7,9 +7,10 @@ from __future__ import with_statement
 from __future__ import absolute_import
 
 import os
+import versioneer
 from setuptools import setup, find_packages
 
-VERSION = '0.0.2'
+#VERSION = '0.0.2'
 DESCRIPTION = 'Unsupervised learning for molecular dynamics data'
 
 if os.path.exists('README.rst'):
@@ -23,7 +24,8 @@ else:
 # Setting up
 setup(
     name="ulamdyn",
-    version=VERSION,
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author="Max Pinheiro Jr",
     author_email="<maxjr82@gmail.com>",
     url="www.ulamdyn.com",
@@ -45,5 +47,6 @@ setup(
         "Topic :: Scientific/Engineering :: Physics"
     ],
     python_requires=">=3.7",
+    install_requires=requirements,
 )
 
