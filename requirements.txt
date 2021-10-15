@@ -1,5 +1,7 @@
-RMSD
+rmsd
 h5py
 numpy
+scipy
+joblib
 pandas<=1.2.3
 scikit-learn
