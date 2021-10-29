@@ -21,6 +21,8 @@ from ulamdyn.statistics import *
 from ulamdyn.unsup_models import *
 from ulamdyn.interface import *
 
+__all__ = ["main"]
+
 
 def _check_geom_file():
     if not os.path.isfile("geom.xyz"):
@@ -34,7 +36,7 @@ def _check_geom_file():
         sys.exit()
 
 
-if __name__ == "__main__":
+def main():
 
     # Define command-line arguments. The commands can be read from a config.txt file.
     parser = argparse.ArgumentParser(fromfile_prefix_chars="@")

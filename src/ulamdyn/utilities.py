@@ -66,7 +66,7 @@ def get_labels_masses(traj_dir, n_atoms=None):
     except Exception as e:
         print("--------------------------------------------------------------")
         print("ERROR:                                                        ")
-        print("geom file not found or n_atoms is larger than atom_mass array.")
+        print("geom file not found.")
         print("Check the content of %s directory" % traj_dir)
         print("--------------------------------------------------------------")
 
