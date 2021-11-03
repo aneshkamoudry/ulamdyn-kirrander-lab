@@ -994,7 +994,6 @@ class GetProperties:
             counter = -1
             read_line = False
 
-            print("Reading oscillator strength from %s" % trj + "...")
             try:
                 propfile = trj + "/RESULTS/properties"
                 f = open(propfile, "r")
@@ -1011,6 +1010,7 @@ class GetProperties:
                 print("\nOscillator strength not found in %s" % propfile)
                 return
             else:
+                print("Reading oscillator strength from %s" % trj + "...")
                 lines = lines.split("\n")
 
                 oscillator_lines = list(
@@ -1072,8 +1072,9 @@ class GetProperties:
             print("Newton-X version not recognized!")
             return
 
-        self._update_properties(df)
-        df = self.dataset
+        if df is not None:
+            self._update_properties(df)
+            df = self.dataset
 
         return df
 
@@ -1193,10 +1194,10 @@ class GetProperties:
     def _mcscf_coefs_from_txt(self):
 
         all_mcscf_coefs = dict()
+        check_csf = "csf       coeff"
 
         for trj in self.trajectories:
 
-            print("Reading MCSCF coefficients from %s" % trj + "...")
             try:
                 nxlog = trj + "/RESULTS/nx.log"
                 f = open(nxlog, "r")
@@ -1207,11 +1208,16 @@ class GetProperties:
                 print("-------------------------------------------------\n")
                 continue
 
+            lines = f.readlines()
+            if not check_csf in lines:
+                return
+
             read_coefs = False
             hopping = False
             n_state = 0
-            lines = f.readlines()
+
             # Start reading the properties file
+            print("Reading MCSCF coefficients from %s" % trj + "...")
             for line in lines:
 
                 if "FINISHING STEP" in line:
@@ -1264,17 +1270,18 @@ class GetProperties:
             print("Newton-X version not recognized!")
             return
 
-        dfs = []
-        for k in all_mcscf_coefs.keys():
-            num_coefs = all_mcscf_coefs[k].shape[1]
-            col_names = [k + "_mcscf_c" + str(i + 1) for i in range(num_coefs)]
-            df = pd.DataFrame(all_mcscf_coefs[k])
-            df.columns = col_names
-            dfs.append(df)
+        if all_mcscf_coefs is not None:
+            dfs = []
+            for k in all_mcscf_coefs.keys():
+                num_coefs = all_mcscf_coefs[k].shape[1]
+                col_names = [k + "_mcscf_c" + str(i + 1) for i in range(num_coefs)]
+                df = pd.DataFrame(all_mcscf_coefs[k])
+                df.columns = col_names
+                dfs.append(df)
 
-        dfs = pd.concat(dfs, axis=1)
+            dfs = pd.concat(dfs, axis=1)
 
-        self._update_properties(dfs)
-        df = self.dataset
+            self._update_properties(dfs)
+            df = self.dataset
 
-        return df
+            return df

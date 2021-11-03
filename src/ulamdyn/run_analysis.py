@@ -210,13 +210,12 @@ def main():
     hours, rem = divmod(end - start, 3600)
     minutes, seconds = divmod(rem, 60)
 
-    print("---------------------------------------------------")
+    print("\n---------------------------------------------------")
     print(
         "Total execution time - {:0>2}:{:0>2}:{:05.2f}".format(
             int(hours), int(minutes), seconds
         )
     )
-    print("---------------------------------------------------")
-    print(" ")
+    print("---------------------------------------------------\n")
 
     print("Good Bye!")
