@@ -1,6 +1,9 @@
 ulamdyn package
 ===============
 
+Comprehensive API documentation with detailed information on how to use the functions and/or classes of ULaMDyn package. This is automatically generated
+from source code and comments.
+
 Submodules
 ----------
 

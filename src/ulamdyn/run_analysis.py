@@ -44,9 +44,9 @@ def main():
         "--save_dataset",
         required=False,
         type=str,
-        metavar="",
+        metavar="all | gradients | nacs | vibspec",
         default=None,
-        help="Type of data set (properties and/or descriptors) to build \
+        help="Type of data set (properties + descriptors) to build from MD outputs\
                               and save as csv file.",
     )
     parser.add_argument(
@@ -62,7 +62,7 @@ def main():
         "--create_stats",
         required=False,
         type=str,
-        metavar="",
+        metavar="all | ekin | vibspec",
         default=None,
         help="Generate a data set with basic statistics (mean, median \
                               and std) for all the trajectories.",

@@ -1,0 +1,784 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Data curation &mdash; ULaMDyn 0+untagged.25.gbcf95f8.dirty documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ulamdyn package" href="ulamdyn.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ULaMDyn
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.25.gbcf95f8.dirty
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Getting Started:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorial:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data curation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#GetProperties:"><strong>GetProperties:</strong></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#1.-energies():">1. energies():</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Counting-the-number-of-entries.">Counting the number of entries.</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Getting-features-of-MD-trajectories.">Getting features of MD trajectories.</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Selecting-properties-of-hopping-points">Selecting properties of hopping points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Visualizing-time-evolution-of-the-potential-energy">Visualizing time evolution of the potential energy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#2.-oscillator_strength():">2. oscillator_strength():</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#3.-populations():">3. populations():</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#4.-nac_norm()">4. nac_norm()</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Source documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ulamdyn.html">ulamdyn package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ULaMDyn</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Data curation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/data_curation.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt a.copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="Data-curation">
+<h1>Data curation<a class="headerlink" href="#Data-curation" title="Permalink to this headline">¶</a></h1>
+<p><strong>Initial instructions:</strong></p>
+<p>This tutorial was designed to demonstrate how to use the ULaMDyn package as a python API for collecting data from the outputs of NAMD trajectories generated by the Newton-X program. The <strong>ULaMDyn API</strong> provides a flexible framework to manipulate the information collected by the program and structured into pandas DataFrame objects either via interactive Jupyter environment or by developing customized scripts for specific purposes.</p>
+<ul class="simple">
+<li><p>You should be inside of the TRAJECTORIES directory in your Newton-X calculation.</p></li>
+<li><p>Ulamdyn will look for the file control.dyn, which should be inside of TRAJECTORIES.</p></li>
+<li><p>Import the modules you are going to use.</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">ulamdyn</span> <span class="k">as</span> <span class="nn">umd</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="GetProperties:">
+<h2><strong>GetProperties:</strong><a class="headerlink" href="#GetProperties:" title="Permalink to this headline">¶</a></h2>
+<p>Read and process all properties available in the outputs of Newton-X MD trajectories (RESULTS directory). In this class, there are several methods implemented to extract specific information: energies(), oscillator_strength(), populations() and save_csv.</p>
+<p>Energy quantities processed by this class are transformed from u.a. to eV. For the other properties, the original units used in NX are kept.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Instanciate the class:</span>
+<span class="n">properties</span> <span class="o">=</span> <span class="n">umd</span><span class="o">.</span><span class="n">GetProperties</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="1.-energies():">
+<h3>1. energies():<a class="headerlink" href="#1.-energies():" title="Permalink to this headline">¶</a></h3>
+<p>Read and process the energy information from the en.dat (classical NX) or .h5 (new NX) file and return a processed pandas dataframe with the information of all trajectories stacked.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_en</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">energies</span><span class="p">()</span>
+<span class="n">df_en</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>This dataframe shows the line number, the identifier of NX trajectory (TRAJ), the current state of the trajectory (State), the total energy, the hopings between the states (Hops_S12 and Hops_S21), the energy difference between the accessible states (DE21) and the absolute energy of the ground state.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_en</span><span class="o">.</span><span class="n">columns</span>
+</pre></div>
+</div>
+</div>
+<p>Using the pandas functions, one can easily obtain a full description of the dataset generated by ulamdyn.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_en</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Counting-the-number-of-entries.">
+<h4>Counting the number of entries.<a class="headerlink" href="#Counting-the-number-of-entries." title="Permalink to this headline">¶</a></h4>
+<p>From this initial dataframe, it is already possible to capture some characteristics of the dataframe. For example, with <em>count</em> it is possible to check how many entries we have in the dataframe and with <em>nunique</em> we can obtain the number of unique values, that applied to the trajectories column, return the number of trajectories available in the directory.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_en</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Getting-features-of-MD-trajectories.">
+<h4>Getting features of MD trajectories.<a class="headerlink" href="#Getting-features-of-MD-trajectories." title="Permalink to this headline">¶</a></h4>
+<p>It is also possible to group the information available in the dataframe in a more convenient way. For example, by using the <em>groupby</em> function of pandas one can easily obtain the maximum time of the dynamics for each one of the trajectories read by the program.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_en</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Selecting-properties-of-hopping-points">
+<h4>Selecting properties of hopping points<a class="headerlink" href="#Selecting-properties-of-hopping-points" title="Permalink to this headline">¶</a></h4>
+<p>The command shown below is an example of how to filter the energy dataframe dataframe to display only the rows in which there is a hopping between states 1 and 2.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">hoppings_S12</span> <span class="o">=</span> <span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;Hops_S12&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">]</span>
+<span class="n">hoppings_S12</span>
+</pre></div>
+</div>
+</div>
+<p>From the filtered dataset shown above, one can easily identify relevant information related to the hopping time such as the energy gap between S0 and S1, given by the column “DE21”.</p>
+</div>
+<div class="section" id="Visualizing-time-evolution-of-the-potential-energy">
+<h4>Visualizing time evolution of the potential energy<a class="headerlink" href="#Visualizing-time-evolution-of-the-potential-energy" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>Energy of state 1:</p></li>
+</ul>
+<p>To obtain the absolute value of root 2, i. e. S1 state, we need to add the DE21 gap (in eV) to the root1 potential energy (in atomic unities), i. e. S0. And then, add it to the dataframe as column.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;Root2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;Total_Energy&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;DE21&#39;</span><span class="p">]</span>
+<span class="n">df_en</span>
+</pre></div>
+</div>
+</div>
+<p>We can then later obtain filter the dataframe to obtain root 2 energy from a specific trajectory and use it to plot the potential energy surfaces of the relevant states.</p>
+<ul class="simple">
+<li><p>Energy of the current state:</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;only_root2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;State&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">][</span><span class="s1">&#39;Root2&#39;</span><span class="p">]</span>
+<span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;only_root1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;State&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">][</span><span class="s1">&#39;S1&#39;</span><span class="p">]</span>
+<span class="n">df_en</span> <span class="o">=</span> <span class="n">df_en</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;Current&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;only_root2&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;only_root1&#39;</span><span class="p">]</span>
+<span class="n">df_en</span> <span class="o">=</span> <span class="n">df_en</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">&#39;only_root2&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">&#39;only_root1&#39;</span><span class="p">)</span>
+<span class="n">df_en</span>
+</pre></div>
+</div>
+</div>
+<p><strong>Plotting the results</strong></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># First some code lines to set up the plot.</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">fig</span> <span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="c1">## 1. Subplot 1: Mean Population</span>
+<span class="c1"># syntax: plt.subplot(number_lines, number_columns, selected_plot)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">TRAJ_ID</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># syntax: plt.plot(x-axis, y-axis, series_label, type_marker, ...)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">TRAJ_ID</span> <span class="p">][</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">TRAJ_ID</span> <span class="p">][</span><span class="s1">&#39;S1&#39;</span><span class="p">],</span>           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;S0&#39;</span><span class="p">,</span>           <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">TRAJ_ID</span> <span class="p">][</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">TRAJ_ID</span> <span class="p">][</span><span class="s1">&#39;Root2&#39;</span><span class="p">],</span>        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span>           <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">TRAJ_ID</span> <span class="p">][</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">TRAJ_ID</span> <span class="p">][</span><span class="s1">&#39;Current&#39;</span><span class="p">],</span>      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Current&#39;</span><span class="p">,</span>      <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">TRAJ_ID</span> <span class="p">][</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">df_en</span><span class="p">[</span><span class="n">df_en</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">TRAJ_ID</span> <span class="p">][</span><span class="s1">&#39;Total_Energy&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Total Energy&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># x- and y-axis labels</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Energy (eV)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;time (fs)&#39;</span>  <span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># # Legend placement and style</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.00</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">),</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Trajectory &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">TRAJ_ID</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="2.-oscillator_strength():">
+<h3>2. oscillator_strength():<a class="headerlink" href="#2.-oscillator_strength():" title="Permalink to this headline">¶</a></h3>
+<p>This is a method of the GetProperties class that can be used to collect the oscillator strength computed by an external QM program during the dynamics simulation. After calling this method, the oscillator strength data collected from all trajectories will be merged with the existing properties dataset.</p>
+<p><strong>Note:</strong> The availability of the oscillator strength data depends on the QM program / method used to compute the electronic structure of the system. If available, ULaMDyn will collect this information from the RESULTS/properties file (classical NX) or from the .h5 file (new NX) for each MD trajectory.</p>
+</div><div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">properties</span><span class="o">.</span><span class="n">oscillator_strength</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="3.-populations():">
+<h3>3. populations():<a class="headerlink" href="#3.-populations():" title="Permalink to this headline">¶</a></h3>
+<p>The population is a key quantity in nonadiabatic molecular dynamics often used to estimate the lifetime of an excited state. ULaMDyn provides a function to compute the population of each excited state from the coefficients of the wave function available in the NX output. The populations() function implemented in the GetProperties class can be called to add the information of the state’s population to an existing properties dataset, in a similar way to the other functions discussed previously, as
+you can see in the example below:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">properties</span><span class="o">.</span><span class="n">populations</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>Since the properties.energies() function has been already called, the properties.populations() method will append two extra columns corresponding to the populations of calculated for states S1 and S2 to the former dataframe.</p>
+<p>The information in the resulting dataframe can be easily plotted using the seaborn or matplotlib libraries. In the example, the S0 and S1 populations are plotted over time for one specific trajectory using matplotlib.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Selects the data associated to TRAJ1.</span>
+<span class="n">df_TRAJ1</span> <span class="o">=</span> <span class="n">df_pop</span><span class="p">[</span><span class="n">df_pop</span><span class="p">[</span><span class="s1">&#39;TRAJ&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># First, some code lines to set up the plot.</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">fig</span> <span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="c1"># Then, giving labels to the axis...</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Population&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;time (fs)&#39;</span>      <span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="c1"># ... and informing the what should be plotted. x-axis is time and y-axis is the respective populations.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_TRAJ1</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">df_TRAJ1</span><span class="p">[</span><span class="s1">&#39;Pop1&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;S0&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_TRAJ1</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">df_TRAJ1</span><span class="p">[</span><span class="s1">&#39;Pop2&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span>
+
+<span class="c1"># And, finally, setting up the data labels.</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.00</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="4.-nac_norm()">
+<h3>4. nac_norm()<a class="headerlink" href="#4.-nac_norm()" title="Permalink to this headline">¶</a></h3>
+<p>Calculate the norm of the nonadiabatic coupling matrices for each pair of states. After running this function, the properties dataset sored in the class variable <em>GetProperties.dataset</em> will be updated with the computed NACs norm data. Before running this function, let’s first take a look at the current state of the properties dataset.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">properties</span><span class="o">.</span><span class="n">dataset</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">properties</span><span class="o">.</span><span class="n">nac_norm</span><span class="p">()</span>
+<span class="n">properties</span><span class="o">.</span><span class="n">dataset</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="ulamdyn.html" class="btn btn-neutral float-right" title="ulamdyn package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Max Pinheiro Jr.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

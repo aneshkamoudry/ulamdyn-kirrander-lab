@@ -3,15 +3,82 @@
 Unsupervised Learning analysis for Molecular Dynamics data.
 
 ULaMDyn is a python package designed to provide a set of methods for the preprocessing, statistical, and unsupervised learning analysis of molecular data sets 
-generated from nonadiabatic dynamics simulations.
+generated from nonadiabatic dynamics simulations. The program makes use of popular data analysis and machine learning libraries (accessible through the PyPI
+repository), as well as domain-specific libraries.
+
+For more details and full documentation, please check the ULaMDyn website: www.ulamdyn.com
 
 <a name="general"></a>
 ## General
 This library is currently under development.
 
 <a name="installation"></a>
-## Installation
+## Installation and dependencies
+
+### Development version
+
+#### (1) Clone the repository
+
 ```sh
-$ pip install -r requirements.txt
-$ python setup.py install
+$ git clone https://gitlab.com/maxjr82/ulamdyn.git
+$ cd ulamdyn
 ```
+
+...or update your existing local copy with
+
+```sh
+$ git pull origin master
+```
+
+#### (2) Install (via pip)
+
+```sh
+$ pip install -e .
+```
+
+To install the package in the current users's home directory instead of system-wide (i.e., without root permissions), you should add the flag ``--user`` to the pip 
+command provided above. This option might require you to update your system's ``PATH`` variable accordingly.
+
+Note: the following external libraries will be automatically installed with ulamdyn:
+   - numpy
+   - scipy
+   - pandas
+   - scikit-learn
+   - joblib
+   - h5py
+   - rmsd
+
+### Optional dependencies
+
+For handling large datasets, ULaMDyn also provides an interface to the Modin library which can be used to parallelize and speed up operations on pandas DataFrame 
+objects. Modin package is not installed by default with ULaMDyn. To enable its usage, one can add the optional dependency (or "extra package") by specifying the 
+package name during installation using the "square bracket syntax":
+
+```sh
+$ pip install ulamdyn[modin]
+```
+
+<a name="Usage"></a>
+## Usage
+
+### Command-line interface
+
+ULaMDyn provides a set of predefined functions accessible through a command-line interface to facilitate user experience and speed up the data analysis. Once the 
+program has been successfully installed, the wrapper script *run-ulamdyn* can be executed from linux terminal. The script should be executed from the TRAJECTORIES
+directory of the Newton-X MD simulations, and a file named "geom.xyz" containing some reference geometry for the system (typically the ground-state geometry) must 
+be provided in this directory. Then, running the wrapper script in Linux terminal is as simple as
+
+```sh
+$ run-ulamdyn --save_dataset=all
+```
+
+To check which command-line options are available, you can run the program without parsing any option or using the keyword --help (or -h). 
+
+```sh
+$ run-ulamdyn -h
+```
+
+The output of the helper function, as well as a simple example of how to use the *run-ulamdyn* wrapper to collect all the information available in the text MD output
+files, and export the structured data sets in the CSV format is shown below:
+
+<p align="center"><img src="/img/cli_demo.gif?raw=true"/></p>

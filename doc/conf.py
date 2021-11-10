@@ -14,6 +14,7 @@ from __future__ import absolute_import
 import os
 import sys
 
+sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../src'))
 
 import ulamdyn as ulmd
@@ -36,13 +37,14 @@ version = ulmd.__version__
 # ones.
 extensions = [
     u'sphinx.ext.autodoc',
-#    u'sphinx.ext.autosummary',
     u'sphinx.ext.todo',
+    u'nbsphinx',
     u'sphinx.ext.mathjax',
     u'sphinx.ext.coverage',
     u'sphinx.ext.napoleon',
     u'sphinx.ext.intersphinx',
     u'sphinx.ext.autosectionlabel'
+#    u'sphinx.ext.autosummary',
 #    u'sphinx.ext.viewcode',
 ]
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Index &mdash; ULaMDyn 0.0.2 documentation</title>
+  <title>Index &mdash; ULaMDyn 0+untagged.25.gbcf95f8.dirty documentation</title>
   
 
   
@@ -35,6 +35,7 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -64,7 +65,7 @@
             
             
               <div class="version">
-                0.0.2
+                0+untagged.25.gbcf95f8.dirty
               </div>
             
           
@@ -89,7 +90,16 @@
               
             
             
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Getting Started:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorial:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data_curation.html">Data curation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Source documentation:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="ulamdyn.html">ulamdyn package</a></li>
 </ul>
 
@@ -220,6 +230,8 @@
 </li>
         <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.build_dataframe">(ulamdyn.kinetics.KineticEnergy method)</a>
 </li>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.VibrationalSpectra.build_dataframe">(ulamdyn.kinetics.VibrationalSpectra method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -237,14 +249,18 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.VibrationalSpectra.calc_all_trajs">calc_all_trajs() (ulamdyn.kinetics.VibrationalSpectra method)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.statistics.calc_avg_occupations">calc_avg_occupations() (in module ulamdyn.statistics)</a>
+</li>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.VibrationalSpectra.calc_pdos">calc_pdos() (ulamdyn.kinetics.VibrationalSpectra static method)</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.calc_per_atom">calc_per_atom() (ulamdyn.kinetics.KineticEnergy method)</a>
 </li>
-      <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.calc_per_molecule">calc_per_molecule() (ulamdyn.kinetics.KineticEnergy method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.calc_per_molecule">calc_per_molecule() (ulamdyn.kinetics.KineticEnergy method)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.unsup_models.Clustering">Clustering (class in ulamdyn.unsup_models)</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.descriptors.ZMatrix.connectivity">connectivity (ulamdyn.descriptors.ZMatrix attribute)</a>
@@ -347,6 +363,8 @@
 </li>
       <li><a href="ulamdyn.html#ulamdyn.interface.get_kinetic_energies">get_kinetic_energies() (in module ulamdyn.interface)</a>
 </li>
+      <li><a href="ulamdyn.html#ulamdyn.utilities.get_labels_masses">get_labels_masses() (in module ulamdyn.utilities)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.utilities.get_num_atoms">get_num_atoms() (in module ulamdyn.utilities)</a>
 </li>
   </ul></td>
@@ -411,6 +429,8 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.run_analysis.main">main() (in module ulamdyn.run_analysis)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetProperties.mcscf_coefs">mcscf_coefs() (ulamdyn.data_loader.GetProperties method)</a>
 </li>
       <li>
@@ -446,6 +466,8 @@
 
       <ul>
         <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.n_atoms">(ulamdyn.kinetics.KineticEnergy attribute)</a>
+</li>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.VibrationalSpectra.n_atoms">(ulamdyn.kinetics.VibrationalSpectra attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -504,6 +526,8 @@
 </li>
       <li><a href="ulamdyn.html#ulamdyn.utilities.read_h5_nx">read_h5_nx() (in module ulamdyn.utilities)</a>
 </li>
+      <li><a href="ulamdyn.html#ulamdyn.utilities.read_nx_control">read_nx_control() (in module ulamdyn.utilities)</a>
+</li>
       <li><a href="ulamdyn.html#ulamdyn.data_loader.GetCoords.rmsd">rmsd (ulamdyn.data_loader.GetCoords attribute)</a>
 </li>
       <li><a href="ulamdyn.html#ulamdyn.interface.run_bootstrap">run_bootstrap() (in module ulamdyn.interface)</a>
@@ -554,6 +578,8 @@
         <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities.trajectories">(ulamdyn.kinetics.GetVelocities attribute)</a>
 </li>
         <li><a href="ulamdyn.html#ulamdyn.kinetics.KineticEnergy.trajectories">(ulamdyn.kinetics.KineticEnergy attribute)</a>
+</li>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.VibrationalSpectra.trajectories">(ulamdyn.kinetics.VibrationalSpectra attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -638,6 +664,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ulamdyn.html#ulamdyn.kinetics.GetVelocities.veloc">veloc (ulamdyn.kinetics.GetVelocities attribute)</a>
+
+      <ul>
+        <li><a href="ulamdyn.html#ulamdyn.kinetics.VibrationalSpectra.veloc">(ulamdyn.kinetics.VibrationalSpectra attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ulamdyn.html#ulamdyn.kinetics.VibrationalSpectra">VibrationalSpectra (class in ulamdyn.kinetics)</a>
 </li>
   </ul></td>
 </tr></table>
