@@ -72,13 +72,24 @@ be provided in this directory. Then, running the wrapper script in Linux termina
 $ run-ulamdyn --save_dataset=all
 ```
 
-To check which command-line options are available, you can run the program without parsing any option or using the keyword --help (or -h). 
-
-```sh
-$ run-ulamdyn -h
-```
-
-The output of the helper function, as well as a simple example of how to use the *run-ulamdyn* wrapper to collect all the information available in the text MD output
-files, and export the structured data sets in the CSV format is shown below:
+To check which command-line options are available, you can run the program without parsing any option or using the flag ``--help`` (or ``-h``). The output of the 
+helper function, as well as a simple example of how to use the *run-ulamdyn* wrapper to collect all the information available in the text MD output files, and export
+the structured data sets in the CSV format is shown below:
 
 <p align="center"><img src="/img/cli_demo.gif?raw=true"/></p>
+
+### Python API
+
+More flexible usage of the ULaMDyn functionalities can be done via Python API. In this case, all program functions and classes are accessible by importing ULaMDyn as 
+an external package. With this feature, users with some experience in Python have the possibility of designing their own customized scripts by taking advantage of the
+ULaMDyn functions to perform specific data analysis. To generate a dataset containing the QM properties available in all MD trajectories, one can simply run the
+following commands in the Python enviroment or in a jupyter notebook:
+
+```python
+>>> import ulamdyn as ulmd
+>>>
+>>> prop_loader = ulmd.GetProperties()
+>>> en_data = prop_loader.energies()
+``` 
+
+For more examples of how to use ULaMDyn as a Python API, check the ipython notebooks available in the tutorials folder.
