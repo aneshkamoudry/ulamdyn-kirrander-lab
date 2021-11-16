@@ -80,7 +80,8 @@ class GetVelocities:
 
             veloc_lines = list(filter(lambda k: "velocity" in k, lines))
             n_rows = len(veloc_lines)
-            veloc = np.empty((n_rows, n_atoms, 3), dtype=np.float64)
+            # veloc = np.empty((n_rows, n_atoms, 3), dtype=np.float64)
+            veloc = []
             count_atoms = 0
             count_steps = -1
 
@@ -98,9 +99,10 @@ class GetVelocities:
                             count_atoms = 0
                             read_veloc = False
                             continue
-                        veloc[count_steps][count_atoms] = np.array(
-                            vals, dtype=np.float64
-                        )
+                        # veloc[count_steps][count_atoms] = np.array(
+                        #    vals, dtype=np.float64
+                        # )
+                        veloc.append(vals)
                         count_atoms += 1
                     else:
                         count_atoms = 0
@@ -111,6 +113,8 @@ class GetVelocities:
                     count_steps += 1
 
         f.close()
+
+        veloc = np.vstack(veloc).reshape(-1, n_atoms, 3)
 
         return veloc
 
