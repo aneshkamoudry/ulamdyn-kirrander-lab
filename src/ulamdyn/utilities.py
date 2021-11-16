@@ -128,3 +128,43 @@ def get_num_atoms():
         print("Reference geometry not found!")
         print("Check if the geom.xyz file is available in the current dir.")
         print("-----------------------------------------------------------\n")
+
+
+def check_nx_trajs():
+    traj_list = get_traj_dirs()
+    traj_tmax = {}
+
+    if os.path.isfile("trajs_tmax.dat"):
+        lines = open("trajs_tmax.dat", "r").readlines()
+        for line in lines:
+            traj = line.split()[0].strip()
+            tmax = float(line.split()[1])
+            if traj in traj_list:
+                traj_tmax[traj] = tmax
+    else:
+        nx_version = get_nx_version(traj_list[0])
+        if nx_version == "cs":
+            for traj in traj_list:
+                try:
+                    nxlog = traj + "/RESULTS/nx.log"
+                    f = open(nxlog, "r")
+                except FileNotFoundError:
+                    print("\n---------------------------------------")
+                    print("nx.log file not found.")
+                    print("Check the %s/RESULTS directory." % traj)
+                    print("---------------------------------------\n")
+                    continue
+
+                lines = f.read().split("\n")
+                t_last = list(filter(lambda k: "TIME" in k, lines))[-3:]
+                end_flag = "NEWTON-X ends here"
+                normal_run = any(end_flag in line for line in lines[-5:])
+                step = -1 if normal_run else -2
+                tmax = float(t_last[step].split()[4])
+                traj_tmax[traj] = tmax
+        else:
+            config = read_nx_control(traj_list[0])
+            tmax = config.get("tmax",5000)
+            traj_tmax = dict.fromkeys(traj_list, tmax)
+
+    return traj_tmax

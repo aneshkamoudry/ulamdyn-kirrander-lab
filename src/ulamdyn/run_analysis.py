@@ -36,8 +36,7 @@ def _check_geom_file():
         sys.exit()
 
 
-def main():
-
+def _get_parser():
     # Define command-line arguments. The commands can be read from a config.txt file.
     parser = argparse.ArgumentParser(fromfile_prefix_chars="@")
     parser.add_argument(
@@ -81,7 +80,7 @@ def main():
         "--descriptor",
         required=False,
         type=str,
-        metavar="",
+        metavar="aXYZ | R2 | inv-R2 | delta-R2 | RE | Zmat | delta-Zmat",
         default="inv-R2",
         help="Select the molecular descriptor to be used in the unsupervised\
                               learning analysis.",
@@ -184,6 +183,12 @@ def main():
     else:
         args = parser.parse_args()
 
+    return args
+
+
+def main():
+
+    args = _get_parser()
     _check_geom_file()
 
     start = time.time()
