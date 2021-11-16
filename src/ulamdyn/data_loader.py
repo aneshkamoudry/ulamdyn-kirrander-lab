@@ -186,7 +186,7 @@ class GetCoords:
                 # with switching in QM/MM dynamics.
                 if "TIME" in line:
                     current_time = np.float(line.split()[-2])
-                    if current_time == tmax:
+                    if current_time > tmax:
                         break
 
                 if read_coords:
@@ -899,6 +899,9 @@ class GetProperties:
                 print("-------------------------------------\n")
                 continue
 
+            tmax = self.trajectories.get(trj, 100000)
+            mask = en[:, 0] <= tmax
+            en = en[mask]
             all_energies.append(en)
             n_samples = en.shape[0]
             idx = np.int(trj.replace("TRAJ", ""))
@@ -1013,6 +1016,7 @@ class GetProperties:
             step = -1
             counter = -1
             read_line = False
+            tmax = self.trajectories.get(trj, 100000)
 
             try:
                 propfile = trj + "/RESULTS/properties"
@@ -1043,6 +1047,9 @@ class GetProperties:
                 # Start reading the properties file
                 for line in lines:
                     if "STEP:" in line:
+                        t_current = np.float(line.split()[2])
+                        if t_current > tmax:
+                            break
                         current_step = np.int(line.split()[4])
                         if current_step != step:
                             read_line = True
@@ -1122,6 +1129,7 @@ class GetProperties:
         for trj in self.trajectories:
 
             print("Reading populations from %s" % trj + "...")
+
             try:
                 dynfile = trj + "/RESULTS/dyn.out"
                 f = open(dynfile, "r")
@@ -1132,12 +1140,17 @@ class GetProperties:
                 print("-------------------------------------------------\n")
                 continue
 
+            tmax = self.trajectories.get(trj, 100000)
             n_states = 0
             lines = f.readlines()
             # Start reading the properties file
             for line in lines:
                 if "STEP" in line:
                     current_step = np.int(line.split()[1])
+                    t_current = np.float(line.split()[-2])
+                    if t_current > tmax:
+                        break
+
                 if " Wave function state " in line:
                     coefs = list(np.float_(line.split()[-2:]))
                     coefs_list.append(coefs)
@@ -1228,6 +1241,7 @@ class GetProperties:
                 print("-------------------------------------------------\n")
                 continue
 
+            tmax = self.trajectories.get(trj, 100000)
             lines = f.readlines()
             if not check_csf in lines:
                 return
@@ -1243,6 +1257,9 @@ class GetProperties:
                 if "FINISHING STEP" in line:
                     n_state = 0
                     hopping = False
+                    t_current = np.float(line.split()[4])
+                    if t_current == tmax:
+                        break
 
                 if "Time of hopping" in line:
                     hopping = True
