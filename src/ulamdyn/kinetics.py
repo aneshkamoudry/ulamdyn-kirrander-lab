@@ -45,7 +45,7 @@ class GetVelocities:
         """Class initializer."""
         # This variable contains a list of all available trajectories:
         # [TRAJ1, TRAJ2,..., TRAJN]
-        self.trajectories = get_traj_dirs()
+        self.trajectories = check_nx_trajs()
 
         if n_atoms == None:
             self.n_atoms = get_num_atoms()
@@ -54,7 +54,7 @@ class GetVelocities:
 
         self.veloc = None
 
-    def from_dyn(self, outfile: str) -> np.ndarray:
+    def from_dyn(self, outfile: str, tmax=100000) -> np.ndarray:
         """Read velocities from a single trajectory of Newton-X.
 
         .. note:: The final velocities dataset will contains information only for the first
@@ -85,6 +85,11 @@ class GetVelocities:
             count_steps = -1
 
             for line in lines:
+
+                if "TIME" in line:
+                    current_time = np.float(line.split()[-2])
+                    if current_time > tmax:
+                        break
 
                 if read_veloc:
                     vals = line.split()
@@ -138,6 +143,7 @@ class GetVelocities:
         all_veloc = list()
         for trj in self.trajectories:
             print("Reading velocities from %s" % trj + "...")
+            tmax = self.trajectories.get(trj)
             results_dir = trj + "/RESULTS/"
             files = os.listdir(results_dir)
             h5file = next((f for f in files if f.endswith(".h5")), None)
@@ -146,7 +152,7 @@ class GetVelocities:
                 veloc = self.from_h5(h5file)
             elif os.path.isfile(results_dir + "dyn.out"):
                 dynfile = results_dir + "dyn.out"
-                veloc = self.from_dyn(dynfile)
+                veloc = self.from_dyn(dynfile, tmax)
             else:
                 print("\nNX output file not found.")
                 print("Check the directory %s" % trj + "/RESULTS" + "\n")
