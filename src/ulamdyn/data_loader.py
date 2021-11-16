@@ -771,7 +771,7 @@ class GetProperties:
         # This variable is used to recognize the version of Newton-X (cs or ns),
         # and then use this information to decide which functions should be
         # used to collect the properties data.
-        self.nx_version = get_nx_version(self.trajectories[0])
+        self.nx_version = get_nx_version(list(self.trajectories)[0])
 
     @property
     def save_csv(self) -> None:
