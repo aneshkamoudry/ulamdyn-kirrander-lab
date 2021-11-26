@@ -87,6 +87,14 @@ def _get_parser():
     )
 
     parser.add_argument(
+        "--use_mwc",
+        required=False,
+        action="store_true",
+        help="If selected, the R2-based descriptors will be calculated using\
+                              mass weighted Cartesian coordinates.",
+    )
+
+    parser.add_argument(
         "--transform",
         required=False,
         type=str,
@@ -100,7 +108,7 @@ def _get_parser():
         "--data_scaler",
         required=False,
         type=str,
-        metavar="",
+        metavar="minmax | standard | robust",
         default=None,
         help="Method to rescale the data set before applying the \
                               unsupervised learning model.",

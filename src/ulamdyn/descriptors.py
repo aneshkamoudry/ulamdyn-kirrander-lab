@@ -14,6 +14,7 @@ except ModuleNotFoundError:
 
 from itertools import combinations
 from ulamdyn.data_loader import GetCoords
+from ulamdyn.utilities import *
 
 __all__ = ["R2", "ZMatrix"]
 
@@ -37,7 +38,7 @@ class R2(GetCoords):
 
     """
 
-    __slots__ = ["r2_ref_geom", "r2_descriptor"]
+    __slots__ = ["r2_ref_geom", "r2_descriptor", "mass_weights", "norm_factor"]
 
     def __repr__(self) -> str:
         """Provide a string representation of the class.
@@ -47,10 +48,32 @@ class R2(GetCoords):
         """
         return "Generator of R2-based descriptors from molecular geometries."
 
-    def __init__(self):
+    def __init__(self, use_mwc=False) -> None:
         """Class initializer."""
+        super().__init__()
         self.r2_ref_geom = None
         self.r2_descriptor = None
+        self.mass_weights = None
+        self.norm_factor = 1
+        if use_mwc:
+            self.mass_weights = self._get_mass_weights()
+            self.norm_factor = self._mass_norm_factor(self.mass_weights)
+
+    def _get_mass_weights(self):
+        traj = list(self.trajectories)[0]
+        _, atom_mass = get_labels_masses(traj)
+        # sqrt_atom_mass = np.sqrt(atom_mass).reshape(-1, 1)
+        atom_mass = atom_mass.reshape(-1, 1)
+        return atom_mass
+
+    @staticmethod
+    def _mass_norm_factor(mass: np.ndarray) -> np.ndarray:
+        n_atoms = len(mass)
+        m_pairs = np.tril_indices(n_atoms, -1)
+        m_pairs = np.column_stack((m_pairs[1], m_pairs[0]))
+        norm_factor = [np.sqrt(mass[i] * mass[j]) ** (-1) for i, j in m_pairs]
+        norm_factor = np.array(norm_factor, dtype=np.float64)
+        return norm_factor
 
     @staticmethod
     def xyz_to_distances(xyz_matrix: np.ndarray) -> np.ndarray:
@@ -67,6 +90,8 @@ class R2(GetCoords):
         distance_matrix = np.zeros((n_atoms, n_atoms))
 
         for i, j in combinations(range(len(xyz_matrix)), 2):
+            # mass-weighted dist:
+            # norm((m[i]*xyz_matrix[i] - m[j]*xyz_matrix[j])/sqrt(m[i]*m[j])
             R = np.linalg.norm(xyz_matrix[i] - xyz_matrix[j])
             distance_matrix[j, i] = R
 
@@ -81,7 +106,11 @@ class R2(GetCoords):
         else:
             self.read_eq_geom()
             eq_geom = self.eq_xyz.copy()
+            if self.mass_weights is not None:
+                eq_geom *= self.mass_weights
+
             self.r2_ref_geom = self.xyz_to_distances(eq_geom)
+            self.r2_ref_geom *= self.norm_factor
 
             if variant == "delta-R2":
                 self.r2_descriptor = self.r2_descriptor - self.r2_ref_geom
@@ -89,13 +118,16 @@ class R2(GetCoords):
             if variant == "RE":
                 self.r2_descriptor = self.r2_ref_geom / self.r2_descriptor
 
-    def build_descriptor(self, all_geoms: np.ndarray, variant=None, save_csv=False):
+    def build_descriptor(self, all_geoms=None, variant=None, save_csv=False):
         """Generate a dataframe with R2-based descriptors for all molecular geometries.
 
         :param all_geoms: tensor of shape (nsamples, natoms, 3) containing the stacked
-                          XYZ coordinates read from all available MD trajectories.
+                          XYZ coordinates read from all available MD trajectories. if
+                          not provided, the :meth:`~ulamdyn.GetCoords.read_all_trajs`
+                          will be called to load all geometries and build the tensor.
         :type all_geoms: numpy.ndarray
-        :param variant: type of R2 descriptor, defaults to None.
+        :param variant: molecular representation derived from the R2 descriptor,
+                        defaults to None.
         :type variant: str, optional
         :param save_csv: if True export the data set with all calculated descriptors in
                          a csv format with name pairwise_distances.csv, defaults to False.
@@ -105,15 +137,24 @@ class R2(GetCoords):
                  molecular geometry.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
+        if (all_geoms is None) or (not isinstance(all_geoms, (np.ndarray))):
+            self.read_all_trajs()
+            all_geoms = self.xyz.copy()
+
         n_samples, n_atoms, _ = all_geoms.shape
         id_atom_pairs = np.tril_indices(n_atoms, -1)
         n_features = len(id_atom_pairs[0])
+
+        if self.mass_weights is not None:
+            all_geoms *= self.mass_weights
 
         self.r2_descriptor = np.empty((n_samples, n_features), dtype=np.float64)
 
         for i, xyz in enumerate(all_geoms):
             d = self.xyz_to_distances(xyz)
             self.r2_descriptor[i] = d
+
+        self.r2_descriptor *= self.norm_factor
 
         func = lambda x, y: "r" + "".join(sorted([str(y + 1), str(x + 1)], key=int))
         col_names = list(map(func, id_atom_pairs[0], id_atom_pairs[1]))

@@ -207,7 +207,7 @@ class KineticEnergy:
 
         self.energies = None
         self.atom_labels, self.atom_mass = get_labels_masses(
-            self.trajectories[0], self.n_atoms
+            list(self.trajectories)[0], self.n_atoms
         )
 
     @staticmethod
@@ -323,13 +323,13 @@ class VibrationalSpectra(GetVelocities):
         """Class initializer."""
         super().__init__(n_atoms=n_atoms)
         self.spectrum = None
-        self.mass = get_labels_masses(self.trajectories[0], n_atoms)[1]
+        self.mass = get_labels_masses(list(self.trajectories)[0], n_atoms)[1]
         self.dt = self._get_time_step
 
     @property
     def _get_time_step(self):
 
-        control = read_nx_control(self.trajectories[0])
+        control = read_nx_control(list(self.trajectories)[0])
         dt = control.get("dt")
         return dt
 

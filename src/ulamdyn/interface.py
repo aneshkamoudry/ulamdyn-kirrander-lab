@@ -105,6 +105,7 @@ def save_data(data_to_save):
 def build_descriptor(args, getcoords_obj):
     descriptor = args.descriptor
     transform = args.transform
+    mwc = args.use_mwc
 
     all_aligned_geoms = getcoords_obj.xyz
     # getcoords_obj.xyz is a variable of the class object
@@ -116,7 +117,7 @@ def build_descriptor(args, getcoords_obj):
         df_xyz.to_csv(descriptor + ".csv", index=False)
         return df_xyz
     elif descriptor in ["R2", "inv-R2", "delta-R2", "RE"]:
-        r2 = R2()
+        r2 = R2(mwc)
         df_r2 = r2.build_descriptor(all_aligned_geoms, descriptor)
         df_r2.to_csv(descriptor + ".csv", index=False)
         return df_r2
