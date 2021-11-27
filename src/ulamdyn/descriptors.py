@@ -40,7 +40,7 @@ class R2(GetCoords):
 
     __slots__ = ["r2_ref_geom", "r2_descriptor", "mass_weights", "norm_factor"]
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         """Provide a string representation of the class.
 
         :return: Short description of the class functionality.
@@ -72,7 +72,7 @@ class R2(GetCoords):
         m_pairs = np.tril_indices(n_atoms, -1)
         m_pairs = np.column_stack((m_pairs[1], m_pairs[0]))
         norm_factor = [np.sqrt(mass[i] * mass[j]) ** (-1) for i, j in m_pairs]
-        norm_factor = np.array(norm_factor, dtype=np.float64)
+        norm_factor = np.array(norm_factor, dtype=np.float64).T
         return norm_factor
 
     @staticmethod

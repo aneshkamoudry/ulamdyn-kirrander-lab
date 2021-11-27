@@ -58,13 +58,13 @@ class GetCoords:
     # Defining slots to optimize performance (RAM):
     __slots__ = ["trajectories", "labels", "eq_xyz", "xyz", "rmsd", "dataset"]
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         """Provide a string representation of the class.
 
         :return: Short description of the class functionality.
         :rtype: str
         """
-        return "Data loader class for molecular geometries."
+        return "Data loader object for molecular geometries."
 
     def __init__(self) -> None:
         """Class initialization."""
@@ -369,13 +369,13 @@ class GetGradients:
     # Defining slots to optimize memory access performance (RAM):
     __slots__ = ["trajectories", "all_grads", "datasets"]
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         """Provide a string representation of the class.
 
         :return: Short description of the class functionality.
         :rtype: str
         """
-        return "Data loader class for QM gradients."
+        return "Data loader object for QM gradients."
 
     def __init__(self) -> None:
         """Class initializer."""
@@ -558,13 +558,13 @@ class GetCouplings:
     # Define slots to optimize RAM memory access
     __slots__ = ["trajectories", "all_nacs", "datasets"]
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         """Provide a string representation of the class.
 
         :return: Short description of the class functionality.
         :rtype: str
         """
-        return "Data loader class for nonadiabatic couplings."
+        return "Data loader object for nonadiabatic couplings."
 
     def __init__(self):
         """Class initializer."""
@@ -752,9 +752,9 @@ class GetProperties:
 
     __slots__ = ["trajectories", "dataset", "num_states", "nx_version"]
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return (
-            "Data loader class for (quantum/classical) properties of MD trajectories."
+            "Data loader object for (quantum/classical) properties of MD trajectories."
         )
 
     def __init__(self) -> None:
