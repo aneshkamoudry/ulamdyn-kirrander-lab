@@ -124,9 +124,13 @@ class DimensionalityReduction(Utils):
     def _run_model(self, model, data):
 
         self._print_model_params(model)
+        model_name = type(model).__name__.lower()
 
-        model.fit(data)
-        X_transformed = model.transform(data)
+        if model_name == 'tsne':
+            X_transformed = model.fit_transform(data)
+        else:
+            model.fit(data)
+            X_transformed = model.transform(data)
 
         col_labels = ["X" + str(i + 1) for i in range(X_transformed.shape[1])]
         df = pd.DataFrame(X_transformed, columns=col_labels)

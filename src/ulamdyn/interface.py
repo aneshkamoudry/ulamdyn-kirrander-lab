@@ -24,6 +24,7 @@ from ulamdyn.kinetics import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
 from ulamdyn.unsup_models import *
+from ulamdyn.utilities import *
 
 
 def get_kinetic_energies(n_atoms=None):
@@ -279,6 +280,62 @@ def run_clustering(args):
     print("                             ")
     print("Clustering analysis finished!")
     print("                             ")
+
+
+def save_xyz(args):
+
+    save_options = args.save_xyz.split(",")
+    atomic_units = args.use_au
+    # 1) Load the XYZ coordinates from all trajectories
+    gc = GetCoords()
+    gc.read_all_trajs()
+    gc.align_geoms
+    atom_labels = gc.labels.reshape(-1, 1)
+    n_atoms = len(atom_labels)
+
+    # 2) Generate the dataframe with all properties
+    df_props = get_properties_data(gc.rmsd)
+    df_props = df_props.round(4)
+    add_property = []
+    if "RMSD" in df_props.columns:
+        add_property.append("RMSD")
+
+    if save_options[0].lower() == "hops":
+        col_hoppings = [col for col in df_props.columns if "Hops" in col]
+        for col in col_hoppings:
+            indices = df_props[df_props[col] == 1].index.tolist()
+            df_props = df_props[df_props[col] == 1].reset_index(drop=True)
+            hopping_geoms = gc.xyz[indices].copy()
+            states_pair = col.split("_")[1]
+            add_property.append(states_pair.replace("S", "DE"))
+            out_name = "Geoms_Hopping_" + states_pair + ".xyz"
+            geoms = Geometries(atom_labels, add_property)
+            geoms.save_xyz(hopping_geoms, df_props, out_name)
+    elif save_options[0].lower() == "geoms":
+        all_geoms = gc.xyz.copy()
+        if atomic_units:
+            all_geoms *= 1 / BOHR_TO_ANG
+        geoms = Geometries(atom_labels, add_property)
+        geoms.save_xyz(all_geoms, df_props, "all_geometries.xyz")
+    elif save_options[0].lower() == "grads":
+        empty_labels = np.array([[""] for i in range(n_atoms)])
+        gg = GetGradients()
+        gg.build_dataframe()
+        for state in gg.all_grads.keys():
+            grads = gg.all_grads[state].copy()
+            if atomic_units:
+                grads *= BOHR_TO_ANG / HARTREE_TO_eV
+            out_name = "all_gradients_" + state.lower() + ".xyz"
+            geoms = Geometries(empty_labels, add_property)
+            geoms.save_xyz(grads, df_props, out_name)
+    else:
+        print("-----------------------------------------------------")
+        print("ERROR: \n")
+        print("Save option not recognized or implemented!\n")
+        print("Please select one of the following options:")
+        print("hops, geoms or grads")
+        print("-----------------------------------------------------")
+        sys.exit()
 
 
 def save_xyz_hoppings(states_pair):

@@ -48,15 +48,25 @@ def _get_parser():
         help="Type of data set (properties + descriptors) to build from MD outputs\
                               and save as csv file.",
     )
+
     parser.add_argument(
-        "--save_xyz_hops",
+        "--save_xyz",
         required=False,
         type=str,
-        metavar="",
+        metavar="hops | geoms | grads",
         default=None,
-        help="Write a single XYZ file with all hopping geometries for a \
-                              given pair of states.",
+        help="Write the requested data from all trajectories into a single file\
+                              in XYZ format.",
     )
+
+    parser.add_argument(
+        "--use_au",
+        required=False,
+        action="store_true",
+        help="If selected, the XYZ Cartesian coordinates or gradients will be\
+                        written in atomic units (useful for MLatom training).",
+    )
+
     parser.add_argument(
         "--create_stats",
         required=False,
@@ -66,6 +76,7 @@ def _get_parser():
         help="Generate a data set with basic statistics (mean, median \
                               and std) for all the trajectories.",
     )
+
     parser.add_argument(
         "--bootstrap",
         required=False,
@@ -76,6 +87,7 @@ def _get_parser():
                               and save a new data with basic statistics (mean, median \
                               and std) and confidence intervals.",
     )
+
     parser.add_argument(
         "--descriptor",
         required=False,
@@ -204,8 +216,8 @@ def main():
     if args.save_dataset is not None:
         save_data(args.save_dataset)
 
-    if args.save_xyz_hops is not None:
-        save_xyz_hoppings(args.save_xyz_hops)
+    if args.save_xyz is not None:
+        save_xyz(args)
 
     if args.create_stats is not None:
         data_dict = create_stats(args.create_stats, save_csv=True)
