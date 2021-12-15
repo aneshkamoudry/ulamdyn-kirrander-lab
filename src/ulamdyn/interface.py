@@ -304,13 +304,14 @@ def save_xyz(args):
         col_hoppings = [col for col in df_props.columns if "Hops" in col]
         for col in col_hoppings:
             indices = df_props[df_props[col] == 1].index.tolist()
-            df_props = df_props[df_props[col] == 1].reset_index(drop=True)
-            hopping_geoms = gc.xyz[indices].copy()
-            states_pair = col.split("_")[1]
-            add_property.append(states_pair.replace("S", "DE"))
-            out_name = "Geoms_Hopping_" + states_pair + ".xyz"
-            geoms = Geometries(atom_labels, add_property)
-            geoms.save_xyz(hopping_geoms, df_props, out_name)
+            if len(indices) > 0:
+               df_props_hops = df_props[df_props[col] == 1].copy().reset_index(drop=True)
+               hopping_geoms = gc.xyz[indices].copy()
+               states_pair = col.split("_")[1]
+               egap_info = [states_pair.replace("S", "DE")]
+               out_name = "Geoms_Hopping_" + states_pair + ".xyz"
+               geoms = Geometries(atom_labels, add_property + egap_info)
+               geoms.save_xyz(hopping_geoms, df_props, out_name)
     elif save_options[0].lower() == "geoms":
         all_geoms = gc.xyz.copy()
         if atomic_units:
@@ -326,7 +327,7 @@ def save_xyz(args):
             if atomic_units:
                 grads *= BOHR_TO_ANG / HARTREE_TO_eV
             out_name = "all_gradients_" + state.lower() + ".xyz"
-            geoms = Geometries(empty_labels, add_property)
+            geoms = Geometries(empty_labels)
             geoms.save_xyz(grads, df_props, out_name)
     else:
         print("-----------------------------------------------------")
