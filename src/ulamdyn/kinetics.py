@@ -65,6 +65,7 @@ class GetVelocities:
         :return: tensor of shape (n_steps, n_atoms, 3) with all velocities data.
         :rtype: numpy.ndarray
         """
+        t = -1
         read_veloc = False
         n_atoms = self.n_atoms
 
@@ -109,7 +110,11 @@ class GetVelocities:
                         read_veloc = False
 
                 if "velocity" in line:
-                    read_veloc = True
+                    if current_time == t:
+                        read_veloc = False
+                    else:
+                        read_veloc = True
+                    t = current_time
                     count_steps += 1
 
         f.close()
@@ -223,7 +228,7 @@ class KineticEnergy:
         """
         all_veloc = GetVelocities.from_all_trajs(self.n_atoms)
         all_speeds = self._atom_speed(all_veloc)
-        v_squared = all_speeds ** 2
+        v_squared = all_speeds**2
         all_ekin_atoms = 0.5 * np.multiply(v_squared, self.atom_mass)
         all_ekin_atoms *= HARTREE_TO_eV
 

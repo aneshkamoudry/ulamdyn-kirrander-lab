@@ -32,15 +32,14 @@ def get_traj_dirs():
 
 
 def get_nx_version(traj_dir):
+    nx_version = None
     if os.path.isdir(traj_dir):
         if os.path.isfile(traj_dir + "/" + "configuration.inp"):
             nx_version = "ns"
         elif os.path.isfile(traj_dir + "/" + "control.dyn"):
             nx_version = "cs"
         else:
-            print("ERROR:")
-            print("Newton-X version not recognized!")
-            sys.exit()
+            print("\nERROR: Newton-X version not recognized!\n")
     else:
         print("The {} directory does not exist.".format(traj_dir))
     return nx_version
@@ -85,9 +84,8 @@ def read_nx_control(traj_dir):
     elif nx_version == "ns":
         control_input = traj_dir + "/configuration.inp"
     else:
-        print("ERROR:")
-        print("Newton-X version not recognized!")
-        return
+        print("\nERROR: Newton-X version not recognized!\n")
+        return {}
 
     control = {}
     with open(control_input, "r") as nxinp:
@@ -131,8 +129,10 @@ def get_num_atoms():
 
 
 def check_nx_trajs():
-    traj_list = get_traj_dirs()
     traj_tmax = {}
+    traj_list = get_traj_dirs()
+    if len(traj_list) == 0:
+        return traj_tmax
 
     if os.path.isfile("trajs_tmax.dat"):
         lines = open("trajs_tmax.dat", "r").readlines()
@@ -164,7 +164,7 @@ def check_nx_trajs():
                 traj_tmax[traj] = tmax
         else:
             config = read_nx_control(traj_list[0])
-            tmax = config.get("tmax",5000)
+            tmax = config.get("tmax", 10000)
             traj_tmax = dict.fromkeys(traj_list, tmax)
 
     return traj_tmax

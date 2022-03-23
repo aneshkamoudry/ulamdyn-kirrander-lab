@@ -31,7 +31,7 @@ def aggregate_data(data, vars_to_group=["time"]):
     to describe the central tendency, and *standard deviation* to measure the
     variability or dispersion of the data. So each feature of the original input
     dataset will be unfolded into three new columns identified with the suffixes
-    '_median', '_mean' and '_std'.
+    '_median', '_mean', '_std', and '_skew'.
 
     :param data: input dataset containing the information extracted from all MD
                  trajectories.
@@ -48,12 +48,14 @@ def aggregate_data(data, vars_to_group=["time"]):
     col_names = data.columns.values.tolist()
     skip_cols = list(set(col_names).intersection(set(skip_cols)))
     vars_to_aggregate = {
-        k: ["median", "mean", "std"]
+        k: ["median", "mean", "std", "skew"]
         for k in data.drop(skip_cols, axis=1).columns.values
     }
     df_stats = data.groupby(vars_to_group, as_index=False).agg(vars_to_aggregate)
     df_stats.columns = ["_".join(col).strip() for col in df_stats.columns.values]
     df_stats.columns = [col.rstrip("_") for col in df_stats.columns.values]
+    count = data.groupby(vars_to_group).size().values
+    df_stats.insert(1, "traj_count", count)
     return df_stats
 
 
@@ -229,11 +231,11 @@ def create_stats(selected_data, save_csv=False):
         all_stats["vibspec"] = df_spec_stats
 
     else:
-        print("--------------------------------------")
-        print("ERROR:                              \n")
+        print("------------------------------------------------")
+        print("ERROR:                                        \n")
         print("Invalid option!                       ")
-        print("The available options are all or ekin.")
-        print("--------------------------------------")
+        print("The available options are all, ekin or vibspec.")
+        print("------------------------------------------------")
         return
 
     if save_csv:
