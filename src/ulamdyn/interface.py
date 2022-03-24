@@ -99,8 +99,9 @@ def save_data(data_to_save):
         df_spec = vs.build_dataframe()
         gp = GetProperties()
         df_prop = gp.energies()
-        df = pd.concat([df_prop[["TRAJ", "State"]], df_spec], axis=1)
-        df.to_csv("all_vibrational_spectra.csv", index=False, header=True)
+        if df_spec.shape[0] == df_prop.shape[0]:
+            df_spec.insert(1, "State", df_prop["State"].values)
+        df_spec.to_csv("all_vibrational_spectra.csv", index=False, header=True)
 
 
 def build_descriptor(args, getcoords_obj):
@@ -305,13 +306,15 @@ def save_xyz(args):
         for col in col_hoppings:
             indices = df_props[df_props[col] == 1].index.tolist()
             if len(indices) > 0:
-               df_props_hops = df_props[df_props[col] == 1].copy().reset_index(drop=True)
-               hopping_geoms = gc.xyz[indices].copy()
-               states_pair = col.split("_")[1]
-               egap_info = [states_pair.replace("S", "DE")]
-               out_name = "Geoms_Hopping_" + states_pair + ".xyz"
-               geoms = Geometries(atom_labels, add_property + egap_info)
-               geoms.save_xyz(hopping_geoms, df_props, out_name)
+                df_props_hops = (
+                    df_props[df_props[col] == 1].copy().reset_index(drop=True)
+                )
+                hopping_geoms = gc.xyz[indices].copy()
+                states_pair = col.split("_")[1]
+                egap_info = [states_pair.replace("S", "DE")]
+                out_name = "Geoms_Hopping_" + states_pair + ".xyz"
+                geoms = Geometries(atom_labels, add_property + egap_info)
+                geoms.save_xyz(hopping_geoms, df_props, out_name)
     elif save_options[0].lower() == "geoms":
         all_geoms = gc.xyz.copy()
         if atomic_units:

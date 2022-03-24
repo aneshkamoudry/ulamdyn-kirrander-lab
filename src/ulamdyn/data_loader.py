@@ -867,8 +867,6 @@ class GetProperties:
             if self.dataset.shape[0] == df.shape[0]:
                 current_cols = self.dataset.columns.tolist()
                 cols_to_add = df.columns.difference(self.dataset.columns).tolist()
-                # check_cols = all(col in current_cols for col in cols_to_add)
-                # if not check_cols:
                 if len(cols_to_add) != 0:
                     df = df[cols_to_add]
                     if "time" in current_cols:

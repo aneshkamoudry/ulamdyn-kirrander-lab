@@ -100,9 +100,6 @@ class GetVelocities:
                             count_atoms = 0
                             read_veloc = False
                             continue
-                        # veloc[count_steps][count_atoms] = np.array(
-                        #    vals, dtype=np.float64
-                        # )
                         veloc.append(vals)
                         count_atoms += 1
                     else:
@@ -119,7 +116,7 @@ class GetVelocities:
 
         f.close()
 
-        veloc = np.vstack(veloc).reshape(-1, n_atoms, 3)
+        veloc = np.vstack(veloc).reshape(-1, n_atoms, 3).astype("float64")
 
         return veloc
 
@@ -328,13 +325,16 @@ class VibrationalSpectra(GetVelocities):
         """Class initializer."""
         super().__init__(n_atoms=n_atoms)
         self.spectrum = None
-        self.mass = get_labels_masses(list(self.trajectories)[0], n_atoms)[1]
-        self.dt = self._get_time_step
+        self.all_traj_ids = None
+        traj = "TRAJ1"
+        if self.trajectories:
+            traj = list(self.trajectories)[0]
+        self.mass = get_labels_masses(traj, n_atoms)[1]
+        self.dt = self._get_time_step(traj)
 
-    @property
-    def _get_time_step(self):
+    def _get_time_step(self, traj):
 
-        control = read_nx_control(list(self.trajectories)[0])
+        control = read_nx_control(traj)
         dt = control.get("dt")
         return dt
 
@@ -385,7 +385,8 @@ class VibrationalSpectra(GetVelocities):
     def calc_all_trajs(self, mass_weighted=True):
         """Calculate the vibrational spectra for each MD trajectory."""
 
-        all_vib_spec = list()
+        traj_id = []
+        all_vib_spec = []
         mass = None
         dt = self.dt
 
@@ -394,6 +395,7 @@ class VibrationalSpectra(GetVelocities):
 
         for trj in self.trajectories:
             print("Computing power spectra for %s" % trj + "...")
+            tmax = self.trajectories.get(trj)
             results_dir = trj + "/RESULTS/"
             files = os.listdir(results_dir)
             h5file = next((f for f in files if f.endswith(".h5")), None)
@@ -402,15 +404,17 @@ class VibrationalSpectra(GetVelocities):
                 veloc = self.from_h5(h5file)
             elif os.path.isfile(results_dir + "dyn.out"):
                 dynfile = results_dir + "dyn.out"
-                veloc = self.from_dyn(dynfile)
+                veloc = self.from_dyn(dynfile, tmax)
             else:
                 print("\nNX output file not found.")
                 print("Check the directory %s" % trj + "/RESULTS" + "\n")
                 continue
 
+            traj_id += [np.int(trj.replace("TRAJ", ""))] * veloc.shape[0]
             spec = self.calc_pdos(veloc, dt, mass)
             all_vib_spec.append(spec)
 
+        self.all_traj_ids = np.array(traj_id, dtype=np.int)
         all_vib_spec = np.concatenate(all_vib_spec, axis=0)
         self.spectrum = all_vib_spec
 
@@ -429,6 +433,7 @@ class VibrationalSpectra(GetVelocities):
 
         col_names = ["Freq", "DOS"]
         df = pd.DataFrame(self.spectrum, columns=col_names)
+        df.insert(0, "TRAJ", self.all_traj_ids)
 
         if save_csv:
             df.to_csv("all_vibrational_spectra.csv", index=False, header=True)
