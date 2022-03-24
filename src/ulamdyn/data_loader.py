@@ -870,11 +870,12 @@ class GetProperties:
                 # check_cols = all(col in current_cols for col in cols_to_add)
                 # if not check_cols:
                 if len(cols_to_add) != 0:
+                    df = df[cols_to_add]
                     if "time" in current_cols:
                         dfs_to_merge = (self.dataset, df)
                     else:
                         dfs_to_merge = (df, self.dataset)
-                    self.dataset = pd.concat(dfs_to_merge, axis=1, ignore_index=True)
+                    self.dataset = pd.concat(dfs_to_merge, axis=1, ignore_index=False)
             else:
                 select_cols = ["TRAJ", "time"]
                 df_diff = pd.concat(
