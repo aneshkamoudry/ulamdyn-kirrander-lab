@@ -120,7 +120,7 @@ def _get_parser():
         "--data_scaler",
         required=False,
         type=str,
-        metavar="minmax | standard | robust",
+        metavar="minmax | standard | robust | norm",
         default=None,
         help="Method to rescale the data set before applying the \
                               unsupervised learning model.",
@@ -137,10 +137,9 @@ def _get_parser():
         "--dim_reduction",
         required=False,
         type=str,
-        metavar="",
+        metavar="PCA | KPCA | Isomap | tSNE",
         default=None,
-        help="Select a model for the dimensionality reduction analysis:\
-                              PCA, KPCA, Isomap or tSNE.",
+        help="Select a model for the dimensionality reduction analysis.",
     )
     parser.add_argument(
         "--n_dim",
@@ -163,7 +162,7 @@ def _get_parser():
         required=False,
         type=float,
         metavar="",
-        default=40,
+        default=50,
         help="Perplexity parameters used in the t-SNE algorithm.",
     )
     parser.add_argument(

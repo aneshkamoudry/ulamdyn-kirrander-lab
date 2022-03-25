@@ -390,9 +390,6 @@ class ZMatrix(GetCoords):
             lambda x: (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
         )
 
-        # col_names = zmat_data.columns.tolist()
-        # zmat_data = zmat_data.values
-
         if funct.lower() == "sigmoid":
             zmat_data = sigmoid(zmat_data)
 
@@ -401,8 +398,6 @@ class ZMatrix(GetCoords):
             angle_features = bond_features + 1
             zmat_data[:, :bond_features] = tanh(zmat_data[:, :bond_features])
             zmat_data[:, angle_features:] = np.cos(zmat_data[:, angle_features:])
-
-        # df = pd.DataFrame(zmat_data, columns=col_names)
 
         return zmat_data
 

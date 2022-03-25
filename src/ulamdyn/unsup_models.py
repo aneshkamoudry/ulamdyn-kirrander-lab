@@ -20,6 +20,7 @@ except ModuleNotFoundError:
 
 try:
     from sklearn.base import clone
+    from sklearn.preprocessing import Normalizer
     from sklearn.preprocessing import MinMaxScaler
     from sklearn.preprocessing import RobustScaler
     from sklearn.preprocessing import StandardScaler
@@ -48,6 +49,7 @@ class Utils:
             "minmax": MinMaxScaler(),
             "standard": StandardScaler(),
             "robust": RobustScaler(),
+            "norm": Normalizer(),
         }
 
         if scaler not in sc_option.keys():
@@ -126,7 +128,7 @@ class DimensionalityReduction(Utils):
         self._print_model_params(model)
         model_name = type(model).__name__.lower()
 
-        if model_name == 'tsne':
+        if model_name == "tsne":
             X_transformed = model.fit_transform(data)
         else:
             model.fit(data)

@@ -294,12 +294,10 @@ class GetCoords:
             if h5file:
                 h5file = results_dir + h5file
                 atom_labels, xyz = self.from_h5(h5file)
-                # all_geoms.append(xyz)
                 append_all_geoms(xyz)
             elif os.path.isfile(results_dir + "dyn.out"):
                 dynfile = results_dir + "dyn.out"
                 atom_labels, xyz, t = self.from_dyn(dynfile, tmax)
-                # all_geoms.append(xyz)
                 append_all_geoms(xyz)
                 append_times(t)
                 n_steps = len(t)
@@ -308,7 +306,6 @@ class GetCoords:
             elif os.path.isfile(results_dir + "dyn.xyz"):
                 xyzfile = results_dir + "dyn.xyz"
                 atom_labels, xyz = self.from_xyz(xyzfile)
-                # all_geoms.append(xyz)
                 append_all_geoms(xyz)
             else:
                 print("\nNX output file not found.")
