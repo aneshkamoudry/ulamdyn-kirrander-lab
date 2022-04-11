@@ -53,7 +53,7 @@ def _get_parser():
         "--save_xyz",
         required=False,
         type=str,
-        metavar="hops | geoms | grads",
+        metavar=" = hops | geoms | grads",
         default=None,
         help="Write the requested data from all trajectories into a single file\
                               in XYZ format.",
@@ -71,6 +71,7 @@ def _get_parser():
         "--ring_analysis",
         required=False,
         type=str,
+        metavar="",
         default=None,
         help="Perform the Cremer-Pople analysis for the ring structure defined\
                               by a comma separated list of atom indices.",
@@ -80,7 +81,7 @@ def _get_parser():
         "--create_stats",
         required=False,
         type=str,
-        metavar="all | ekin | vibspec",
+        metavar=" = all | ekin | vibspec",
         default=None,
         help="Generate a data set with basic statistics (mean, median \
                               and std) for all the trajectories.",
@@ -101,7 +102,7 @@ def _get_parser():
         "--descriptor",
         required=False,
         type=str,
-        metavar="aXYZ | R2 | inv-R2 | delta-R2 | RE | Zmat | delta-Zmat",
+        metavar=" = aXYZ | R2 | inv-R2 | delta-R2 | RE | Zmat | delta-Zmat",
         default="inv-R2",
         help="Select the molecular descriptor to be used in the unsupervised\
                               learning analysis.",
@@ -119,7 +120,7 @@ def _get_parser():
         "--transform",
         required=False,
         type=str,
-        metavar="sigmoid | tanh",
+        metavar=" = sigmoid | tanh",
         default=None,
         help="Apply a nonlinear transformation on delta type of descriptors\
               learning analysis.",
@@ -146,7 +147,7 @@ def _get_parser():
         "--dim_reduction",
         required=False,
         type=str,
-        metavar="PCA | KPCA | Isomap | tSNE",
+        metavar=" = PCA | KPCA | Isomap | tSNE",
         default=None,
         help="Select a model for the dimensionality reduction analysis.",
     )
@@ -178,7 +179,7 @@ def _get_parser():
         "--clustering",
         required=False,
         type=str,
-        metavar="K-means | Hierarchical | Spectral",
+        metavar=" = K-means | Hierarchical | Spectral",
         default=None,
         help="ML model used to perform clustering analysis.",
     )
