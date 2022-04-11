@@ -10,7 +10,7 @@ from __future__ import (
 )
 
 import os
-
+import io
 from typing import Tuple
 from itertools import combinations
 from itertools import product
@@ -25,7 +25,7 @@ try:
 except ModuleNotFoundError:
     import pandas as pd
 
-from ulamdyn.utilities import *
+from ulamdyn.nx_utils import *
 
 
 __all__ = ["GetCoords", "GetGradients", "GetCouplings", "GetProperties"]
@@ -114,6 +114,13 @@ class GetCoords:
 
         df.to_csv("all_coordinates.csv", index=False, header=True)
 
+    def _insert_traj_time(self, df):
+        if self.traj_time is not None:
+            df.insert(0, "TRAJ", self.traj_time[:, 0])
+            df.insert(1, "time", self.traj_time[:, 1])
+            df["TRAJ"] = df["TRAJ"].astype(int)
+        return df
+
     def build_dataframe(self) -> None:
         """Create a pandas DataFrame containing the XYZ coordinates from all trajectories.
 
@@ -128,20 +135,15 @@ class GetCoords:
             ]
             col_names = sum(col_names, [])
             df = pd.DataFrame(self.xyz.reshape(-1, n_atoms * 3), columns=col_names)
-
-            if self.traj_time is not None:
-                df.insert(0, "TRAJ", self.traj_time[:, 0])
-                df.insert(1, "time", self.traj_time[:, 1])
-                df["TRAJ"] = df["TRAJ"].astype(int)
+            df = self._insert_traj_time(df)
 
             self.dataset = df
 
-            print("                                                  ")
-            print("------------------------------------------------  ")
+            print("\n-------------------------------------------------  ")
             print("  The size of the XYZ coordinates data set is\n   ")
             print("     Number of geometries = {}".format(df.shape[0]))
             print("       Number of features = {}".format(df.shape[1]))
-            print("------------------------------------------------  \n")
+            print("-------------------------------------------------  \n")
 
         else:
             print("---------------------------------------")
@@ -804,21 +806,31 @@ class GetProperties:
         self.nx_version = get_nx_version(traj)
 
     def __str__(self) -> str:
-        print(
-            "Data loader object for (quantum/classical) properties of NAMD trajectories.\n"
+        """Provide a string representation of the class.
+
+        :return: Short description of the class functionality and state.
+        :rtype: str
+        """
+        cls_status = "Data loader object for (quantum/classical) properties of NAMD trajectories.\n"
+        cls_status += "   Status of the class variables:\n"
+        cls_status += "  --------------------------------\n"
+        cls_status += "   \u2022 Trajectories read -> {}\n".format(
+            list(self.trajectories.keys())
         )
-        print("   Status of the class variables:")
-        print("   ------------------------------\n")
-        print(
-            "   \u2022 Trajectories read -> {}".format(list(self.trajectories.keys()))
-        )
-        print("   \u2022 Number of states -> {}".format(self.num_states))
-        print("   \u2022 NX version -> {}".format(self.nx_version))
+        cls_status += "   \u2022 Number of states -> {}\n".format(self.num_states)
+        cls_status += "   \u2022 NX version -> {}\n".format(self.nx_version)
+
         if self.dataset is not None:
-            print("   \u2022 Size of loaded dataset -> {}".format(self.dataset.shape))
-            print(self.dataset.info())
+            cls_status += "   \u2022 Size of loaded dataset -> {}\n".format(
+                self.dataset.shape
+            )
+            buf = io.StringIO()
+            self.dataset.info(buf=buf)
+            data_info = buf.getvalue()
+            cls_status += data_info
         else:
-            print("   \u2022 The dataset variable is empty.")
+            cls_status += "   \u2022 The dataset variable is empty."
+        return cls_status
 
     @property
     def save_csv(self) -> None:

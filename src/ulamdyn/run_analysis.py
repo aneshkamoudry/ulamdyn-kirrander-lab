@@ -18,7 +18,7 @@ from ulamdyn.data_loader import *
 from ulamdyn.data_writer import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
-from ulamdyn.unsup_models import *
+from ulamdyn.unsup_models.geometries import *
 from ulamdyn.interface import *
 
 __all__ = ["main"]

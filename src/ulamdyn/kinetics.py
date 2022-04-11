@@ -22,7 +22,7 @@ except ModuleNotFoundError as e:
 from scipy.fftpack import fft, fftfreq
 from scipy.ndimage.filters import gaussian_filter1d as gaussian
 
-from ulamdyn.utilities import *
+from ulamdyn.nx_utils import *
 
 __all__ = ["GetVelocities", "KineticEnergy", "VibrationalSpectra"]
 

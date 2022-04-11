@@ -43,8 +43,8 @@ from ulamdyn.data_writer import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
 from ulamdyn.kinetics import *
-from ulamdyn.unsup_models import *
-from ulamdyn.utilities import *
+from ulamdyn.unsup_models.geometries import *
+from ulamdyn.nx_utils import *
 from ulamdyn.interface import *
 
 from ulamdyn._version import get_versions

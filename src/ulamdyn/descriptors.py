@@ -14,9 +14,9 @@ except ModuleNotFoundError:
 
 from itertools import combinations
 from ulamdyn.data_loader import GetCoords
-from ulamdyn.utilities import *
+from ulamdyn.nx_utils import *
 
-__all__ = ["R2", "ZMatrix"]
+__all__ = ["R2", "ZMatrix", "RingParams"]
 
 filedir = os.path.dirname(__file__)
 
@@ -108,6 +108,7 @@ class R2(GetCoords):
             eq_geom = self.eq_xyz.copy()
             if self.mass_weights is not None:
                 eq_geom *= self.mass_weights
+                self.norm_factor = self.norm_factor.ravel()
 
             self.r2_ref_geom = self.xyz_to_distances(eq_geom)
             self.r2_ref_geom *= self.norm_factor
@@ -203,7 +204,12 @@ class ZMatrix(GetCoords):
         "zmat_ref_geom",
     ]
 
-    def __repr__(self):
+    def __str__(self) -> str:
+        """Provide a string representation of the class.
+
+        :return: Short description of the class functionality.
+        :rtype: str
+        """
         return "Generator of Z-Matrix descriptors from molecular geometries."
 
     def __init__(self):
@@ -390,12 +396,14 @@ class ZMatrix(GetCoords):
             lambda x: (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
         )
 
+        bond_features = len(self.connectivity)
+        angle_features = bond_features + 1
+
         if funct.lower() == "sigmoid":
-            zmat_data = sigmoid(zmat_data)
+            zmat_data[:, :bond_features] = sigmoid(zmat_data[:, :bond_features])
+            zmat_data[:, angle_features:] = 1 - np.cos(zmat_data[:, angle_features:])
 
         if funct.lower() == "tanh":
-            bond_features = len(self.connectivity)
-            angle_features = bond_features + 1
             zmat_data[:, :bond_features] = tanh(zmat_data[:, :bond_features])
             zmat_data[:, angle_features:] = np.cos(zmat_data[:, angle_features:])
 
@@ -538,5 +546,128 @@ class ZMatrix(GetCoords):
 
         if save_csv:
             df.to_csv("all_geoms_zmatrix.csv", index=False)
+
+        return df
+
+
+class RingParams(GetCoords):
+    """Class used to the Cremer-Pople parameters from ring coordinates."""
+
+    def __str__(self) -> str:
+        """Provide a string representation of the class.
+
+        :return: Short description of the class functionality.
+        :rtype: str
+        """
+        return "Cremer-Pople parameter calculator for cyclic molecular fragments."
+
+    def __init__(self, ring_atom_ind: list, ring_coords: np.ndarray = None) -> None:
+        """Class initializer."""
+        super().__init__()
+        # List of atom indices that defines the ring
+        self.ring_indices = [i - 1 for i in ring_atom_ind]
+        self.ring_coords = ring_coords
+        # Number of atoms in the ring
+        self.ring_size = len(ring_atom_ind)
+
+    def _fixzero(self, x) -> np.ndarray:
+        x_ = np.array([0.0]) if np.allclose(0, x, rtol=1e-06, atol=1e-08) else x
+        return x_
+
+    @property
+    def ring_coords(self) -> np.ndarray:
+        """Filter the XYZ coordinates corresponding to the selected ring and translate the coordinates to the ring center."""
+        return self._ring_coords
+
+    @ring_coords.setter
+    def ring_coords(self, coordinates: np.ndarray) -> None:
+        if coordinates is not None:
+            if coordinates.ndim == 2:
+                coordinates = np.expand_dims(coordinates, axis=0)
+            ring_coords = coordinates
+        else:
+            self.read_all_trajs()
+            ring_coords = self.xyz[:, self.ring_indices]
+        self._ring_coords = ring_coords - ring_coords.mean(axis=(1,), keepdims=True)
+
+    def _cp_to_polar(self, pucker_coords):
+        Q = np.sqrt(np.power(pucker_coords[:, :2], 2).sum(axis=1))
+        theta = np.arctan(pucker_coords[:, 0] / pucker_coords[:, 1])
+        theta = theta * (180 / np.pi)
+        phi = pucker_coords[:, -1]
+        polar_coords = {"Q": Q, "theta": theta, "phi": phi}
+        return polar_coords
+
+    def displacement(self, coords):
+        """Calculate the ring displacement (z)"""
+        rs = self.ring_size
+        R1 = np.dot(np.sin(2 * np.pi * np.arange(0, rs) / rs), coords)
+        R2 = np.dot(np.cos(2 * np.pi * np.arange(0, rs) / rs), coords)
+        cross_product = np.cross(R1, R2)
+        normal_vec = cross_product / np.linalg.norm(cross_product)
+        z = np.dot(coords, normal_vec)
+        return z
+
+    def _get_ang_components(self, z, rs, m) -> tuple:
+        cos_term = [np.dot(z, np.cos(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m]
+        sin_term = [np.dot(z, np.sin(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m]
+        qcos = self._fixzero(np.sqrt(2 / rs) * np.array(cos_term))
+        qsin = self._fixzero(-np.sqrt(2 / rs) * np.array(sin_term))
+        return (qcos, qsin)
+
+    def get_pucker_coords(self, coords: np.ndarray) -> np.ndarray:
+        """Calculate the Cremer-Pople puckering parameters for one ring."""
+
+        rs = self.ring_size
+        z = self.displacement(coords)
+        if rs > 4 and rs <= 20:
+            if rs % 2 == 0:
+                m = range(2, int((rs / 2)))
+                qcos, qsin = self._get_ang_components(z, rs, m)
+                q = np.sqrt(qsin**2 + qcos**2)
+                amplitude = np.append(
+                    q,
+                    (1 / np.sqrt(rs))
+                    * np.dot(z, np.cos(np.arange(0, rs) * np.pi)).sum(),
+                )
+                angle = np.arctan2(qsin, qcos)
+            else:
+                m = range(2, int((rs - 1) / 2) + 1)
+                qcos, qsin = self._get_ang_components(z, rs, m)
+                amplitude = np.sqrt(qsin**2 + qcos**2)
+                angle = np.arctan2(qsin, qcos)
+        else:
+            print("ERROR: Ring size not supported!")
+            print("       The number of atoms should be 4 < n_atoms <= 20.")
+        # Convert from radian to degree
+        if angle < 0.0:
+            angle += 2 * np.pi
+        angle = angle * (180 / np.pi)
+        cppar = np.concatenate([amplitude, angle])
+        return cppar
+
+    def build_dataframe(self, delta=False, save_csv=False):
+        """Construct a data frame containing the Cremer-Pople parameters of all collected geometries."""
+        all_pucker_params = []
+        append_pucker_params = all_pucker_params.append
+        for xyz in self.ring_coords:
+            cppar = self.get_pucker_coords(xyz)
+            append_pucker_params(cppar)
+
+        all_pucker_params = np.asarray(all_pucker_params, dtype=np.float64)
+        if self.ring_size == 6:
+            polar_coords = self._cp_to_polar(all_pucker_params)
+            df = pd.DataFrame(polar_coords)
+        else:
+            n_ring_params = self.ring_size - 3
+            col_names = ["q" + str(i + 1) for i in range(n_ring_params - 1)]
+            col_names += ["phi"]
+            df = pd.DataFrame(all_pucker_params, columns=col_names)
+        # If the trajectory indices and time steps are available in the parent class (GetCoords),
+        # these information will be added to the current dataframe.
+        df = self._insert_traj_time(df)
+
+        if save_csv:
+            df.to_csv("all_ring_params.csv", index=False)
 
         return df
