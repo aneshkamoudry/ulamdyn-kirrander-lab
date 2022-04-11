@@ -65,7 +65,8 @@ def get_properties_data(rmsd_vec=None):
     return df
 
 
-def save_data(data_to_save):
+def save_data(args):
+    data_to_save = args.save_dataset
     if data_to_save == "all":
         print("Saving the full XYZ coordinates dataframe...\n")
         gc = GetCoords()
@@ -136,12 +137,27 @@ def build_descriptor(args, getcoords_obj):
         return df_zmt
     else:
         print("-----------------------------------------------------")
-        print("ERROR: \n")
+        print("Input error: \n")
         print("Descriptor not recognized or implemented!\n")
         print("Please select one of the available descriptors:")
         print("aXYZ, R2, inv-R2, delta-R2, RE, Zmat or delta-Zmat.")
         print("-----------------------------------------------------")
         sys.exit()
+
+
+def run_ring_analysis(args):
+    atom_list_str = args.ring_analysis
+    if "," not in atom_list_str:
+        print("-----------------------------------------------------")
+        print("Input error: \n")
+        print("The indices of the atoms composing the ring must be\n")
+        print("provided as a comma separated list.")
+        print("-----------------------------------------------------")
+        sys.exit()
+    else:
+        atom_indices = list(map(int, atom_list_str.split(",")))
+        ra = RingParams(ring_atom_ind=atom_indices)
+        _ = ra.build_dataframe(save_csv=True)
 
 
 def run_dim_reduction(args):

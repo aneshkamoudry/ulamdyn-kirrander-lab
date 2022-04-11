@@ -68,6 +68,15 @@ def _get_parser():
     )
 
     parser.add_argument(
+        "--ring_analysis",
+        required=False,
+        type=str,
+        default=None,
+        help="Perform the Cremer-Pople analysis for the ring structure defined\
+                              by a comma separated list of atom indices.",
+    )
+
+    parser.add_argument(
         "--create_stats",
         required=False,
         type=str,
@@ -110,10 +119,10 @@ def _get_parser():
         "--transform",
         required=False,
         type=str,
-        metavar="",
+        metavar="sigmoid | tanh",
         default=None,
-        help="Apply a nonlinear transformation (sigmoid or tanh) on delta type of\
-              descriptors learning analysis.",
+        help="Apply a nonlinear transformation on delta type of descriptors\
+              learning analysis.",
     )
 
     parser.add_argument(
@@ -169,9 +178,9 @@ def _get_parser():
         "--clustering",
         required=False,
         type=str,
-        metavar="",
+        metavar="K-means | Hierarchical | Spectral",
         default=None,
-        help="Model used for clustering analysis: K-means, Hierarchical or Spectral.",
+        help="ML model used to perform clustering analysis.",
     )
     parser.add_argument(
         "--n_clusters",
@@ -213,7 +222,7 @@ def main():
     start = time.time()
 
     if args.save_dataset is not None:
-        save_data(args.save_dataset)
+        save_data(args)
 
     if args.save_xyz is not None:
         save_xyz(args)
@@ -223,6 +232,9 @@ def main():
 
     if args.bootstrap is not None:
         run_bootstrap(args)
+
+    if args.ring_analysis is not None:
+        run_ring_analysis(args)
 
     if args.dim_reduction is not None:
         run_dim_reduction(args)
