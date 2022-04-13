@@ -43,7 +43,7 @@ def _get_parser():
         "--save_dataset",
         required=False,
         type=str,
-        metavar="all | gradients | nacs | vibspec",
+        metavar=" = all | gradients | nacs | vibspec",
         default=None,
         help="Type of data set (properties + descriptors) to build from MD outputs\
                               and save as csv file.",
@@ -67,15 +67,15 @@ def _get_parser():
                         written in atomic units (useful for MLatom training).",
     )
 
-    parser.add_argument(
-        "--ring_analysis",
-        required=False,
-        type=str,
-        metavar="",
-        default=None,
-        help="Perform the Cremer-Pople analysis for the ring structure defined\
-                              by a comma separated list of atom indices.",
-    )
+    # parser.add_argument(
+    #    "--ring_analysis",
+    #    required=False,
+    #    type=str,
+    #    metavar="",
+    #    default=None,
+    #    help="Perform the Cremer-Pople analysis for the ring structure defined\
+    #                          by a comma separated list of atom indices.",
+    # )
 
     parser.add_argument(
         "--create_stats",
@@ -130,7 +130,7 @@ def _get_parser():
         "--data_scaler",
         required=False,
         type=str,
-        metavar="minmax | standard | robust | norm",
+        metavar=" = minmax | standard | robust | norm",
         default=None,
         help="Method to rescale the data set before applying the \
                               unsupervised learning model.",
@@ -202,6 +202,29 @@ def _get_parser():
                               processors will be used.",
     )
 
+    subparsers = parser.add_subparsers(title="Analysis", dest="command")
+    ring_analysis = subparsers.add_parser(
+        "ring_analysis",
+        help="Perform the Cremer-Pople analysis for a cyclic substructure.",
+    )
+    ring_analysis.add_argument(
+        "--atoms",
+        required=True,
+        type=str,
+        metavar="= 1,2,3,4,5,6",
+        default=None,
+        help="Atom indices in the connectivity order of the ring. \
+                              The number must be passed as a comma separated list.",
+    )
+    ring_analysis.add_argument(
+        "--stats_by",
+        required=False,
+        type=str,
+        metavar=" = time | time,state | state",
+        default=None,
+        help="Variables considered for grouping the data to compute the statistics.",
+    )
+
     # If no command-line arguments are present, config file is parsed
     config_file = "config.txt"
     if len(sys.argv) == 1:
@@ -234,8 +257,16 @@ def main():
     if args.bootstrap is not None:
         run_bootstrap(args)
 
-    if args.ring_analysis is not None:
-        run_ring_analysis(args)
+    if args.command is not None:
+        analysis_type = args.command.split("_")[0]
+        if analysis_type == "dim":
+            analysis_type = "dimensionality reduction"
+        print("=" * 30)
+        print("The {} analysis will be performed".format(analysis_type))
+        print("=" * 30)
+        print("")
+        func = eval("run_" + args.command)
+        func(args)
 
     if args.dim_reduction is not None:
         run_dim_reduction(args)

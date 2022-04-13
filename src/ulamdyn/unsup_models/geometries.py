@@ -690,7 +690,7 @@ class Clustering(Utils):
 
         print("\n*****************************************************")
         print("*  Starting the Agglomerative clustering analysis:  *")
-        print("***************************************************\n")
+        print("*****************************************************\n")
 
         model = AgglomerativeClustering(
             n_clusters=n_clusters,

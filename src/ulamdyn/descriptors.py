@@ -59,7 +59,7 @@ class R2(GetCoords):
             self.mass_weights = self._get_mass_weights()
             self.norm_factor = self._mass_norm_factor(self.mass_weights)
 
-    def _get_mass_weights(self):
+    def _get_mass_weights(self) -> np.ndarray:
         traj = list(self.trajectories)[0]
         _, atom_mass = get_labels_masses(traj)
         # sqrt_atom_mass = np.sqrt(atom_mass).reshape(-1, 1)

@@ -38,7 +38,7 @@ def get_properties_data(rmsd_vec=None):
 
     try:
         df = pd.read_csv("all_properties.csv")
-        print("Loading properties data from existing csv...\n")
+        print("\nLoading properties data from existing csv...\n")
     except FileNotFoundError:
         gp = GetProperties()
         df = gp.energies()
@@ -146,18 +146,42 @@ def build_descriptor(args, getcoords_obj):
 
 
 def run_ring_analysis(args):
-    atom_list_str = args.ring_analysis
+    atom_list_str = args.atoms
     if "," not in atom_list_str:
         print("-----------------------------------------------------")
         print("Input error: \n")
-        print("The indices of the atoms composing the ring must be\n")
+        print("The indices of the atoms composing the ring must be")
         print("provided as a comma separated list.")
         print("-----------------------------------------------------")
         sys.exit()
     else:
         atom_indices = list(map(int, atom_list_str.split(",")))
         ra = RingParams(ring_atom_ind=atom_indices)
-        _ = ra.build_dataframe(save_csv=True)
+        df = ra.build_dataframe(save_csv=True)
+        if args.stats_by is not None:
+            vars_to_group = args.stats_by.lower().split(",")
+            if "state" in vars_to_group:
+                gp = GetProperties()
+                df_en = gp.energies()
+                try:
+                    df.insert(2, "state", df_en["State"].values)
+                except ValueError as ve:
+                    print(
+                        "-------------------------------------------------------------"
+                    )
+                    print("Mismatch error: \n")
+                    print(
+                        "The state labels from the energy data set cannot be inserted"
+                    )
+                    print("in the ring_params data set due to incompatible sizes.\n")
+                    print("Size energy data = {}".format(df_en.shape[0]))
+                    print("Size ring_params data = {}".format(df.shape[0]))
+                    print(
+                        "-------------------------------------------------------------"
+                    )
+                    sys.exit()
+            df_stats = aggregate_data(df, vars_to_group)
+            df_stats.to_csv("stats_ring_params.csv", index=False, header=True)
 
 
 def run_dim_reduction(args):
@@ -235,24 +259,23 @@ def run_clustering(args):
 
     if model == "kmeans":
         df_labels = cluster.kmeans(n_clusters=n_clusters)
-        print("Saving data set with all cluster labels...\n")
-        df_labels.to_csv(
-            "kmeans_labels.csv", header=True, index=True, index_label="index"
-        )
+    elif model == "hierarchical":
+        df_labels = cluster.hierarchical(n_clusters=n_clusters)
     elif model == "spectral":
         df_labels = cluster.spectral(n_clusters=n_clusters)
-        print("Saving data set with all cluster labels...\n")
-        df_labels.to_csv(
-            "spectral_labels.csv", header=True, index=True, index_label="index"
-        )
     else:
         print("--------------------------------------------------------")
         print("ERROR:                                             \n")
         print("Model type not recognized or not implemented!")
         print("Please select one of the available methods:")
-        print("K-Means or Spectral.")
+        print("K-Means, Hierarchical or Spectral.")
         print("--------------------------------------------------------")
         sys.exit()
+
+    print("Saving data set with all cluster labels...\n")
+    df_labels.to_csv(
+        model + "_labels.csv", header=True, index=True, index_label="index"
+    )
 
     # These lines are used to recover the numerical info of the number of clusters
     # for the cases in which the original n_clusters variable is a list or 'best'
@@ -283,20 +306,41 @@ def run_clustering(args):
     csv_name = csv_basename + "_stats_zmatrix.csv"
     df_zmt_stats.to_csv(csv_name, header=True, index=True, index_label="index")
 
-    print("Saving average XYZ geometry for each clusters...")
+    print("Saving geometries for each clusters...\n")
     gc.build_dataframe()
-    df_xyz = gc.dataset
+    atom_labels = gc.labels.reshape(-1, 1)
+
+    df_xyz = gc.dataset.copy()
     df_xyz = df_xyz.merge(df_labels, left_index=True, right_index=True, how="right")
+
+    info2xyz = ["State"]
+    if "RMSD" in df_props.columns:
+        info2xyz.append("RMSD")
+
+    for cluster in range(n_clusters):
+        select_cluster = col_labels + "==" + str(cluster)
+        df_temp = df_xyz.query(select_cluster).sort_values(by=["time"])
+        df_temp = df_temp.drop(["TRAJ", "time", col_labels], axis=1)
+        n_geoms = df_temp.shape[0]
+        xyz_cluster = df_temp.values.reshape(n_geoms, -1, 3)
+        df_props_cluster = df_props.query(select_cluster).sort_values(by=["time"])
+        df_props_cluster = df_props_cluster.reset_index(drop=True)
+        geoms = Geometries(atom_labels, info2xyz)
+        out_name = model + "_geoms_cluster" + str(cluster + 1) + ".xyz"
+        geoms.save_xyz(xyz_cluster, df_props_cluster, out_name=out_name)
+
+    print("Saving average geometries corresponding to the clusters' centroids...\n")
+    df_xyz = df_xyz.drop(["TRAJ", "time"], axis=1)
     df_xyz_mean = df_xyz.groupby(groupby_clusters).mean()
     xyz_mean = df_xyz_mean.values.reshape(n_clusters, -1, 3)
-    atom_labels = gc.labels.reshape(-1, 1)
+
     geoms = Geometries(atom_labels)
-    out_name = "Geoms_centroids_" + model + ".xyz"
+    out_name = model + "_geoms_centroids.xyz"
     geoms.save_xyz(xyz_mean, out_name=out_name)
 
-    print("                             ")
+    print("*" * 30)
     print("Clustering analysis finished!")
-    print("                             ")
+    print("*" * 30)
 
 
 def save_xyz(args):
