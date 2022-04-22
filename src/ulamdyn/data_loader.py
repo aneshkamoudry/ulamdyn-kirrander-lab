@@ -1182,9 +1182,8 @@ class GetProperties:
             return
 
         self._update_properties(df)
-        df = self.dataset
 
-        return df
+        return self.dataset
 
     def _populations_from_h5(self):
 
@@ -1299,9 +1298,8 @@ class GetProperties:
         # df = df.drop_duplicates(subset=['TRAJ','time'], keep='last')
 
         self._update_properties(df)
-        df = self.dataset
 
-        return df
+        return self.dataset
 
     def nac_norm(self):
         """Calculate the norm of the nonadiabatic coupling matrices for each pair of states.
@@ -1320,18 +1318,17 @@ class GetProperties:
         gnac = GetCouplings()
         gnac.read_all_trajs()
 
-        for k in gnac.all_nacs:
-            norm = np.linalg.norm(gnac.all_nacs[k], axis=(1, 2))
-            nacs_norm[k] = norm
+        if gnac.all_nacs:
+            for k in gnac.all_nacs:
+                norm = np.linalg.norm(gnac.all_nacs[k], axis=(1, 2))
+                nacs_norm[k] = norm
 
-        df = pd.DataFrame(nacs_norm)
-        col_names = ["NAC_" + k for k in nacs_norm.keys()]
-        df.columns = col_names
+            df = pd.DataFrame(nacs_norm)
+            col_names = ["NAC_" + k for k in nacs_norm.keys()]
+            df.columns = col_names
+            self._update_properties(df)
 
-        self._update_properties(df)
-        df = self.dataset
-
-        return df
+        return self.dataset
 
     def _mcscf_coefs_from_txt(self):
 
@@ -1356,8 +1353,8 @@ class GetProperties:
             lines = f.readlines()
 
             if not check_csf in lines:
-                print("MCSCF coefficients are not available in nx.log.")
-                return
+                print("\nMCSCF coefficients are not available in nx.log.\n")
+                return (None, None, None)
 
             read_coefs = False
             # TODO: take this value from _init_
@@ -1445,6 +1442,5 @@ class GetProperties:
             df.insert(loc=1, column="time", value=times)
 
             self._update_properties(df)
-            df = self.dataset
 
-            return df
+        return self.dataset
