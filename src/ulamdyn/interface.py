@@ -201,7 +201,7 @@ def run_dim_reduction(args):
     dimred = DimensionalityReduction(
         data=df, n_samples=args.n_samples, scaler=args.data_scaler, n_cpus=args.n_cpus
     )
-    model = args.dim_reduction.lower().strip()
+    model = args.method.lower().strip()
 
     # Step 5: check for the available models and run the calculation
     if model == "pca":
@@ -248,7 +248,7 @@ def run_clustering(args):
     cluster = Clustering(
         data=df, n_samples=args.n_samples, scaler=args.data_scaler, n_cpus=args.n_cpus
     )
-    model = args.clustering.lower().strip()
+    model = args.method.lower().strip()
     model = model.replace("-", "")
     n_clusters = args.n_clusters
 
@@ -447,7 +447,7 @@ def run_bootstrap(args):
     ci_level = 95
 
     if len(bootstrap_options) >= 3:
-        n_samples, n_repeats = list(map(int, bootstrap_options[:2]))
+        n_repeats, n_samples = list(map(int, bootstrap_options[:2]))
         # Check if the CI level is provided as input.
         # It must be the third option in the list.
         try:

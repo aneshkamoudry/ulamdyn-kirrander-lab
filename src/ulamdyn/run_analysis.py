@@ -24,6 +24,13 @@ from ulamdyn.interface import *
 __all__ = ["main"]
 
 
+class SmartFormatter(argparse.HelpFormatter):
+    def _split_lines(self, text, width):
+        if text.startswith("R|"):
+            return text[2:].splitlines()
+        return argparse.HelpFormatter._split_lines(self, text, width)
+
+
 def _check_geom_file():
     if not os.path.isfile("geom.xyz"):
         print("\n--------------------------------------------------------")
@@ -38,53 +45,41 @@ def _check_geom_file():
 
 def _get_parser():
     # Define command-line arguments. The commands can be read from a config.txt file.
-    parser = argparse.ArgumentParser(fromfile_prefix_chars="@")
+    parser = argparse.ArgumentParser(
+        fromfile_prefix_chars="@", formatter_class=SmartFormatter
+    )
     parser.add_argument(
         "--save_dataset",
         required=False,
         type=str,
-        metavar=" = all | gradients | nacs | vibspec",
+        metavar="",
         default=None,
-        help="Type of data set (properties + descriptors) to build from MD outputs\
-                              and save as csv file.",
+        help="R| Select data set to build from the MD outputs and save as csv file.\n Options: all, gradients, nacs, vibspec.",
     )
 
     parser.add_argument(
         "--save_xyz",
         required=False,
         type=str,
-        metavar=" = hops | geoms | grads",
+        metavar="",
         default=None,
-        help="Write the requested data from all trajectories into a single file\
-                              in XYZ format.",
+        help="R| Write the requested data from all trajectories into a single file in XYZ format.\n Options: hops, geoms, grads.",
     )
 
     parser.add_argument(
         "--use_au",
         required=False,
         action="store_true",
-        help="If selected, the XYZ Cartesian coordinates or gradients will be\
-                        written in atomic units (useful for MLatom training).",
+        help="R| If selected, the XYZ Cartesian coordinates or gradients will be written in atomic units (useful for MLatom training).",
     )
-
-    # parser.add_argument(
-    #    "--ring_analysis",
-    #    required=False,
-    #    type=str,
-    #    metavar="",
-    #    default=None,
-    #    help="Perform the Cremer-Pople analysis for the ring structure defined\
-    #                          by a comma separated list of atom indices.",
-    # )
 
     parser.add_argument(
         "--create_stats",
         required=False,
         type=str,
-        metavar=" = all | ekin | vibspec",
+        metavar="",
         default=None,
-        help="Generate a data set with basic statistics (mean, median \
-                              and std) for all the trajectories.",
+        help="R| Generate a data set with basic statistics (mean, median, and std) for all the trajectories.\n Options: all, ekin, vibspec.",
     )
 
     parser.add_argument(
@@ -93,136 +88,155 @@ def _get_parser():
         type=str,
         metavar="",
         default=None,
-        help="Run the bootstrap algorithm for the properties data set \
-                              and save a new data with basic statistics (mean, median \
-                              and std) and confidence intervals.",
+        help="R| Compute the basic statistics and confidence intervals for the properties data set using the bootstrap approach.\n Args: n_repeats, and/or n_samples, and/or ci_level.",
     )
 
-    parser.add_argument(
-        "--descriptor",
-        required=False,
-        type=str,
-        metavar=" = aXYZ | R2 | inv-R2 | delta-R2 | RE | Zmat | delta-Zmat",
-        default="inv-R2",
-        help="Select the molecular descriptor to be used in the unsupervised\
-                              learning analysis.",
-    )
-
-    parser.add_argument(
-        "--use_mwc",
-        required=False,
-        action="store_true",
-        help="If selected, the R2-based descriptors will be calculated using\
-                              mass weighted Cartesian coordinates.",
-    )
-
-    parser.add_argument(
-        "--transform",
-        required=False,
-        type=str,
-        metavar=" = sigmoid | tanh",
-        default=None,
-        help="Apply a nonlinear transformation on delta type of descriptors\
-              learning analysis.",
-    )
-
-    parser.add_argument(
-        "--data_scaler",
-        required=False,
-        type=str,
-        metavar=" = minmax | standard | robust | norm",
-        default=None,
-        help="Method to rescale the data set before applying the \
-                              unsupervised learning model.",
-    )
-    parser.add_argument(
+    pp = argparse.ArgumentParser(add_help=False)
+    pp.add_argument(
         "--n_samples",
         required=False,
         type=int,
         metavar="",
         default=None,
-        help="Number of samples randomly selected from the data set.",
+        help="R| Number of samples randomly selected from the data set.",
     )
-    parser.add_argument(
-        "--dim_reduction",
+
+    pp.add_argument(
+        "--descriptor",
         required=False,
         type=str,
-        metavar=" = PCA | KPCA | Isomap | tSNE",
+        metavar="",
+        default="inv-R2",
+        help="R| Descriptor used to represent molecular geometries.\n Options: aXYZ, R2, inv-R2, delta-R2, RE, Zmat, delta-Zmat.",
+    )
+
+    pp.add_argument(
+        "--use_mwc",
+        required=False,
+        action="store_true",
+        help="R| Use mass weighted Cartesian coordinates to build R2-based descriptors.",
+    )
+
+    pp.add_argument(
+        "--transform",
+        required=False,
+        type=str,
+        metavar="",
+        choices=["tanh", "sigmoid"],
         default=None,
-        help="Select a model for the dimensionality reduction analysis.",
+        help="R| Apply a nonlinear transformation on delta type descriptors.\n Options: %(choices)s.",
     )
-    parser.add_argument(
-        "--n_dim",
-        required=False,
-        type=int,
-        metavar="",
-        default=2,
-        help="Number of dimensions of the reduced data set.",
-    )
-    parser.add_argument(
-        "--kernel",
+
+    pp.add_argument(
+        "--data_scaler",
         required=False,
         type=str,
         metavar="",
-        default="rbf",
-        help="Kernel function used for KPCA method.",
-    )
-    parser.add_argument(
-        "--perplexity",
-        required=False,
-        type=float,
-        metavar="",
-        default=50,
-        help="Perplexity parameters used in the t-SNE algorithm.",
-    )
-    parser.add_argument(
-        "--clustering",
-        required=False,
-        type=str,
-        metavar=" = K-means | Hierarchical | Spectral",
+        choices=["minmax", "standard", "robust", "norm"],
         default=None,
-        help="ML model used to perform clustering analysis.",
+        help="R| Select the data rescaling method.\n Options: %(choices)s.",
     )
-    parser.add_argument(
-        "--n_clusters",
-        required=False,
-        type=str,
-        metavar="",
-        default="3",
-        help="Number of clusters in which the data set will be grouped.",
-    )
-    parser.add_argument(
+
+    pp.add_argument(
         "--n_cpus",
         required=False,
         type=int,
         metavar="",
         default=-1,
-        help="Number of CPUs allocated for the parallelization of \
-                              the unsupervised learning tasks. If -1 all available \
-                              processors will be used.",
+        help="R| Number of CPUs allocated for parallelization.",
+    )
+
+    pp.add_argument(
+        "--kernel",
+        required=False,
+        type=str,
+        metavar="",
+        default="rbf",
+        help="R| Kernel function used for KPCA or Spectral clustering.\n Options: linear, poly, rbf, sigmoid, cosine.",
     )
 
     subparsers = parser.add_subparsers(title="Analysis", dest="command")
+
     ring_analysis = subparsers.add_parser(
         "ring_analysis",
-        help="Perform the Cremer-Pople analysis for a cyclic substructure.",
+        formatter_class=SmartFormatter,
+        help="Cremer-Pople analysis for a cyclic substructure.",
     )
+
     ring_analysis.add_argument(
         "--atoms",
         required=True,
         type=str,
-        metavar="= 1,2,3,4,5,6",
+        metavar="",
         default=None,
-        help="Atom indices in the connectivity order of the ring. \
-                              The number must be passed as a comma separated list.",
+        help="R| Atom indices in the connectivity order of the ring. The numbers must be passed as a comma separated list.",
     )
+
     ring_analysis.add_argument(
         "--stats_by",
         required=False,
         type=str,
-        metavar=" = time | time,state | state",
+        metavar="",
         default=None,
-        help="Variables considered for grouping the data to compute the statistics.",
+        help="R| Variables used for grouping data to compute the statistics.\n Options: time or state or time,state.",
+    )
+
+    dimred_analysis = subparsers.add_parser(
+        "dim_reduction",
+        parents=[pp],
+        formatter_class=SmartFormatter,
+        help="Dimensionality reduction analysis in molecular configuration space.",
+    )
+
+    dimred_analysis.add_argument(
+        "--method",
+        required=True,
+        type=str,
+        metavar="",
+        default=None,
+        help="R| Select algorithm for the analysis.\n Options: PCA, KPCA, Isomap, tSNE.",
+    )
+
+    dimred_analysis.add_argument(
+        "--n_dim",
+        required=False,
+        type=int,
+        metavar="",
+        default=2,
+        help="R| Number of dimensions of the reduced data set.",
+    )
+
+    dimred_analysis.add_argument(
+        "--perplexity",
+        required=False,
+        type=float,
+        metavar="",
+        default=50,
+        help="R| Perplexity parameters used in the t-SNE algorithm.",
+    )
+
+    clustering_analysis = subparsers.add_parser(
+        "clustering",
+        parents=[pp],
+        formatter_class=SmartFormatter,
+        help="Perform clustering of geometries or trajectories.",
+    )
+
+    clustering_analysis.add_argument(
+        "--method",
+        required=True,
+        type=str,
+        metavar="",
+        default=None,
+        help="R| Select model to perform clustering analysis.\n Options: K-means, Hierarchical, Spectral.",
+    )
+    clustering_analysis.add_argument(
+        "--n_clusters",
+        required=False,
+        type=str,
+        metavar="",
+        default="3",
+        help="R| Number of clusters in which the data set will be grouped.",
     )
 
     # If no command-line arguments are present, config file is parsed
@@ -268,11 +282,11 @@ def main():
         func = eval("run_" + args.command)
         func(args)
 
-    if args.dim_reduction is not None:
-        run_dim_reduction(args)
+    # if args.dim_reduction is not None:
+    #    run_dim_reduction(args)
 
-    if args.clustering is not None:
-        run_clustering(args)
+    # if args.clustering is not None:
+    #    run_clustering(args)
 
     end = time.time()
     hours, rem = divmod(end - start, 3600)

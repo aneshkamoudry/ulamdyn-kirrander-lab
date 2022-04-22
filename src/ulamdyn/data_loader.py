@@ -872,7 +872,14 @@ class GetProperties:
     def _update_properties(self, df):
         # From now on, the input dataframe df must always contain the TRAJ and time columns.
         # These columns are necessary to identify/export the differences between the two dfs.
-        if self.dataset is not None:
+        if self.dataset is None:
+            print("\n-----------------------------------------------------")
+            print("The properties dataset is empty.")
+            print("Updating class variable with the current loaded data.")
+            print("-----------------------------------------------------\n")
+            self.dataset = df
+
+        if all(isinstance(i, pd.DataFrame) for i in (self.dataset, df)):
             if self.dataset.shape[0] == df.shape[0]:
                 current_cols = self.dataset.columns.tolist()
                 cols_to_add = df.columns.difference(self.dataset.columns).tolist()
@@ -905,12 +912,6 @@ class GetProperties:
                 )
                 print(warning)
                 df_diff.to_csv("properties_diff.csv", index=False, header=True)
-        else:
-            print("\n-----------------------------------------------------")
-            print("The properties dataset is empty.")
-            print("Updating class variable with the current loaded data.")
-            print("-----------------------------------------------------\n")
-            self.dataset = df
 
     def _energies_from_h5(self):
 
