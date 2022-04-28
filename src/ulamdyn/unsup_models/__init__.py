@@ -2,4 +2,5 @@
 Subpackage for unsupervised learning analysis in geometry and trajectory space.
 """
 
-from ulamdyn.unsup_models.geometries import *
+from ulamdyn.unsup_models.geom_space import *
+from ulamdyn.unsup_models.dist_metrics import *

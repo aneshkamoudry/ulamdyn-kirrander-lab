@@ -302,9 +302,9 @@ class DimensionalityReduction(Utils):
     def isomap(
         self,
         n_components=2,
-        n_neighbors=10,
+        n_neighbors=12,
         neighbors_algorithm="auto",
-        metric="cosine",
+        metric=None,
         p=2,
         metric_params=None,
         calc_error=False,
@@ -315,7 +315,7 @@ class DimensionalityReduction(Utils):
                              manifold, defaults to 2.
         :type n_components: int, optional
         :param n_neighbors: Number of neighbors to consider around each point,
-                            defaults to 10.
+                            defaults to 12.
         :type n_neighbors: int, optional
         :param neighbors_algorithm: Method used for nearest neighbors search,
                                     defaults to "auto"
@@ -341,6 +341,9 @@ class DimensionalityReduction(Utils):
                  low-dimensional manifold are stored in columns.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
+        if metric is None:
+            metric = "cosine"
+
         model = Isomap(
             n_components=n_components,
             n_neighbors=n_neighbors,
@@ -367,7 +370,7 @@ class DimensionalityReduction(Utils):
         self,
         n_components=2,
         perplexity=40.0,
-        learning_rate=200.0,
+        learning_rate=180.0,
         n_iter=2000,
         n_iter_without_progress=400,
         metric="euclidean",
@@ -378,7 +381,7 @@ class DimensionalityReduction(Utils):
         """Perform the t-distributed Stochastic Neighbor Embedding analysis.
 
         :param n_components: Number of coordinates (features) for the low-dimensional
-                             embbeding, defaults to 2.
+                             embedding, defaults to 2.
         :type n_components: int, optional
         :param perplexity: This hyperparameter is used to control the attention between local
                            and global aspects of the data, in a certain sense, by guessing the

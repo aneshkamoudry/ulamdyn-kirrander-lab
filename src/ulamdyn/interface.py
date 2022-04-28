@@ -23,7 +23,8 @@ from ulamdyn.data_writer import *
 from ulamdyn.kinetics import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
-from ulamdyn.unsup_models.geometries import *
+from ulamdyn.unsup_models.geom_space import *
+from ulamdyn.unsup_models.dist_metrics import calc_rmsd
 from ulamdyn.nx_utils import *
 
 
@@ -41,11 +42,21 @@ def get_properties_data(rmsd_vec=None):
         print("\nLoading properties data from existing csv...\n")
     except FileNotFoundError:
         gp = GetProperties()
-        df = gp.energies()
-        df = gp.oscillator_strength()
-        df = gp.mcscf_coefs()
-        df = gp.populations()
-        df = gp.nac_norm()
+        all_properties = [
+            "energies",
+            "oscillator_strength",
+            "mcscf_coefs",
+            "populations",
+            "nac_norm",
+        ]
+        for prop in all_properties:
+            _ = eval("gp." + prop + "()")
+        df = gp.dataset
+        # df = gp.energies()
+        # df = gp.oscillator_strength()
+        # df = gp.mcscf_coefs()
+        # df = gp.populations()
+        # df = gp.nac_norm()
 
         df_ekin = get_kinetic_energies()
         df = pd.concat([df, df_ekin], axis=1)
@@ -117,6 +128,9 @@ def build_descriptor(args, getcoords_obj):
     if descriptor == "aXYZ":
         getcoords_obj.build_dataframe()
         df_xyz = getcoords_obj.dataset
+        select_cols = df_xyz.filter(regex=r"^[x,y,z]", axis=1).columns.tolist()
+        # Features should contain only the Cartesian coordinates
+        df_xyz = df_xyz[select_cols]
         df_xyz.to_csv(descriptor + ".csv", index=False)
         return df_xyz
     elif descriptor in ["R2", "inv-R2", "delta-R2", "RE"]:
@@ -191,7 +205,7 @@ def run_dim_reduction(args):
     gc.align_geoms
     rmsd_vals = gc.rmsd
 
-    # Step 2: create the dataset to apply the dimensionality reduction model.
+    # Step 2: create the input features dataset from molecular geometries.
     df = build_descriptor(args, gc)
 
     # Step 3: build the dataset of properties that can be used for colormap.
@@ -202,6 +216,18 @@ def run_dim_reduction(args):
         data=df, n_samples=args.n_samples, scaler=args.data_scaler, n_cpus=args.n_cpus
     )
     model = args.method.lower().strip()
+    metric = args.dist_metric.lower().strip()
+
+    if metric == "rmsd":
+        if args.descriptor != "aXYZ":
+            print("*********************************************************")
+            print("WARNING:                                             \n")
+            print("RMSD can be used only with the aXYZ descriptor.")
+            print("The Euclidean distance will be used instead as default.")
+            print("*********************************************************")
+            metric = "euclidean"
+        else:
+            metric = calc_rmsd
 
     # Step 5: check for the available models and run the calculation
     if model == "pca":
@@ -209,9 +235,13 @@ def run_dim_reduction(args):
     elif model == "kpca":
         df_reduced = dimred.kpca(n_components=args.n_dim, kernel=args.kernel)
     elif model == "isomap":
-        df_reduced = dimred.isomap(n_components=args.n_dim, calc_error=True)
+        df_reduced = dimred.isomap(
+            n_components=args.n_dim, metric=metric, calc_error=True
+        )
     elif model == "tsne":
-        df_reduced = dimred.tsne(n_components=args.n_dim, perplexity=args.perplexity)
+        df_reduced = dimred.tsne(
+            n_components=args.n_dim, metric=metric, perplexity=args.perplexity
+        )
     else:
         print("--------------------------------------------------------")
         print("ERROR:                                             \n")

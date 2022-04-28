@@ -146,7 +146,7 @@ class GetVelocities:
         After running this method, the class attribute :attr:`~ulamdyn.GetVelocities.veloc`
         will be updated with the full dataset of velocities read from the Newton-X output files.
         """
-        all_veloc = list()
+        all_veloc = []
         for trj in self.trajectories:
             print("Reading velocities from %s" % trj + "...")
             tmax = self.trajectories.get(trj)

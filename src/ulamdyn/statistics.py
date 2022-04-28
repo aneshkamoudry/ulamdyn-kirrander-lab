@@ -48,7 +48,7 @@ def aggregate_data(data, vars_to_group=["time"]):
     col_names = data.columns.values.tolist()
     skip_cols = list(set(col_names).intersection(set(skip_cols)))
     vars_to_aggregate = {
-        k: ["median", "mean", "std", "skew"]
+        k: ["median", "mean", "std", "skew", pd.DataFrame.kurt]
         for k in data.drop(skip_cols, axis=1).columns.values
     }
     df_stats = data.groupby(vars_to_group, as_index=False).agg(vars_to_aggregate)

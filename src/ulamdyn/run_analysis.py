@@ -18,7 +18,7 @@ from ulamdyn.data_loader import *
 from ulamdyn.data_writer import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
-from ulamdyn.unsup_models.geometries import *
+from ulamdyn.unsup_models.geom_space import *
 from ulamdyn.interface import *
 
 __all__ = ["main"]
@@ -147,6 +147,16 @@ def _get_parser():
     )
 
     pp.add_argument(
+        "--dist_metric",
+        required=False,
+        type=str,
+        metavar="",
+        choices=["euclidean", "seuclidean", "cosine", "correlation", "rmsd"],
+        default=None,
+        help="R| Distance metric used for dimensionality reduction (Isomap and t-SNE) or clustering (Hierarchical).\n Options: %(choices)s.",
+    )
+
+    pp.add_argument(
         "--kernel",
         required=False,
         type=str,
@@ -211,7 +221,7 @@ def _get_parser():
         required=False,
         type=float,
         metavar="",
-        default=50,
+        default=40,
         help="R| Perplexity parameters used in the t-SNE algorithm.",
     )
 
@@ -275,9 +285,9 @@ def main():
         analysis_type = args.command.split("_")[0]
         if analysis_type == "dim":
             analysis_type = "dimensionality reduction"
-        print("=" * 30)
+        print("=" * 50)
         print("The {} analysis will be performed".format(analysis_type))
-        print("=" * 30)
+        print("=" * 40)
         print("")
         func = eval("run_" + args.command)
         func(args)
