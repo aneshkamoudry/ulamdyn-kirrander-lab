@@ -3,7 +3,6 @@
 # Date: April 25, 2021
 from __future__ import (
     absolute_import,
-    division,
     print_function,
     unicode_literals,
     with_statement,
@@ -25,13 +24,14 @@ from ulamdyn.kinetics import KineticEnergy, VibrationalSpectra
 
 
 def aggregate_data(data, vars_to_group=["time"]):
-    """Calculate the basic statistical descriptors for a given dataset.
+    """Calculate the statistical descriptors for a given dataset.
 
     The statistical quantities calculated by the function are *mean* and *median*
     to describe the central tendency, and *standard deviation* to measure the
-    variability or dispersion of the data. So each feature of the original input
-    dataset will be unfolded into three new columns identified with the suffixes
-    '_median', '_mean', '_std', and '_skew'.
+    variability or dispersion of the data. In addition, the skewness and kurtosis
+    of the distribution are also calculated. So each feature of the original input
+    data will be unfolded into five new columns identified with the suffixes
+    '_median', '_mean', '_std', '_skew', and '_kurt'.
 
     :param data: input dataset containing the information extracted from all MD
                  trajectories.
@@ -39,12 +39,12 @@ def aggregate_data(data, vars_to_group=["time"]):
     :param vars_to_group: set of variables used by the function to group the data,
                           defaults to ["time"]
     :type vars_to_group: list, optional
-    :return: [description]
+    :return: dataframe object with statistical description of the input data
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
     """
     skip_cols = ["time", "State", "TRAJ"]
     if vars_to_group != ["time"]:
-        skip_cols = vars_to_group
+        skip_cols = vars_to_group + ["State", "TRAJ"]
     col_names = data.columns.values.tolist()
     skip_cols = list(set(col_names).intersection(set(skip_cols)))
     vars_to_aggregate = {
@@ -54,7 +54,7 @@ def aggregate_data(data, vars_to_group=["time"]):
     df_stats = data.groupby(vars_to_group, as_index=False).agg(vars_to_aggregate)
     df_stats.columns = ["_".join(col).strip() for col in df_stats.columns.values]
     df_stats.columns = [col.rstrip("_") for col in df_stats.columns.values]
-    count = data.groupby(vars_to_group).size().values
+    count = data.groupby(vars_to_group)["TRAJ"].nunique().values
     df_stats.insert(1, "traj_count", count)
     return df_stats
 
@@ -172,12 +172,13 @@ def create_stats(selected_data, save_csv=False):
     if selected_data.lower() == "all":
         print("Calculating statistics for the properties dataset...\n")
         gp = GetProperties()
-        df = gp.energies()
-        df = gp.oscillator_strength()
-        df = gp.mcscf_coefs()
-        df = gp.populations()
+        _ = gp.energies()
+        _ = gp.oscillator_strength()
+        _ = gp.mcscf_coefs()
+        _ = gp.populations()
+        df = gp.dataset
 
-        time_vec = df["time"].values
+        # time_vec = df["time"].values
         df_prop_stats = aggregate_data(df)
 
         df_occ = calc_avg_occupations(df)
@@ -192,6 +193,7 @@ def create_stats(selected_data, save_csv=False):
         gc = GetCoords()
         gc.read_all_trajs()
         gc.align_geoms
+        time_vec = gc.traj_time[:, 1]
         r2 = R2()
         df = r2.build_descriptor(gc.xyz, save_csv=False)
         df = _add_column(df, "time", time_vec)

@@ -2,7 +2,6 @@
 # __date__ = '03/14/2021'
 from __future__ import (
     absolute_import,
-    division,
     print_function,
     unicode_literals,
     with_statement,
@@ -18,7 +17,7 @@ __all__ = ["Geometries"]
 class Geometries:
     """Handle and save XYZ coordinates for selected frames of MD trajectories."""
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return "Module to export molecular geometries in xyz format."
 
     def __init__(self, atom_labels, add_properties=list()):
@@ -29,7 +28,7 @@ class Geometries:
         :param add_properties: list of properties to be added in the comment line of the XYZ file, defaults to ["TRAJ", "time"]
         :type add_properties: list()
         """
-        self.labels = atom_labels.reshape(-1,1)
+        self.labels = atom_labels.reshape(-1, 1)
         self.properties = ["TRAJ", "time"]
 
         if len(add_properties) != 0:
@@ -77,7 +76,7 @@ class Geometries:
         n_atoms = len(self.labels)
         geoms_string = ""
         comment_line = ""
-        mask = '{:<6s} {:12.8f} {:12.8f} {:12.8f} \n'
+        mask = "{:<6s} {:12.8f} {:12.8f} {:12.8f} \n"
 
         for n, xyz in enumerate(geoms_array):
 
@@ -86,7 +85,7 @@ class Geometries:
 
             geoms_string += str(n_atoms) + "\n" + comment_line + "\n"
             for l, atom_coords in zip(self.labels, xyz):
-                geoms_string += mask.format(l[0],*atom_coords)
+                geoms_string += mask.format(l[0], *atom_coords)
 
         with open(out_name, "w") as out:
             out.write(geoms_string)

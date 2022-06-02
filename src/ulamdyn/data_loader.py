@@ -75,7 +75,7 @@ class GetCoords:
         :rtype: str
         """
         cls_status = (
-            "Data loader object to read molecular geometries from NAMD trajectories."
+            "Data loader object to read molecular geometries from NAMD trajectories.\n"
         )
         cls_status += "   Current state of the class variables:\n"
         cls_status += "  ---------------------------------------\n"

@@ -162,7 +162,7 @@ def _get_parser():
         type=str,
         metavar="",
         default="rbf",
-        help="R| Kernel function used for KPCA or Spectral clustering.\n Options: linear, poly, rbf, sigmoid, cosine.",
+        help="R| Kernel function used for KPCA or Spectral clustering.\n Options: linear, poly, rbf, laplacian, sigmoid, cosine.",
     )
 
     subparsers = parser.add_subparsers(title="Analysis", dest="command")
@@ -285,9 +285,9 @@ def main():
         analysis_type = args.command.split("_")[0]
         if analysis_type == "dim":
             analysis_type = "dimensionality reduction"
-        print("=" * 50)
+        print("=" * 60)
         print("The {} analysis will be performed".format(analysis_type))
-        print("=" * 40)
+        print("=" * 60)
         print("")
         func = eval("run_" + args.command)
         func(args)

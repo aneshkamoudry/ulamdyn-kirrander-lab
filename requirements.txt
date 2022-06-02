@@ -3,5 +3,6 @@ h5py
 numpy
 scipy
 joblib
-pandas<=1.4.0
+pandas
 scikit-learn
+tslearn

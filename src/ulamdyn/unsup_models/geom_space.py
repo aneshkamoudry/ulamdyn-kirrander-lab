@@ -1,4 +1,4 @@
-"""Base classes and methods used to perform unsupervised learning analysis."""
+"""Base classes and methods used to perform unsupervised learning analysis on the configurational space."""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: April 2, 2021
 from __future__ import (
@@ -11,6 +11,7 @@ from __future__ import (
 
 import numpy as np
 from joblib import dump, load
+from ulamdyn.unsup_models.utilities import Utils
 
 try:
     import modin.pandas as pd
@@ -20,10 +21,6 @@ except ModuleNotFoundError:
 
 try:
     from sklearn.base import clone
-    from sklearn.preprocessing import Normalizer
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.preprocessing import RobustScaler
-    from sklearn.preprocessing import StandardScaler
 
     from sklearn.decomposition import PCA, KernelPCA
     from sklearn.manifold import TSNE, Isomap
@@ -38,42 +35,13 @@ except ModuleNotFoundError as e:
     print("Please make sure that sklearn library has been installed.")
     print(e)
 
-__all__ = ["DimensionalityReduction", "Clustering"]
+__all__ = ["DimensionReduction", "ClusterGeoms"]
 
 
-class Utils:
-    @staticmethod
-    def _data_scaling(scaler, df):
-
-        sc_option = {
-            "minmax": MinMaxScaler(),
-            "standard": StandardScaler(),
-            "robust": RobustScaler(),
-            "norm": Normalizer(),
-        }
-
-        if scaler not in sc_option.keys():
-            return "Please choose a valid scaler: minmax, standard or robust."
-        else:
-            print(" ")
-            print("Scaling data with {} method".format(scaler))
-            scaled_data = sc_option.get(scaler).fit_transform(df)
-            df_scaled = pd.DataFrame(scaled_data, index=df.index, columns=df.columns)
-            print(" ")
-            return df_scaled
-
-    @staticmethod
-    def _print_model_params(model):
-        print(" The following set of parameters will be used:\n")
-        for k, v in model.__dict__.items():
-            print(" {:>20} = {:<20}".format(k, str(v)))
-        print(" ")
-
-
-class DimensionalityReduction(Utils):
+class DimensionReduction(Utils):
     """Class used to find a low dimensional representation of MD trajectories data."""
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         """Provide a string representation of the class.
 
         :return: Short description of the class functionality.
@@ -100,9 +68,9 @@ class DimensionalityReduction(Utils):
         :type random_state: int, optional
         :param n_cpus: Set up he number of parallel jobs to run the dimensionality reduction
                        methods. This parameter works only for the
-                       :meth:`~ulamdyn.DimensionalityReduction.kpca`,
-                       :meth:`~ulamdyn.DimensionalityReduction.isomap`, and
-                       :meth:`~ulamdyn.DimensionalityReduction.tsne` methods,
+                       :meth:`~ulamdyn.DimensionReduction.kpca`,
+                       :meth:`~ulamdyn.DimensionReduction.isomap`, and
+                       :meth:`~ulamdyn.DimensionReduction.tsne` methods,
                        defaults to -1 which means all processors will be used.
         :type n_cpus: int, optional
         """
@@ -302,7 +270,7 @@ class DimensionalityReduction(Utils):
     def isomap(
         self,
         n_components=2,
-        n_neighbors=12,
+        n_neighbors=30,
         neighbors_algorithm="auto",
         metric=None,
         p=2,
@@ -458,25 +426,38 @@ class DimensionalityReduction(Utils):
         return df_transformed
 
 
-class Clustering(Utils):
+class ClusterGeoms(Utils):
     """Class used to find groups of similar geometries in the MD trajectories data."""
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         """Provide a string representation of the class.
 
         :return: Short description of the class functionality.
         :rtype: str
         """
-        return "Clustering methods."
+        cls_status = (
+            "Clustering object used to group molecular geometries by similarity.\n"
+        )
+        return cls_status
 
     def __init__(
-        self, data, n_samples=None, scaler=None, random_state=42, n_cpus=-1, verbosity=0
+        self,
+        data,
+        indices=None,
+        n_samples=None,
+        scaler=None,
+        random_state=42,
+        n_cpus=-1,
+        verbosity=0,
     ):
         """Class initializer for Clustering methods.
 
         :param data: Dataset with all molecular geometries (or QM properties) extracted from
                      the loaded MD trajectories.
         :type data: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        :param indices: Name of a text file containing the list of indices as a single column
+                          used to filter the input data, defaults to None.
+        :type indices: str, optional
         :param n_samples: Size of the subsample selected randomly from the original data to
                           perform the clustering analysis, defaults to None.
         :type n_samples: int, optional
@@ -494,8 +475,15 @@ class Clustering(Utils):
         :type verbosity: int, optional
         """
         self.df = data
+        if indices is not None:
+            self.indices = np.loadtxt(indices)
+            self.df = self.df.loc[self.indices]
+
         if n_samples is not None:
-            self.df = data.sample(n_samples)
+            if n_samples > self.df.shape[0]:
+                n_samples = self.df.shape[0]
+            self.df = self.df.sample(n_samples)
+
         self.indices = self.df.index.values
 
         self.scaler = scaler
@@ -505,15 +493,28 @@ class Clustering(Utils):
         self.random_state = random_state
         self.n_cpus = n_cpus
         self.verbosity = verbosity
+        self.model = None
 
-    def _run_model(self, model, data):
+    def _run_model(self, data):
 
-        self._print_model_params(model)
+        if isinstance(self.model.n_clusters, list) or self.model.n_clusters == "best":
+            clean_model = clone(self.model)
+            print("Searching for the optimal number of clusters...\n")
+            k_best = self._opt_num_clusters(self.model)
+            clean_model.n_clusters = k_best
+            self.model = clean_model
+        elif isinstance(self.model.n_clusters, int):
+            pass
+        else:
+            print("ERROR:\n Invalid option!")
+            return
 
-        model.fit(data)
+        self._print_model_params(self.model)
 
-        col_name = [type(model).__name__.lower() + "_labels"]
-        df = pd.DataFrame(model.labels_, columns=col_name)
+        self.model.fit(data)
+
+        col_name = [type(self.model).__name__.lower() + "_labels"]
+        df = pd.DataFrame(self.model.labels_, columns=col_name)
         df.index = self.indices
 
         cluster_count = df.groupby(col_name).size().reset_index().values
@@ -536,11 +537,11 @@ class Clustering(Utils):
         if isinstance(model.n_clusters, list):
             range_n_clusters = np.array(model.n_clusters)
         elif model.n_clusters == "best":
-            range_n_clusters = np.arange(2, 15)
+            range_n_clusters = np.arange(2, 12)
 
         print("Evaluate clustering performance:\n")
-        scores_silhouette = list()
-        scores_ch = list()
+        scores_silhouette = []
+        scores_ch = []
         for k in range_n_clusters:
             model.n_clusters = k
             fitted_model = model.fit(df_temp)
@@ -562,6 +563,8 @@ class Clustering(Utils):
         scores_ch = scores_ch[idx_high_scores]
         idx_best = np.argmax(scores_ch)
         best_n_clusters = range_n_clusters[idx_best]
+
+        print("The optimal number of clusters is {}\n".format(best_n_clusters))
 
         return best_n_clusters
 
@@ -622,32 +625,22 @@ class Clustering(Utils):
             verbose=self.verbosity,
         )
 
-        if isinstance(model.n_clusters, list) or model.n_clusters == "best":
-            clean_model = clone(model)
-            print("Searching for the optimal number of clusters...\n")
-            k_best = self._opt_num_clusters(model)
-            clean_model.n_clusters = k_best
-            model = clean_model
-        elif isinstance(model.n_clusters, int):
-            pass
-        else:
-            print("ERROR:\n Invalid option!")
-            return None
+        self.model = model
 
-        df_labels = self._run_model(model, self.df)
+        df_labels = self._run_model(self.df)
 
         if save_model:
-            filename = "kmeans_nc" + str(n_clusters) + ".joblib"
-            dump(model, filename)
+            filename = "kmeans_model_geoms_nc" + str(self.model.n_clusters) + ".joblib"
+            dump(self.model, filename)
 
         return df_labels
 
     def hierarchical(
         self,
         n_clusters=5,
-        affinity="cosine",
+        affinity="euclidean",
         connectivity=None,
-        linkage="single",
+        linkage="complete",
         distance_threshold=None,
         save_model=True,
     ):
@@ -660,7 +653,7 @@ class Clustering(Utils):
                          "l2", "manhattan", "cosine", or "precomputed". If linkage is "ward",
                          only "euclidean" is accepted. If "precomputed", a distance matrix
                          (instead of a similarity matrix) is needed as input for the fit
-                         method, defaults to "cosine".
+                         method, defaults to "euclidean".
         :type affinity: str, optional
         :param connectivity: Connectivity matrix. Defines for each sample the neighboring
                              samples following a given structure of the data. This can be a
@@ -676,7 +669,7 @@ class Clustering(Utils):
                         + 'average' -> uses the average of the distances of each observation of the two sets.
                         + 'complete' or 'maximum' -> uses the maximum distances between all observations of the two sets.
                         + 'single' -> uses the minimum of the distances between all observations of the two sets.
-                        The default is "single".
+                        The default is "complete".
         :type linkage: str, optional
         :param distance_threshold: The linkage distance threshold above which, clusters will not
                                    be merged. If not None, n_clusters must be None and
@@ -703,7 +696,9 @@ class Clustering(Utils):
             distance_threshold=distance_threshold,
         )
 
-        df_labels = self._run_model(model, self.df)
+        self.model = model
+
+        df_labels = self._run_model(self.df)
 
         if n_clusters is None:
             print("  Number of clusters found by the algorithm:\n")
@@ -713,7 +708,7 @@ class Clustering(Utils):
         print("  n_leaves = {}".format(model.n_leaves_))
 
         if save_model:
-            filename = "hierarchical_nc" + str(n_clusters) + ".joblib"
+            filename = "hierarchical_nc" + str(self.model.n_clusters) + ".joblib"
             dump(model, filename)
 
         return df_labels
@@ -805,22 +800,12 @@ class Clustering(Utils):
             n_jobs=self.n_cpus,
         )
 
-        if isinstance(model.n_clusters, list) or model.n_clusters == "best":
-            clean_model = clone(model)
-            print("Searching for the optimal number of clusters...\n")
-            k_best = self._opt_num_clusters(model)
-            clean_model.n_clusters = k_best
-            model = clean_model
-        elif isinstance(model.n_clusters, int):
-            pass
-        else:
-            print("ERROR:\n Invalid option!")
-            return None
+        self.model = model
 
-        df_labels = self._run_model(model, self.df)
+        df_labels = self._run_model(self.df)
 
         if save_model:
-            filename = "spectral_nc" + str(n_clusters) + ".joblib"
+            filename = "spectral_nc" + str(self.model.n_clusters) + ".joblib"
             dump(model, filename)
 
         return df_labels

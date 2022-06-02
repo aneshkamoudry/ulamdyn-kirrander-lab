@@ -2,7 +2,6 @@
 # Date: May 13, 2021
 from __future__ import (
     absolute_import,
-    division,
     print_function,
     unicode_literals,
     with_statement,
@@ -24,6 +23,7 @@ from ulamdyn.kinetics import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
 from ulamdyn.unsup_models.geom_space import *
+from ulamdyn.unsup_models.traj_space import *
 from ulamdyn.unsup_models.dist_metrics import calc_rmsd
 from ulamdyn.nx_utils import *
 
@@ -52,11 +52,6 @@ def get_properties_data(rmsd_vec=None):
         for prop in all_properties:
             _ = eval("gp." + prop + "()")
         df = gp.dataset
-        # df = gp.energies()
-        # df = gp.oscillator_strength()
-        # df = gp.mcscf_coefs()
-        # df = gp.populations()
-        # df = gp.nac_norm()
 
         df_ekin = get_kinetic_energies()
         df = pd.concat([df, df_ekin], axis=1)
@@ -212,11 +207,11 @@ def run_dim_reduction(args):
     df_props = get_properties_data(rmsd_vals)
 
     # Step 4: instanciate the dimensionality reduction class
-    dimred = DimensionalityReduction(
+    dimred = DimensionReduction(
         data=df, n_samples=args.n_samples, scaler=args.data_scaler, n_cpus=args.n_cpus
     )
     model = args.method.lower().strip()
-    metric = args.dist_metric.lower().strip()
+    metric = args.dist_metric  # .lower().strip()
 
     if metric == "rmsd":
         if args.descriptor != "aXYZ":
@@ -262,7 +257,7 @@ def run_dim_reduction(args):
 
 
 def run_clustering(args):
-    # Step 1: Load XYZ data from all trajectories and align coordinates
+    # Step 1: Load XYZ data from all trajectories and align geometries
     gc = GetCoords()
     gc.read_all_trajs()
     gc.align_geoms
@@ -271,11 +266,11 @@ def run_clustering(args):
     # Step 2: create the dataset to apply the dimensionality reduction model.
     df = build_descriptor(args, gc)
 
-    # Step 3: build the dataset of properties that can be used for colormap.
+    # Step 3: build the dataset of properties that can be used for color map.
     df_props = get_properties_data(rmsd_vals)
 
-    # Step 4: instanciate the dimensionality reduction class
-    cluster = Clustering(
+    # Step 4: create instance for the clustering method.
+    cluster = ClusterGeoms(
         data=df, n_samples=args.n_samples, scaler=args.data_scaler, n_cpus=args.n_cpus
     )
     model = args.method.lower().strip()
@@ -292,11 +287,11 @@ def run_clustering(args):
     elif model == "hierarchical":
         df_labels = cluster.hierarchical(n_clusters=n_clusters)
     elif model == "spectral":
-        df_labels = cluster.spectral(n_clusters=n_clusters)
+        df_labels = cluster.spectral(n_clusters=n_clusters, affinity=args.kernel)
     else:
         print("--------------------------------------------------------")
         print("ERROR:                                             \n")
-        print("Model type not recognized or not implemented!")
+        print("Model {} not recognized or not implemented.".format(model))
         print("Please select one of the available methods:")
         print("K-Means, Hierarchical or Spectral.")
         print("--------------------------------------------------------")
