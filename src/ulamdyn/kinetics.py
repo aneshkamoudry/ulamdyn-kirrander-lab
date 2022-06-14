@@ -1,15 +1,7 @@
 ## Author: Max Pinheiro Jr <maxjr82@gmail.com>
 ## Date: March 10 2021
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-    with_statement,
-)
 
 import os
-import sys
 import h5py
 import numpy as np
 
@@ -33,28 +25,40 @@ class GetVelocities:
     # Defining slots to optimize performance (RAM):
     __slots__ = ["trajectories", "n_atoms", "veloc"]
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         """Provide a string representation of the class.
 
         :return: Short description of the class functionality.
         :rtype: str
         """
-        return "Data handler class for NX-MD velocities."
+        cls_status = (
+            "Data loader object to read velocities from NX-NAMD trajectories.\n"
+        )
+        cls_status += "   Current state of the class variables:\n"
+        cls_status += "   \u2022 Trajectories read -> {}\n".format(
+            list(self.trajectories.keys())
+        )
+        cls_status += "   \u2022 Number of atoms -> {}\n".format(self.n_atoms)
+        if self.veloc is not None:
+            cls_status += "   \u2022 Shape of loaded velocity info -> {}\n".format(
+                self.veloc.shape
+            )
+        else:
+            cls_status += "   \u2022 Velocity data -> None"
+        return cls_status
 
-    def __init__(self, n_atoms=None):
+    def __init__(self, n_atoms=None) -> None:
         """Class initializer."""
-        # This variable contains a list of all available trajectories:
-        # [TRAJ1, TRAJ2,..., TRAJN]
         self.trajectories = check_nx_trajs()
 
-        if n_atoms == None:
+        if n_atoms is None:
             self.n_atoms = get_num_atoms()
         else:
             self.n_atoms = int(n_atoms)
 
         self.veloc = None
 
-    def from_dyn(self, outfile: str, tmax=100000) -> np.ndarray:
+    def from_dyn(self, outfile: str, tmax: float = 100000) -> np.ndarray:
         """Read velocities from a single trajectory of Newton-X.
 
         .. note:: The final velocities dataset will contains information only for the first
@@ -62,6 +66,8 @@ class GetVelocities:
 
         :param outfile: name of the NX output file containing the velocities, dyn.out.
         :type outfile: str
+        :param tmax: Maximum time step to read from the NX output of a given trajectory.
+        :type tmax: float
         :return: tensor of shape (n_steps, n_atoms, 3) with all velocities data.
         :rtype: numpy.ndarray
         """
@@ -190,7 +196,7 @@ class KineticEnergy:
     # Defining slots to optimize performance (RAM):
     __slots__ = ["trajectories", "n_atoms", "energies", "atom_mass", "atom_labels"]
 
-    def __repr__(self):
+    def __str__(self) -> str:
         return "Kinetic energy calculator."
 
     def __init__(self, n_atoms=None) -> None:
@@ -213,7 +219,7 @@ class KineticEnergy:
         )
 
     @staticmethod
-    def _atom_speed(veloc_xyz: np.ndarray):
+    def _atom_speed(veloc_xyz: np.ndarray) -> np.ndarray:
         """Calculate the speed of every atom in the molecular system."""
         return np.linalg.norm(veloc_xyz, axis=2)
 
@@ -321,6 +327,9 @@ class KineticEnergy:
 class VibrationalSpectra(GetVelocities):
     """Calculate the vibrational density of states for each MD trajectory."""
 
+    def __str__(self) -> str:
+        return "Power spectra calculator."
+
     def __init__(self, n_atoms=None) -> None:
         """Class initializer."""
         super().__init__(n_atoms=n_atoms)
@@ -332,14 +341,14 @@ class VibrationalSpectra(GetVelocities):
         self.mass = get_labels_masses(traj, n_atoms)[1]
         self.dt = self._get_time_step(traj)
 
-    def _get_time_step(self, traj):
+    def _get_time_step(self, traj) -> float:
 
         control = read_nx_control(traj)
         dt = control.get("dt")
         return dt
 
     @staticmethod
-    def calc_pdos(Vel, dt, mass=None):
+    def calc_pdos(Vel: np.ndarray, dt: float, mass: np.ndarray = None) -> np.ndarray:
         """Calculate the power spectrum of the velocity auto-correlation function.
 
         :param Vel: tensor of shape (n_steps, n_atoms, 3) with atomic velocities collected

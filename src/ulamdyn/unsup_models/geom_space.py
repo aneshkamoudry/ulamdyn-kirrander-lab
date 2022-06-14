@@ -9,6 +9,7 @@ from __future__ import (
     with_statement,
 )
 
+import io
 import numpy as np
 from joblib import dump, load
 from ulamdyn.unsup_models.utilities import Utils
@@ -49,12 +50,17 @@ class DimensionReduction(Utils):
         """
         return "Unsupervised learning methods for dimensionality reduction."
 
-    def __init__(self, data, n_samples=None, scaler=None, random_state=42, n_cpus=-1):
+    def __init__(
+        self, data, dt=None, n_samples=None, scaler=None, random_state=42, n_cpus=-1
+    ) -> None:
         """Class initializer for dimensionality reduction.
 
         :param data: Dataset of molecular geometries (or properties) extracted from the
                      available MD trajectories.
         :type data: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        :param dt: Time step used to filter the input data by multiple of dt before feeding
+                          the data into the clustering algorithm, defaults to None.
+        :type dt: float, optional
         :param n_samples: If the value is not None, the dimensionality reduction analysis
                           will be performed on a randomly selected subsample of the original
                           dataset, defaults to None.
@@ -74,7 +80,8 @@ class DimensionReduction(Utils):
                        defaults to -1 which means all processors will be used.
         :type n_cpus: int, optional
         """
-        self.df = data
+        self.df = self._filter_by_dt(data, dt)
+        self.df = self.df.drop(["TRAJ", "time"], axis=1, errors="ignore")
         self.indices = self.df.index.values
 
         if n_samples is not None:
@@ -179,6 +186,7 @@ class DimensionReduction(Utils):
         print("")
 
         df_importance = self._create_pca_importance(model)
+        df_importance.to_csv("pca_feature_importance.csv")
 
         if calc_error:
             X_reconstructed = model.inverse_transform(df_transformed.values)
@@ -435,14 +443,33 @@ class ClusterGeoms(Utils):
         :return: Short description of the class functionality.
         :rtype: str
         """
-        cls_status = (
-            "Clustering object used to group molecular geometries by similarity.\n"
-        )
+        cls_status = "Class used to group molecular geometries by similarity.\n"
+        methods_list = [
+            func
+            for func in dir(self)
+            if callable(getattr(self, func)) and not func.startswith("_")
+        ]
+        cls_status += "List of available methods: {}\n".format(" ".join(methods_list))
+        cls_status += "   Current state of the class variables:\n"
+        cls_status += "  ---------------------------------------\n"
+        cls_status += "   \u2022 data scaler method = {}\n".format(self.scaler)
+        cls_status += "   \u2022 random state = {}\n".format(self.random_state)
+        cls_status += "   \u2022 number of cpus = {}\n".format(self.n_cpus)
+        cls_status += "   \u2022 verbosity level = {}\n".format(self.verbosity)
+        if self.df is not None:
+            cls_status += "   \u2022 Size of the input data = {}\n".format(
+                self.df.shape
+            )
+            buf = io.StringIO()
+            self.df.info(buf=buf)
+            data_info = buf.getvalue()
+            cls_status += data_info
         return cls_status
 
     def __init__(
         self,
         data,
+        dt=None,
         indices=None,
         n_samples=None,
         scaler=None,
@@ -455,6 +482,9 @@ class ClusterGeoms(Utils):
         :param data: Dataset with all molecular geometries (or QM properties) extracted from
                      the loaded MD trajectories.
         :type data: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        :param dt: Time step used to filter the input data by multiple of dt before feeding
+                          the data into the clustering algorithm, defaults to None.
+        :type dt: float, optional
         :param indices: Name of a text file containing the list of indices as a single column
                           used to filter the input data, defaults to None.
         :type indices: str, optional
@@ -474,10 +504,13 @@ class ClusterGeoms(Utils):
         :param verbosity: Control the level of printed information, defaults to 0.
         :type verbosity: int, optional
         """
-        self.df = data
-        if indices is not None:
+        if indices is None:
+            self.df = self._filter_by_dt(data, dt)
+        else:
             self.indices = np.loadtxt(indices)
             self.df = self.df.loc[self.indices]
+
+        self.df = self.df.drop(["TRAJ", "time"], axis=1, errors="ignore")
 
         if n_samples is not None:
             if n_samples > self.df.shape[0]:

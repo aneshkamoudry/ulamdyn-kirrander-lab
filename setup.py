@@ -17,7 +17,7 @@ if os.path.exists("requirements.txt"):
     requirements = open("requirements.txt").read()
 else:
     requirements = (
-        ["numpy", "scipy", "h5py", "rmsd", "pandas", "scikit-learn", "joblib"],
+        ["numpy", "scipy", "h5py", "rmsd", "pandas", "scikit-learn", "tslearn", "joblib"],
     )
 
 if os.path.exists("README.rst"):

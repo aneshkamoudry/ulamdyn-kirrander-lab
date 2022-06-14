@@ -12,14 +12,14 @@ import os
 import sys
 import time
 import argparse
-import numpy as np
 
-from ulamdyn.data_loader import *
-from ulamdyn.data_writer import *
-from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
-from ulamdyn.unsup_models.geom_space import *
-from ulamdyn.interface import *
+from ulamdyn.wrappers.clustering import *
+from ulamdyn.wrappers.dim_reduction import *
+from ulamdyn.wrappers.ring_analysis import *
+from ulamdyn.wrappers.save_datasets import *
+from ulamdyn.wrappers.save_xyz import *
+from ulamdyn.wrappers.bootstrap import *
 
 __all__ = ["main"]
 
@@ -53,8 +53,9 @@ def _get_parser():
         required=False,
         type=str,
         metavar="",
+        choices=["all", "properties", "gradients", "nacs", "vibspec"],
         default=None,
-        help="R| Select data set to build from the MD outputs and save as csv file.\n Options: all, gradients, nacs, vibspec.",
+        help="R| Select data set to build from the MD outputs and save as csv file.\n Options: %(choices)s.",
     )
 
     parser.add_argument(
@@ -63,7 +64,7 @@ def _get_parser():
         type=str,
         metavar="",
         default=None,
-        help="R| Write the requested data from all trajectories into a single file in XYZ format.\n Options: hops, geoms, grads.",
+        help='R| Write the requested data from all trajectories into XYZ file(s). The argument should be given as a comma separated list of strings,\n starting with geoms or grads and followed by optional subargs (example: "hops" or "hops,S21" or a query in the form "TRAJ==10").',
     )
 
     parser.add_argument(
@@ -102,12 +103,22 @@ def _get_parser():
     )
 
     pp.add_argument(
+        "--time_step",
+        required=False,
+        type=float,
+        metavar="",
+        default=None,
+        help="R| Size of the time step (dt) used to filter each trajectory in the data set.",
+    )
+
+    pp.add_argument(
         "--descriptor",
         required=False,
         type=str,
         metavar="",
+        choices=["aXYZ", "R2", "inv-R2", "delta-R2", "RE", "Zmat", "delta-Zmat"],
         default="inv-R2",
-        help="R| Descriptor used to represent molecular geometries.\n Options: aXYZ, R2, inv-R2, delta-R2, RE, Zmat, delta-Zmat.",
+        help="R| Descriptor used to represent molecular geometries.\n Options: %(choices)s. (default: %(default)s)",
     )
 
     pp.add_argument(
@@ -143,7 +154,7 @@ def _get_parser():
         type=int,
         metavar="",
         default=-1,
-        help="R| Number of CPUs allocated for parallelization.",
+        help="R| Number of CPUs allocated for parallelization. (default: %(default)s)",
     )
 
     pp.add_argument(
@@ -152,8 +163,8 @@ def _get_parser():
         type=str,
         metavar="",
         choices=["euclidean", "seuclidean", "cosine", "correlation", "rmsd"],
-        default=None,
-        help="R| Distance metric used for dimensionality reduction (Isomap and t-SNE) or clustering (Hierarchical).\n Options: %(choices)s.",
+        default="euclidean",
+        help="R| Distance metric used for dimensionality reduction (Isomap and t-SNE) or clustering (Hierarchical).\n Options: %(choices)s. (default: %(default)s)",
     )
 
     pp.add_argument(
@@ -161,8 +172,9 @@ def _get_parser():
         required=False,
         type=str,
         metavar="",
+        choices=["linear", "poly", "rbf", "laplacian", "sigmoid", "cosine"],
         default="rbf",
-        help="R| Kernel function used for KPCA or Spectral clustering.\n Options: linear, poly, rbf, laplacian, sigmoid, cosine.",
+        help="R| Kernel function used for KPCA or Spectral clustering.\n Options: %(choices)s. (default: %(default)s)",
     )
 
     subparsers = parser.add_subparsers(title="Analysis", dest="command")
@@ -197,7 +209,6 @@ def _get_parser():
         formatter_class=SmartFormatter,
         help="Dimensionality reduction analysis in molecular configuration space.",
     )
-
     dimred_analysis.add_argument(
         "--method",
         required=True,
@@ -206,39 +217,45 @@ def _get_parser():
         default=None,
         help="R| Select algorithm for the analysis.\n Options: PCA, KPCA, Isomap, tSNE.",
     )
-
     dimred_analysis.add_argument(
         "--n_dim",
         required=False,
         type=int,
         metavar="",
         default=2,
-        help="R| Number of dimensions of the reduced data set.",
+        help="R| Number of dimensions of the reduced data set. (default: %(default)s)",
     )
-
     dimred_analysis.add_argument(
         "--perplexity",
         required=False,
         type=float,
         metavar="",
         default=40,
-        help="R| Perplexity parameters used in the t-SNE algorithm.",
+        help="R| Perplexity parameters used in the t-SNE algorithm. (default: %(default)s)",
     )
 
     clustering_analysis = subparsers.add_parser(
         "clustering",
         parents=[pp],
         formatter_class=SmartFormatter,
-        help="Perform clustering of geometries or trajectories.",
+        help="Perform cluster analysis in geometry or trajectory space.",
     )
-
+    clustering_analysis.add_argument(
+        "--space",
+        required=True,
+        type=str,
+        metavar="",
+        choices=["geoms", "trajs"],
+        default=None,
+        help="R| Select the type of data in which the clustering analysis will be performed.\n Options: %(choices)s.",
+    )
     clustering_analysis.add_argument(
         "--method",
         required=True,
         type=str,
         metavar="",
         default=None,
-        help="R| Select model to perform clustering analysis.\n Options: K-means, Hierarchical, Spectral.",
+        help="R| Select model to perform clustering analysis.\n Options: K-means (for geoms or trajs), Hierarchical, Spectral.",
     )
     clustering_analysis.add_argument(
         "--n_clusters",
@@ -246,7 +263,7 @@ def _get_parser():
         type=str,
         metavar="",
         default="3",
-        help="R| Number of clusters in which the data set will be grouped.",
+        help="R| Number of clusters in which the data set will be grouped. (default: %(default)s)",
     )
 
     # If no command-line arguments are present, config file is parsed
@@ -269,34 +286,33 @@ def main():
 
     start = time.time()
 
+    keywords_dict = vars(args)
+
     if args.save_dataset is not None:
-        save_data(args)
+        data_to_save = keywords_dict.get("save_dataset")
+        SaveDataset.run(data_to_save)
 
     if args.save_xyz is not None:
-        save_xyz(args)
+        SaveXYZ.run(**keywords_dict)
 
     if args.create_stats is not None:
-        data_dict = create_stats(args.create_stats, save_csv=True)
+        _ = create_stats(keywords_dict.get("create_stats"), save_csv=True)
 
     if args.bootstrap is not None:
-        run_bootstrap(args)
+        Bootstrap.run(**keywords_dict)
 
     if args.command is not None:
         analysis_type = args.command.split("_")[0]
         if analysis_type == "dim":
-            analysis_type = "dimensionality reduction"
-        print("=" * 60)
+            analysis_type = "dimension reduction"
+        print("=" * 55)
         print("The {} analysis will be performed".format(analysis_type))
-        print("=" * 60)
+        print("=" * 55)
         print("")
-        func = eval("run_" + args.command)
-        func(args)
 
-    # if args.dim_reduction is not None:
-    #    run_dim_reduction(args)
-
-    # if args.clustering is not None:
-    #    run_clustering(args)
+        analysis_type = analysis_type.title().replace(" ", "")
+        func = eval(analysis_type + "Analysis.run")
+        func(**keywords_dict)
 
     end = time.time()
     hours, rem = divmod(end - start, 3600)

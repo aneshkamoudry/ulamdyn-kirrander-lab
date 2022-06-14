@@ -24,12 +24,12 @@ from ulamdyn.kinetics import KineticEnergy, VibrationalSpectra
 
 
 def aggregate_data(data, vars_to_group=["time"]):
-    """Calculate the statistical descriptors for a given dataset.
+    """Group data based on variable(s) to calculate the statistical descriptors.
 
-    The statistical quantities calculated by the function are *mean* and *median*
+    The statistical quantities calculated by this function are *mean* and *median*
     to describe the central tendency, and *standard deviation* to measure the
     variability or dispersion of the data. In addition, the skewness and kurtosis
-    of the distribution are also calculated. So each feature of the original input
+    of the distribution are also computed. So each feature of the original input
     data will be unfolded into five new columns identified with the suffixes
     '_median', '_mean', '_std', '_skew', and '_kurt'.
 
@@ -54,8 +54,9 @@ def aggregate_data(data, vars_to_group=["time"]):
     df_stats = data.groupby(vars_to_group, as_index=False).agg(vars_to_aggregate)
     df_stats.columns = ["_".join(col).strip() for col in df_stats.columns.values]
     df_stats.columns = [col.rstrip("_") for col in df_stats.columns.values]
-    count = data.groupby(vars_to_group)["TRAJ"].nunique().values
-    df_stats.insert(1, "traj_count", count)
+    if "TRAJ" in col_names:
+        count = data.groupby(vars_to_group)["TRAJ"].nunique().values
+        df_stats.insert(1, "traj_count", count)
     return df_stats
 
 
@@ -201,7 +202,7 @@ def create_stats(selected_data, save_csv=False):
         df_r2_stats = aggregate_data(df)
         all_stats["r2"] = df_r2_stats
 
-        print("Calculating statistics for the Z-Matrix...\n")
+        print("\nCalculating statistics for the Z-Matrix...\n")
         zmt = ZMatrix()
         df = zmt.build_descriptor(gc.xyz, save_csv=False)
         df = _add_column(df, "time", time_vec)

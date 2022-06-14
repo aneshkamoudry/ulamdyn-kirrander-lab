@@ -1,14 +1,9 @@
 # __author__ = 'Max Pinheiro Jr <maxjr82@gmail.com>'
 # __date__ = '03/14/2021'
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    with_statement,
-)
 
-import os, sys
+import os
 import numpy as np
+import pandas as pd
 from ulamdyn.data_loader import *
 
 __all__ = ["Geometries"]
@@ -20,22 +15,31 @@ class Geometries:
     def __str__(self) -> str:
         return "Module to export molecular geometries in xyz format."
 
-    def __init__(self, atom_labels, add_properties=list()):
+    def __init__(self, atom_labels, properties_data=None, add_properties=[]):
         """Class initialization.
 
         :param atom_labels: array of atom labels used to write the XYZ coordinates file.
         :type atom_labels: np.array
+        :param properties_data: dataframe containing the property values of the selected geometries, defaults to None.
+        :type properties_data: pandas.DataFrame
         :param add_properties: list of properties to be added in the comment line of the XYZ file, defaults to ["TRAJ", "time"]
-        :type add_properties: list()
+        :type add_properties: list
         """
         self.labels = atom_labels.reshape(-1, 1)
-        self.properties = ["TRAJ", "time"]
+        self.props_name = []
+        self.props_data = properties_data
+        if isinstance(self.props_data, pd.DataFrame):
+            self.props_name = list(
+                set(["TRAJ", "time"]).intersection(properties_data.columns.tolist())
+            )
 
-        if len(add_properties) != 0:
-            self.properties += add_properties
-            self.properties = sorted(set(self.properties), key=self.properties.index)
+            if len(add_properties) != 0:
+                self.props_name += add_properties
+                self.props_name = sorted(
+                    set(self.props_name), key=self.props_name.index
+                )
 
-    def _info(self, dataframe, idx, props_to_print):
+    def _info(self, idx, props_to_print) -> str:
 
         comment_line = ""
 
@@ -50,7 +54,7 @@ class Geometries:
                 units = " fs"
             if "RMSD" in p:
                 units = " ang"
-            val = dataframe[p][idx]
+            val = self.props_data[p][idx]
             separator = " | " if p != props_to_print[-1] else ""
             string = p + " = " + str(val) + units + separator
 
@@ -59,8 +63,8 @@ class Geometries:
         return comment_line
 
     def save_xyz(
-        self, geoms_array, properties_data=None, out_name="selected_geoms.xyz"
-    ):
+        self, geoms_array: np.ndarray, out_name: str = "selected_geoms.xyz"
+    ) -> None:
         """Save an XYZ file for a set of selected molecular geometries.
 
         .. note:: The comment line of the XYZ file will contain a list of property values
@@ -68,8 +72,6 @@ class Geometries:
 
         :param geoms_array: a 3D array containing the list of XYZ matrices.
         :type geoms_array: numpy.ndarray
-        :param properties_data: dataframe containing the property values of the selected geometries, defaults to None.
-        :type properties_data: pandas.DataFrame
         :param out_name: name of the XYZ file containing all the selected geometries, defaults to selected_geoms.xyz.
         :type out_name: str
         """
@@ -80,8 +82,8 @@ class Geometries:
 
         for n, xyz in enumerate(geoms_array):
 
-            if properties_data is not None:
-                comment_line = self._info(properties_data, n, self.properties)
+            if len(self.props_name) > 0:
+                comment_line = self._info(n, self.props_name)
 
             geoms_string += str(n_atoms) + "\n" + comment_line + "\n"
             for l, atom_coords in zip(self.labels, xyz):

@@ -99,7 +99,7 @@ class R2(GetCoords):
 
         return r2_vector
 
-    def _derived_model(self, variant):
+    def _derived_model(self, variant: str) -> None:
 
         if variant == "inv-R2":
             self.r2_descriptor = 1 / self.r2_descriptor
@@ -131,7 +131,7 @@ class R2(GetCoords):
                         defaults to None.
         :type variant: str, optional
         :param save_csv: if True export the data set with all calculated descriptors in
-                         a csv format with name pairwise_distances.csv, defaults to False.
+                         a csv format with name all_geoms_r2.csv, defaults to False.
         :type save_csv: bool, optional
         :return: a dataframe object of shape (nsamples, natoms * (natoms - 1)/2), where
                  each row is a vector with the R2-based descriptor computed for a given
@@ -166,7 +166,7 @@ class R2(GetCoords):
         df_r2 = pd.DataFrame(self.r2_descriptor, columns=col_names)
 
         if save_csv:
-            df_r2.to_csv("pairwise_distances.csv", index=False)
+            df_r2.to_csv("all_geoms_r2.csv", index=False)
 
         return df_r2
 
@@ -212,7 +212,7 @@ class ZMatrix(GetCoords):
         """
         return "Generator of Z-Matrix descriptors from molecular geometries."
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Class initializer."""
         self.distancematrix = None
 
@@ -590,13 +590,20 @@ class RingParams(GetCoords):
             ring_coords = self.xyz[:, self.ring_indices]
         self._ring_coords = ring_coords - ring_coords.mean(axis=(1,), keepdims=True)
 
-    def _cp_to_polar(self, pucker_coords):
+    def _cp_to_polar(self, pucker_coords) -> dict:
         Q = np.sqrt(np.power(pucker_coords[:, :2], 2).sum(axis=1))
         theta = np.arctan(pucker_coords[:, 0] / pucker_coords[:, 1])
         theta = theta * (180 / np.pi)
         phi = pucker_coords[:, -1]
         polar_coords = {"Q": Q, "theta": theta, "phi": phi}
         return polar_coords
+
+    def _get_ang_components(self, z, rs, m) -> tuple:
+        cos_term = [np.dot(z, np.cos(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m]
+        sin_term = [np.dot(z, np.sin(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m]
+        qcos = self._fixzero(np.sqrt(2 / rs) * np.array(cos_term))
+        qsin = self._fixzero(-np.sqrt(2 / rs) * np.array(sin_term))
+        return (qcos, qsin)
 
     def displacement(self, coords):
         """Calculate the ring displacement (z)"""
@@ -607,13 +614,6 @@ class RingParams(GetCoords):
         normal_vec = cross_product / np.linalg.norm(cross_product)
         z = np.dot(coords, normal_vec)
         return z
-
-    def _get_ang_components(self, z, rs, m) -> tuple:
-        cos_term = [np.dot(z, np.cos(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m]
-        sin_term = [np.dot(z, np.sin(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m]
-        qcos = self._fixzero(np.sqrt(2 / rs) * np.array(cos_term))
-        qsin = self._fixzero(-np.sqrt(2 / rs) * np.array(sin_term))
-        return (qcos, qsin)
 
     def get_pucker_coords(self, coords: np.ndarray) -> np.ndarray:
         """Calculate the Cremer-Pople puckering parameters for one ring."""
@@ -637,8 +637,9 @@ class RingParams(GetCoords):
                 amplitude = np.sqrt(qsin**2 + qcos**2)
                 angle = np.arctan2(qsin, qcos)
         else:
-            print("ERROR: Ring size not supported!")
-            print("       The number of atoms should be 4 < n_atoms <= 20.")
+            print("ERROR:")
+            print("Ring size not supported!")
+            print("The number of atoms should be 4 < n_atoms <= 20.")
         # Convert from radian to degree
         if angle < 0.0:
             angle += 2 * np.pi

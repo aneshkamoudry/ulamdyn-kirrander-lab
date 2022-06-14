@@ -52,7 +52,7 @@ class ClusterTrajs(Utils):
         return cls_status
 
     def __init__(
-        self, data, dt=None, scaler=None, random_state=42, n_cpus=-1, verbosity=1
+        self, data, dt=None, scaler=None, random_state=42, n_cpus=-1, verbosity=0
     ):
         """Class initializer for Clustering methods."""
         # Data must be a dataframe object including the TRAJ and time columns
@@ -88,7 +88,7 @@ class ClusterTrajs(Utils):
 
         model.fit(X)
         cluster_labels = model.labels_
-        model_name = [type(model).__name__.lower() + "_labels"]
+        model_name = type(model).__name__.lower() + "_labels"
         df = pd.DataFrame({"TRAJ": self.id_trajs, model_name: cluster_labels})
 
         cluster_count = df.groupby(model_name).size().reset_index().values
