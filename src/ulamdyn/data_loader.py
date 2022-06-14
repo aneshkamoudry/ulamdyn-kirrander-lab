@@ -1375,7 +1375,7 @@ class GetProperties:
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
 
-        nacs_norm = dict()
+        nacs_norm = {}
         gnac = GetCouplings()
         gnac.read_all_trajs()
 
@@ -1385,11 +1385,11 @@ class GetProperties:
                 nacs_norm[k] = norm
 
             df = pd.DataFrame(nacs_norm)
-            col_names = ["NAC_norm_" + k for k in nacs_norm.keys()]
+            col_names = ["NAC_norm_" + k for k in nacs_norm]
             df.columns = col_names
             self._update_properties(df)
 
-        return df
+            return df
 
     def _mcscf_coefs_from_txt(self):
 
