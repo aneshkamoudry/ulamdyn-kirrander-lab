@@ -15,6 +15,7 @@ from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
 from ulamdyn.wrappers._auxiliary import *
 
+__all__ = ["Bootstrap"]
 
 class Bootstrap:
     @classmethod

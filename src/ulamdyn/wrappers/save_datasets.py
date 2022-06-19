@@ -14,6 +14,8 @@ from ulamdyn.descriptors import *
 from ulamdyn.statistics import aggregate_data
 from ulamdyn.wrappers._auxiliary import *
 
+__all__ = ["SaveDataset"]
+
 
 class SaveDataset:
     @classmethod

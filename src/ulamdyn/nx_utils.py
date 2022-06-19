@@ -1,4 +1,4 @@
-"""Auxiliary set of functions and constants used to process Newton-X data."""
+"""Module with auxiliary functions and constants used to process Newton-X data."""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: May 17 2021
 
@@ -9,6 +9,20 @@ from typing import Tuple
 
 import h5py
 import numpy as np
+
+__all__ = [
+    "BOHR_TO_ANG",
+    "HARTREE_TO_KCAL",
+    "HARTREE_TO_eV",
+    "PROTON_MASS",
+    "get_traj_dirs",
+    "get_nx_version",
+    "get_labels_masses",
+    "read_nx_control",
+    "read_h5_nx",
+    "get_num_atoms",
+    "check_nx_trajs",
+]
 
 #%% List of constants
 BOHR_TO_ANG = 0.529177210903
@@ -273,8 +287,9 @@ def check_nx_trajs() -> dict:
                 end_flag = "NEWTON-X ends here"
                 normal_run = any(end_flag in line for line in lines[-5:])
                 step = -1 if normal_run else -2
-                tmax = float(t_last[step].split()[4])
-                traj_tmax[traj] = tmax
+                if len(t_last) >= abs(step):
+                    tmax = float(t_last[step].split()[4])
+                    traj_tmax[traj] = tmax
                 out.close()
         else:
             config = read_nx_control(traj_list[0])

@@ -3,7 +3,7 @@
 # Date: 03/10/2021
 
 import os
-import sys
+from itertools import combinations
 import numpy as np
 
 try:
@@ -12,7 +12,6 @@ try:
 except ModuleNotFoundError:
     import pandas as pd
 
-from itertools import combinations
 from ulamdyn.data_loader import GetCoords
 from ulamdyn.nx_utils import *
 

@@ -22,6 +22,7 @@ from ulamdyn.unsup_models.dist_metrics import calc_rmsd
 from ulamdyn.wrappers._auxiliary import *
 from ulamdyn.nx_utils import *
 
+__all__ = ["ClusteringAnalysis"]
 
 class ClusteringAnalysis:
     @classmethod

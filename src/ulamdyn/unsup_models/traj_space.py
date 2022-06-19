@@ -1,4 +1,4 @@
-"""Base class and methods used to perform clustering analysis on the trajectory space."""
+"""Class and methods used to perform clustering analysis on trajectory space."""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: May 27, 2022
 import io
@@ -33,8 +33,8 @@ class ClusterTrajs(Utils):
         :rtype: str
         """
         cls_status = "Clustering object used to group MD trajectories by similarity.\n"
-        cls_status += "   Current status of the class variables:\n"
-        cls_status += "  ----------------------------------------\n"
+        cls_status += "\nCurrent status of the class variables:\n"
+        cls_status += "------------------------------------------\n"
         for var in vars(self):
             if var != "data":
                 cls_status += "     \u2022 {} ---> {}\n".format(var, getattr(self, var))
@@ -54,7 +54,7 @@ class ClusterTrajs(Utils):
     def __init__(
         self, data, dt=None, scaler=None, random_state=42, n_cpus=-1, verbosity=0
     ):
-        """Class initializer for Clustering methods."""
+        """Class initializer to access the clustering methods."""
         # Data must be a dataframe object including the TRAJ and time columns
         self.data = self._filter_by_dt(data, dt)
         self.id_trajs = self.data["TRAJ"].unique().tolist()
@@ -64,6 +64,11 @@ class ClusterTrajs(Utils):
         self.verbosity = verbosity
 
     def transform(self):
+        """Transform the input data to the time series format (tslearn) and apply scaler methods.
+
+        :return: Three dimensional numpy array with shape (n_ts, n_steps, n_features)
+        :rtype: numpy.ndarray
+        """
         all_trajs = []
         for id in self.id_trajs:
             trj = (
@@ -77,7 +82,7 @@ class ClusterTrajs(Utils):
             "standard": TimeSeriesScalerMeanVariance(mu=0.0, std=1.0),
         }
 
-        if self.scaler in sc_option.keys():
+        if self.scaler in sc_option:
             all_trajs = sc_option.get(self.scaler).fit_transform(all_trajs)
 
         return all_trajs
@@ -112,6 +117,31 @@ class ClusterTrajs(Utils):
         convergence=1e-6,
         save_model=True,
     ):
+        """K-means clustering to group similar MD trajectories.
+
+        :param n_clusters: Number of clusters to form, defaults to 3.
+        :type n_clusters: int, optional
+        :param metric: Metric to be used for both cluster assignment and barycenter computation.
+                       Options: “euclidean”, “dtw”, “softdtw”. Defaults to "dtw".
+        :type metric: str, optional
+        :param metric_params: Parameter values for the chosen metric. Defaults to None.
+        :type metric_params: dict or None, optional
+        :param n_init: Number of time the k-means algorithm will be run with different centroid
+                       seeds. The final results will be the best output of n_init consecutive runs
+                       in terms of inertia. Defaults to 5.
+        :type n_init: int, optional
+        :param max_iter: Maximum number of iterations of the k-means algorithm for a single run.
+                         Defaults to 100.
+        :type max_iter: int, optional
+        :param convergence: Inertia variation threshold. If at some point, inertia varies less
+                            than this threshold between two consecutive iterations, the model is
+                            considered to have converged and the algorithm stops. Defaults to 1e-6.
+        :type convergence: float, optional
+        :param save_model: Store the trained parameters of the model in a binary file, defaults to True.
+        :type save_model: bool, optional
+        :return: Dataframe of shape (n_trajs,) with cluster labels assigned to each trajectory.
+        :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
+        """
         X_train = self.transform()
         print("\n***********************************************")
         print("*  Starting the K-Means clustering analysis:  *")

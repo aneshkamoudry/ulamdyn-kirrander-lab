@@ -263,7 +263,7 @@ def _get_parser():
         type=str,
         metavar="",
         default="3",
-        help="R| Number of clusters in which the data set will be grouped. (default: %(default)s)",
+        help="R| Number of clusters in which the data set will be grouped. If value is equal to best,\n the optimal number of clusters will be searched. (default: %(default)s)",
     )
 
     # If no command-line arguments are present, config file is parsed

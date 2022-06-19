@@ -8,7 +8,6 @@ from __future__ import (
     with_statement,
 )
 
-import os
 import sys
 import numpy as np
 
@@ -21,6 +20,15 @@ except ModuleNotFoundError:
 from ulamdyn.data_loader import GetCoords, GetProperties
 from ulamdyn.descriptors import R2, ZMatrix
 from ulamdyn.kinetics import KineticEnergy, VibrationalSpectra
+
+__all__ = [
+    "aggregate_data",
+    "calc_avg_occupations",
+    "stats_hopping",
+    "create_stats",
+    "bootstrap",
+    "create_bootstrap_stats",
+]
 
 
 def aggregate_data(data, vars_to_group=["time"]):

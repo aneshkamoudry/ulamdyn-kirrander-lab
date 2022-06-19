@@ -15,6 +15,7 @@ from ulamdyn.data_writer import *
 from ulamdyn.wrappers._auxiliary import *
 from ulamdyn.nx_utils import *
 
+__all__ = ["SaveXYZ"]
 
 class SaveXYZ:
     @classmethod
@@ -117,6 +118,9 @@ class SaveXYZ:
     def _grads(cls):
         cls._load_grads()
         cls._load_properties()
+
+        if cls.select_points[0] != "all":
+            cls._filter_by_property()
 
         for state in cls.all_grads.keys():
             print(

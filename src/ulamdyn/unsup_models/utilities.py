@@ -1,4 +1,4 @@
-"""This submodule contains a class with a set of auxiliary functions to handle data preprocessing and printing."""
+"""Class with a set of auxiliary functions to handle data preprocessing and printing."""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: May 31, 2022
 
@@ -19,6 +19,8 @@ except ModuleNotFoundError as e:
     print("Please make sure that sklearn library has been installed.")
     print(e)
 
+__all__ = ["Utils"]
+
 
 class Utils:
     @staticmethod
@@ -31,13 +33,14 @@ class Utils:
             "norm": Normalizer(),
         }
 
-        if scaler not in sc_option.keys():
-            return "Please choose a valid scaler: minmax, standard, robust or norm."
-        else:
-            print("\nScaling data with {} method\n".format(scaler))
-            scaled_data = sc_option.get(scaler).fit_transform(df)
-            df_scaled = pd.DataFrame(scaled_data, index=df.index, columns=df.columns)
-            return df_scaled
+        if scaler not in sc_option:
+            print("Please choose a valid scaler: minmax, standard, robust or norm.")
+            return
+
+        print("\nScaling data with {} method\n".format(scaler))
+        scaled_data = sc_option.get(scaler).fit_transform(df)
+        df_scaled = pd.DataFrame(scaled_data, index=df.index, columns=df.columns)
+        return df_scaled
 
     @staticmethod
     def _print_model_params(model):

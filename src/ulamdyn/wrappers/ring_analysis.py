@@ -14,6 +14,7 @@ from ulamdyn.data_loader import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import aggregate_data
 
+__all__ = ["RingAnalysis"]
 
 class RingAnalysis:
     @classmethod

@@ -1,4 +1,4 @@
-"""Base classes and methods used to perform unsupervised learning analysis on the configurational space."""
+"""Classes and methods used to perform dimension reduction and clustering on geometry space."""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: April 2, 2021
 from __future__ import (
@@ -610,7 +610,7 @@ class ClusterGeoms(Utils):
         convergence=1e-06,
         save_model=True,
     ):
-        """Perform K-Means clustering.
+        """Perform K-Means clustering in geometry space.
 
         :param n_clusters: The number of clusters to form that corresponds also to the
                            number of cluster centroids to generate, defaults to 5.
@@ -632,7 +632,7 @@ class ClusterGeoms(Utils):
                        consecutive runs in terms of loss function, defaults to 500.
         :type n_init: int, optional
         :param max_iter: Maximum number of iterations of the k-means algorithm for a single
-                         run, defaults to 1000
+                         run, defaults to 1000.
         :type max_iter: int, optional
         :param convergence: Relative tolerance with regards to Frobenius norm of the
                             difference in the cluster centers of two consecutive iterations
