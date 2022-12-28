@@ -765,9 +765,8 @@ class ClusterGeoms(Utils):
         of the affinity matrix. Hence, this method is recommended only for small to medium
         size datasets (n_samples < 10000).
 
-        .. note:: This method is equivalent to kernel k-means
-                  (https://dl.acm.org/doi/10.1145/1014052.1014118). Spectral
-                  clustering is recommended for non-linearly separable dataset,
+        .. note:: This method is equivalent to kernel k-means (DOI: 10.1145/1014052.1014118).
+                  Spectral clustering is recommended for non-linearly separable dataset,
                   where the individual clusters have a highly non-convex shape.
 
         :param n_clusters: The number of clusters to form which in this case corresponds
