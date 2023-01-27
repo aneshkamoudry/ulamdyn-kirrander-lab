@@ -63,6 +63,10 @@ class SaveDataset:
         gnac.build_dataframe(save_csv=True)
 
     @classmethod
+    def _velocities(cls):
+        print("Saving the atomic velocities for each MD step as a dataframe...\n")
+
+    @classmethod
     def _vibspec(cls):
         print("Saving the vibrational (power) spectra for all MD trajectories...\n")
         vs = VibrationalSpectra()
