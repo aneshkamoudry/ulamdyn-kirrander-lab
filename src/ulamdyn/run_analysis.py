@@ -53,7 +53,7 @@ def _get_parser():
         required=False,
         type=str,
         metavar="",
-        choices=["all", "properties", "gradients", "nacs", "vibspec"],
+        choices=["all", "properties", "gradients", "nacs", "velocities", "vibspec"],
         default=None,
         help="R| Select data set to build from the MD outputs and save as csv file.\n Options: %(choices)s.",
     )

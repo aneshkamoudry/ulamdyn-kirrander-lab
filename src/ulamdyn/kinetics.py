@@ -23,7 +23,7 @@ class GetVelocities:
     """Class used to collect velocities from all MD trajectories of Newton-X."""
 
     # Defining slots to optimize performance (RAM):
-    __slots__ = ["trajectories", "n_atoms", "veloc"]
+    __slots__ = ["trajectories", "n_atoms", "veloc", "dataset"]
 
     def __str__(self) -> str:
         """Provide a string representation of the class.
@@ -57,6 +57,8 @@ class GetVelocities:
             self.n_atoms = int(n_atoms)
 
         self.veloc = None
+
+        self.dataset = None
 
     def from_dyn(self, outfile: str, tmax: float = 100000) -> np.ndarray:
         """Read velocities from a single trajectory of Newton-X.
@@ -173,6 +175,34 @@ class GetVelocities:
 
         all_veloc = np.concatenate(all_veloc, axis=0)
         self.veloc = all_veloc
+
+    def build_dataframe(self, save_csv=False) -> None:
+        """Generate a dataset (pandas.DataFrame object) containing all velocities.
+
+        The XYZ matrices with the velocities of each molecular geometry is flattened into a
+        one dimensional vector, such that every row of the dataset corresponds to one step
+        of the MD trajectories.
+
+        :param save_csv: if True, the dataframe will be exported in a csv format,
+                         defaults to False. The default name of the saved dataset is
+                         all_velocities.csv.
+        :type save_csv: bool, optional
+        """
+        if self.veloc is None:
+            self.read_all_trajs()
+
+        col_names = [
+            ["vx" + str(i), "vy" + str(i), "vz" + str(i)]
+            for i in range(1, self.n_atoms + 1)
+        ]
+        col_names = sum(col_names, [])
+
+        velocities = self.veloc * (BOHR_TO_ANG / AU_TO_FS)
+        df = pd.DataFrame(velocities.reshape(-1, self.n_atoms * 3), columns=col_names)
+        self.dataset = df
+        if save_csv:
+            output = "all_velocities.csv"
+            df.to_csv(output, index=False, header=True)
 
     @classmethod
     def from_all_trajs(cls, n_atoms=None):

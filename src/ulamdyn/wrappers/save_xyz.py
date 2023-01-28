@@ -39,7 +39,6 @@ class SaveXYZ:
     def _load_geoms(cls):
         cls.gc = GetCoords()
         cls.gc.read_all_trajs()
-        cls.gc.align_geoms
         cls.rmsd_vals = cls.gc.rmsd
         cls.labels = cls.gc.labels
         cls.n_atoms = len(cls.labels)

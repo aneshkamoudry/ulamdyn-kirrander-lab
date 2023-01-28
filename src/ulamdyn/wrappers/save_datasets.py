@@ -23,7 +23,6 @@ class SaveDataset:
         print("Saving the full XYZ coordinates dataframe...\n")
         gc = GetCoords()
         gc.read_all_trajs()
-        gc.align_geoms
         gc.save_csv
         print("Saving the R2 descriptor dataframe...\n")
         r2 = R2()
@@ -65,6 +64,8 @@ class SaveDataset:
     @classmethod
     def _velocities(cls):
         print("Saving the atomic velocities for each MD step as a dataframe...\n")
+        veloc = GetVelocities()
+        veloc.build_dataframe(save_csv=True)
 
     @classmethod
     def _vibspec(cls):

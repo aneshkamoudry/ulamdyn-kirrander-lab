@@ -15,6 +15,7 @@ __all__ = [
     "HARTREE_TO_KCAL",
     "HARTREE_TO_eV",
     "PROTON_MASS",
+    "AU_TO_FS",
     "get_traj_dirs",
     "get_nx_version",
     "get_labels_masses",
@@ -29,6 +30,8 @@ BOHR_TO_ANG = 0.529177210903
 HARTREE_TO_KCAL = 627.5096080305927
 HARTREE_TO_eV = 27.211399
 PROTON_MASS = 1822.888515
+# Convert t from atomic units to femtosecond
+AU_TO_FS = 2.418884326509 * 10**(-2)
 
 #%% Auxiliary functions
 

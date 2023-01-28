@@ -27,7 +27,6 @@ class DimensionReductionAnalysis:
         # Step 1: Load XYZ data from all trajectories and align coordinates
         cls.gc = GetCoords()
         cls.gc.read_all_trajs()
-        cls.gc.align_geoms
         cls.rmsd_vals = cls.gc.rmsd
 
         # Step 2: build the dataset of properties that can be used for color map.

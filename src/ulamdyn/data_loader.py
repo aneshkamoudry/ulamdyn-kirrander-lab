@@ -73,12 +73,10 @@ class GetCoords:
         :return: Short description of the class functionality.
         :rtype: str
         """
-        cls_status = (
-            "Data loader object to read molecular geometries from NAMD trajectories.\n"
-        )
-        cls_status += "   Current state of the class variables:\n"
-        cls_status += "  ---------------------------------------\n"
-        cls_status += "   \u2022 Trajectories read -> {}\n".format(
+        cls_status = "Data loader object to read molecular geometries from NAMD trajectories.\n\n"
+        cls_status += "Current state of the class variables:\n"
+        cls_status += "---------------------------------------\n"
+        cls_status += " \u2022 Trajectories read -> {}\n".format(
             list(self.trajectories.keys())
         )
         cls_status += "   \u2022 Atom labels -> {}\n".format(self.labels)
@@ -150,10 +148,6 @@ class GetCoords:
             self.build_dataframe()
 
         df = self.dataset
-
-        if self.rmsd is not None:
-            df["RMSD"] = self.rmsd
-
         df.to_csv("all_coordinates.csv", index=False, header=True)
 
     def _insert_traj_time(self, df):
@@ -182,12 +176,15 @@ class GetCoords:
             df = pd.DataFrame(self.xyz.reshape(-1, n_atoms * 3), columns=col_names)
             df = self._insert_traj_time(df)
 
+            if self.rmsd is not None:
+                df["RMSD"] = self.rmsd
+
             self.dataset = df
 
             print("\n-------------------------------------------------  ")
             print("  The size of the XYZ coordinates data set is\n   ")
-            print("      Number of geometries = {}".format(df.shape[0]))
-            print("        Number of features = {}".format(df.shape[1]))
+            print("        Number of geometries = {}".format(df.shape[0]))
+            print("          Number of features = {}".format(df.shape[1]))
             print("-------------------------------------------------  \n")
 
         else:
@@ -324,7 +321,7 @@ class GetCoords:
 
         return (atom_labels, xyz_array)
 
-    def read_all_trajs(self) -> None:
+    def read_all_trajs(self, calc_rmsd: bool = True) -> None:
         """Concatenate the XYZ coordinates read from all available MD trajectories.
 
         After running this method, the class attributes :attr:`~ulamdyn.GetCoords.labels`
@@ -369,6 +366,9 @@ class GetCoords:
         )
         self.xyz = np.concatenate(all_geoms, axis=0)
         self.labels = atom_labels
+
+        if calc_rmsd:
+            self.align_geoms
 
     def read_eq_geom(self) -> None:
         """Read the XYZ coordinates of a reference geometry.
@@ -868,17 +868,17 @@ class GetProperties:
         :return: Short description of the class functionality and state.
         :rtype: str
         """
-        cls_status = "Data loader object for (quantum/classical) properties of NAMD trajectories.\n"
-        cls_status += "   Current state of the class variables:\n"
-        cls_status += "  ---------------------------------------\n"
-        cls_status += "   \u2022 Trajectories read -> {}\n".format(
+        cls_status = "Data loader object for (quantum/classical) properties of NAMD trajectories.\n\n"
+        cls_status += "Current state of the class variables:\n"
+        cls_status += "---------------------------------------\n"
+        cls_status += " \u2022 Trajectories read -> {}\n".format(
             list(self.trajectories.keys())
         )
-        cls_status += "   \u2022 Number of states -> {}\n".format(self.num_states)
-        cls_status += "   \u2022 NX version -> {}\n".format(self.nx_version)
+        cls_status += " \u2022 Number of states -> {}\n".format(self.num_states)
+        cls_status += " \u2022 NX version -> {}\n".format(self.nx_version)
 
         if self.dataset is not None:
-            cls_status += "   \u2022 Size of loaded dataset -> {}\n".format(
+            cls_status += " \u2022 Size of loaded dataset -> {}\n".format(
                 self.dataset.shape
             )
             buf = io.StringIO()
@@ -886,7 +886,7 @@ class GetProperties:
             data_info = buf.getvalue()
             cls_status += data_info
         else:
-            cls_status += "   \u2022 The dataset variable is empty."
+            cls_status += " \u2022 The dataset variable is empty."
         return cls_status
 
     @property
