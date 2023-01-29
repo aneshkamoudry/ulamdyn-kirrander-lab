@@ -109,13 +109,15 @@ class ClusteringAnalysis:
             if "RMSD" in cls.df_props.columns:
                 info2xyz.append("RMSD")
 
+            coords_cols = df_xyz.filter(regex="^x|^y|^z").columns.tolist()
+
             print("Saving geometries for each cluster...\n")
             for cluster in range(cls.n_clusters):
                 select_cluster = col_labels + "==" + str(cluster)
                 df_temp = df_xyz.query(select_cluster).sort_values(by=["time"])
-                df_temp = df_temp.drop(["TRAJ", "time", col_labels], axis=1)
+                df_temp = df_temp[coords_cols]
                 n_geoms = df_temp.shape[0]
-                xyz_cluster = df_temp.values.reshape(n_geoms, -1, 3)
+                xyz_cluster = df_temp.values.reshape(n_geoms, n_atoms, 3)
                 df_props_cluster = cls.df_props.query(select_cluster).sort_values(
                     by=["time"]
                 )
@@ -127,7 +129,8 @@ class ClusteringAnalysis:
             print(
                 "Saving average geometries corresponding to the clusters' centroids...\n"
             )
-            df_xyz = df_xyz.drop(["TRAJ", "time"], axis=1)
+            select_cols = coords_cols + [col_labels]
+            df_xyz = df_xyz[select_cols]
             df_xyz_mean = df_xyz.groupby(col_labels).mean()
             xyz_mean = df_xyz_mean.values.reshape(cls.n_clusters, -1, 3)
 
