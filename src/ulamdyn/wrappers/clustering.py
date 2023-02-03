@@ -194,8 +194,6 @@ class ClusteringAnalysis:
         cls._load_params(**kw)
         # Step 3: create the dataset to perform the clustering analysis.
         df_input = build_descriptor(cls.descriptor, cls.mwc, cls.transform, cls.gc)
-        # df_input.insert(0, "TRAJ", cls.df_props["TRAJ"].values)
-        # df_input.insert(1, "time", cls.df_props["time"].values)
 
         # Step 4: create instance for the clustering method.
         if cls.space == "geoms":

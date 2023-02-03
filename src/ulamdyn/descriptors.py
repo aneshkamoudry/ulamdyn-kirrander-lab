@@ -47,9 +47,29 @@ class R2(GetCoords):
         """
         return "Generator of R2-based descriptors from molecular geometries."
 
-    def __init__(self, use_mwc=False) -> None:
-        """Class initializer."""
+    def __init__(self, all_geoms=None, use_mwc=False) -> None:
+        """Class initializer.
+        
+        :param all_geoms: contain geometry information either collected from available
+                          MD trajectories as an object of the :class:`~ulamdyn.GetCoords
+                          or given as a tensor with all stacked XYZ coordinates in the
+                          shape (n_samples, n_atoms, 3). if not provided, the method
+                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will be called to
+                          load all geometries and build the tensor. Defaults to None.
+        :type all_geoms: ulamdyn.GetCoords | numpy.ndarray
+        :param use_mwc: If True, use mass weighted coordinates to compute the descriptors,
+                        defaults to False.
+        :type use_mwc: bool
+        """
         super().__init__()
+        if all_geoms is None:
+            self.read_all_trajs()
+        elif isinstance(all_geoms, GetCoords):
+            self.xyz = all_geoms.xyz
+            self.traj_time = all_geoms.traj_time
+        elif isinstance(all_geoms, np.ndarray):
+            self.xyz = all_geoms    
+
         self.r2_ref_geom = None
         self.r2_descriptor = None
         self.mass_weights = None
@@ -118,14 +138,9 @@ class R2(GetCoords):
             if variant == "RE":
                 self.r2_descriptor = self.r2_ref_geom / self.r2_descriptor
 
-    def build_descriptor(self, all_geoms=None, variant=None, save_csv=False):
+    def build_descriptor(self, variant=None, save_csv=False):
         """Generate a dataframe with R2-based descriptors for all molecular geometries.
 
-        :param all_geoms: tensor of shape (nsamples, natoms, 3) containing the stacked
-                          XYZ coordinates read from all available MD trajectories. if
-                          not provided, the :meth:`~ulamdyn.GetCoords.read_all_trajs`
-                          will be called to load all geometries and build the tensor.
-        :type all_geoms: numpy.ndarray
         :param variant: molecular representation derived from the R2 descriptor,
                         defaults to None.
         :type variant: str, optional
@@ -137,10 +152,7 @@ class R2(GetCoords):
                  molecular geometry.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
-        if (all_geoms is None) or (not isinstance(all_geoms, (np.ndarray))):
-            self.read_all_trajs()
-            all_geoms = self.xyz.copy()
-
+        all_geoms = self.xyz
         n_samples, n_atoms, _ = all_geoms.shape
         id_atom_pairs = np.tril_indices(n_atoms, -1)
         n_features = len(id_atom_pairs[0])
@@ -163,8 +175,10 @@ class R2(GetCoords):
             self._derived_model(variant)
 
         df_r2 = pd.DataFrame(self.r2_descriptor, columns=col_names)
-        df_r2.insert(0, "TRAJ", self.traj_time[:,0])
-        df_r2.insert(1, "time", self.traj_time[:,1])
+        if self.traj_time is not None:
+            df_r2.insert(0, "TRAJ", self.traj_time[:,0])
+            df_r2.insert(1, "time", self.traj_time[:,1])
+            df_r2["TRAJ"] = df_r2["TRAJ"].astype('int32')
 
         if save_csv:
             df_r2.to_csv("all_geoms_r2.csv", index=False)
@@ -213,8 +227,26 @@ class ZMatrix(GetCoords):
         """
         return "Generator of Z-Matrix descriptors from molecular geometries."
 
-    def __init__(self) -> None:
-        """Class initializer."""
+    def __init__(self, all_geoms=None) -> None:
+        """Class initializer.
+        
+        :param all_geoms: contain geometry information either collected from available
+                          MD trajectories as an object of the :class:`~ulamdyn.GetCoords
+                          or given as a tensor with all stacked XYZ coordinates in the
+                          shape (n_samples, n_atoms, 3). if not provided, the method
+                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will be called to
+                          load all geometries and build the tensor. Defaults to None.
+        :type all_geoms: ulamdyn.GetCoords | numpy.ndarray
+        """
+        super().__init__()
+        if all_geoms is None:
+            self.read_all_trajs()
+        elif isinstance(all_geoms, GetCoords):
+            self.xyz = all_geoms.xyz
+            self.traj_time = all_geoms.traj_time
+        elif isinstance(all_geoms, np.ndarray):
+            self.xyz = all_geoms
+
         self.distancematrix = None
 
         # Internal Coordinate Connectivity
@@ -411,7 +443,7 @@ class ZMatrix(GetCoords):
         return zmat_data
 
     def build_descriptor(
-        self, all_geoms: np.ndarray, delta=False, apply_to_delta=None, save_csv=False
+        self, delta=False, apply_to_delta=None, save_csv=False
     ):
         """Construct the standard Z-Matrix descriptor and other variants.
 
@@ -421,9 +453,6 @@ class ZMatrix(GetCoords):
                   distances, angles, dihedrals and/or bending angles using the methods provided
                   in the class.
 
-        :param all_geoms: tensor of shape (nsamples, natoms, 3) containing the stacked XYZ
-                          coordinates read from all available MD trajectories.
-        :type all_geoms: numpy.ndarray
         :param delta: if True, the Z_matrix feature vector of each geometry will be subtracted
                       from the Z_Matrix of the reference geometry, defaults to False.
         :type delta: bool, optional
@@ -511,6 +540,7 @@ class ZMatrix(GetCoords):
         self.angleconnectivity = self.angleconnectivity[2:]
         self.dihedralconnectivity = self.dihedralconnectivity[3:]
 
+        all_geoms = self.xyz
         n_samples = all_geoms.shape[0]
         distances = np.empty((n_samples, len(self.connectivity)), dtype=np.float64)
         angles = np.empty((n_samples, len(self.angleconnectivity)), dtype=np.float64)
@@ -544,8 +574,10 @@ class ZMatrix(GetCoords):
 
         col_names = self._gen_column_labels
         df = pd.DataFrame(zmat_all, columns=col_names)
-        df.insert(0, "TRAJ", self.traj_time[:,0])
-        df.insert(1, "time", self.traj_time[:,1])
+        if self.traj_time is not None:
+            df.insert(0, "TRAJ", self.traj_time[:,0])
+            df.insert(1, "time", self.traj_time[:,1])
+            df["TRAJ"] = df_r2["TRAJ"].astype('int32')
 
         if save_csv:
             df.to_csv("all_geoms_zmatrix.csv", index=False)

@@ -83,7 +83,7 @@ class DimensionReductionAnalysis:
 
         # Step 3: create the dataset to perform the dimensionality reduction analysis.
         df_input = build_descriptor(cls.descriptor, cls.mwc, cls.transform, cls.gc)
-
+    
         # Step 4: create an instance of the dimensionality reduction class
         dimred = DimensionReduction(
             data=df_input,

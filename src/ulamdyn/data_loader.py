@@ -81,7 +81,7 @@ class GetCoords:
         )
         cls_status += "   \u2022 Atom labels -> {}\n".format(self.labels)
         if self.xyz is not None:
-            cls_status += "   \u2022 Total number of geometries -> {}\n".format(self.self.xyz.shape[0])
+            cls_status += "   \u2022 Total number of geometries -> {}\n".format(self.xyz.shape[0])
         if self.dataset is not None:
             cls_status += "   \u2022 Size of loaded dataset -> {}\n".format(
                 self.dataset.shape

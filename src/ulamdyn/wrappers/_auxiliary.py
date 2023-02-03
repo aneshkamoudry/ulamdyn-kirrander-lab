@@ -61,7 +61,6 @@ def get_properties_data(rmsd_vec=None):
 
 
 def build_descriptor(descriptor, mwc, transform, getcoords_obj):
-    all_aligned_geoms = getcoords_obj.xyz
     # getcoords_obj.xyz is a variable of the class object
     # that stores all XYZ coordinates as a numpy array of
     # dimension [n_geoms, n_atoms, 3]
@@ -74,17 +73,15 @@ def build_descriptor(descriptor, mwc, transform, getcoords_obj):
         df_xyz.to_csv(descriptor + ".csv", index=False)
         return df_xyz
     elif descriptor in ["R2", "inv-R2", "delta-R2", "RE"]:
-        r2 = R2(mwc)
-        df_r2 = r2.build_descriptor(all_aligned_geoms, descriptor)
+        r2 = R2(getcoords_obj, mwc)
+        df_r2 = r2.build_descriptor(descriptor)
         df_r2.to_csv(descriptor + ".csv", index=False)
         return df_r2
     elif descriptor in ["Zmat", "delta-Zmat"]:
-        zmt = ZMatrix()
+        zmt = ZMatrix(getcoords_obj)
         dfs_dict = {
-            "Zmat": zmt.build_descriptor(all_aligned_geoms),
-            "delta-Zmat": zmt.build_descriptor(
-                all_aligned_geoms, delta=True, apply_to_delta=transform
-            ),
+            "Zmat": zmt.build_descriptor(),
+            "delta-Zmat": zmt.build_descriptor(delta=True, apply_to_delta=transform),
         }
         df_zmt = dfs_dict[descriptor]
         df_zmt.to_csv(descriptor + ".csv", index=False)
