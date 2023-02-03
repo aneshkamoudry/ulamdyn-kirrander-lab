@@ -80,6 +80,8 @@ class GetCoords:
             list(self.trajectories.keys())
         )
         cls_status += "   \u2022 Atom labels -> {}\n".format(self.labels)
+        if self.xyz is not None:
+            cls_status += "   \u2022 Total number of geometries -> {}\n".format(self.self.xyz.shape[0])
         if self.dataset is not None:
             cls_status += "   \u2022 Size of loaded dataset -> {}\n".format(
                 self.dataset.shape
@@ -88,8 +90,6 @@ class GetCoords:
             self.dataset.info(buf=buf)
             data_info = buf.getvalue()
             cls_status += data_info
-        else:
-            cls_status += "   \u2022 The dataset variable is empty."
         return cls_status
 
     def __init__(self) -> None:
@@ -116,18 +116,25 @@ class GetCoords:
         if self.xyz is not None:
             return len(self.xyz)
 
-    def __getitem__(self, idx: tuple) -> str:
+    def __getitem__(self, idx) -> str:
         if self.xyz is not None:
             n_atoms = len(self.labels)
             geom_string = ""
-            try:
+
+            if isinstance(idx, int):
+                traj, time = self.traj_time[idx]
+                selected_geom = self.xyz[idx]
+            elif isinstance(idx, tuple) and len(idx) == 2:
                 traj, time = idx
-            except:
-                print("The input must be a tuple with TRAJ and time values!")
+                c1 = self.traj_time[:, 0] == traj
+                c2 = self.traj_time[:, 1] == time
+                selected_geom = self.xyz[(c1 & c2)][0]
+            else:
+                print("ERROR: Invalid input!")
+                print("The input must be either a tuple with TRAJ and time values")
+                print("or a single integer corresponding to the data index.")
                 return geom_string
-            c1 = self.traj_time[:, 0] == traj
-            c2 = self.traj_time[:, 1] == time
-            selected_geom = self.xyz[(c1 & c2)][0]
+
             comment_line = f"TRAJ = {traj}  |  time = {time}"
             geom_string = str(n_atoms) + "\n" + comment_line + "\n"
             mask = "{:<6s} {:12.8f} {:12.8f} {:12.8f} \n"

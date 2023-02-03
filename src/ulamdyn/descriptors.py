@@ -163,6 +163,8 @@ class R2(GetCoords):
             self._derived_model(variant)
 
         df_r2 = pd.DataFrame(self.r2_descriptor, columns=col_names)
+        df_r2.insert(0, "TRAJ", self.traj_time[:,0])
+        df_r2.insert(1, "time", self.traj_time[:,1])
 
         if save_csv:
             df_r2.to_csv("all_geoms_r2.csv", index=False)
@@ -542,6 +544,8 @@ class ZMatrix(GetCoords):
 
         col_names = self._gen_column_labels
         df = pd.DataFrame(zmat_all, columns=col_names)
+        df.insert(0, "TRAJ", self.traj_time[:,0])
+        df.insert(1, "time", self.traj_time[:,1])
 
         if save_csv:
             df.to_csv("all_geoms_zmatrix.csv", index=False)
