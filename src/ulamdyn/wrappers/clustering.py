@@ -161,8 +161,8 @@ class ClusteringAnalysis:
         try:
             df_zmt = pd.read_csv("all_geoms_zmatrix.csv")
         except FileNotFoundError:
-            zmt = ZMatrix()
-            df_zmt = zmt.build_descriptor(cls.gc.xyz)
+            zmt = ZMatrix(cls.gc)
+            df_zmt = zmt.build_descriptor()
 
         vars_to_group = [c for c in cluster_labels.columns if "_labels" in c]
         if cls.space == "geoms":
