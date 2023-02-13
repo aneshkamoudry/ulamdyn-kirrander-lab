@@ -577,7 +577,7 @@ class ZMatrix(GetCoords):
         if self.traj_time is not None:
             df.insert(0, "TRAJ", self.traj_time[:,0])
             df.insert(1, "time", self.traj_time[:,1])
-            df["TRAJ"] = df_r2["TRAJ"].astype('int32')
+            df["TRAJ"] = df["TRAJ"].astype('int32')
 
         if save_csv:
             df.to_csv("all_geoms_zmatrix.csv", index=False)
