@@ -203,17 +203,15 @@ def create_stats(selected_data, save_csv=False):
         gc.read_all_trajs()
         gc.align_geoms
         time_vec = gc.traj_time[:, 1]
-        r2 = R2()
-        df = r2.build_descriptor(gc.xyz, save_csv=False)
-        df = _add_column(df, "time", time_vec)
+        r2 = R2(gc)
+        df = r2.build_descriptor(save_csv=False)
         df = _add_column(df, "RMSD", gc.rmsd)
         df_r2_stats = aggregate_data(df)
         all_stats["r2"] = df_r2_stats
 
         print("\nCalculating statistics for the Z-Matrix...\n")
-        zmt = ZMatrix()
-        df = zmt.build_descriptor(gc.xyz, save_csv=False)
-        df = _add_column(df, "time", time_vec)
+        zmt = ZMatrix(gc)
+        df = zmt.build_descriptor(save_csv=False)
         df_zmt_stats = aggregate_data(df)
         all_stats["zmatrix"] = df_zmt_stats
 
