@@ -605,7 +605,7 @@ class ClusterGeoms(Utils):
         self,
         n_clusters=5,
         init="k-means++",
-        n_init=500,
+        n_init=100,
         max_iter=1000,
         convergence=1e-06,
         save_model=True,

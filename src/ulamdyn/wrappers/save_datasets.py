@@ -26,7 +26,6 @@ class SaveDataset:
         gc.save_csv
         print("Saving the R2 descriptor dataframe...\n")
         r2 = R2(gc)
-        # all_geoms = gc.xyz.copy()
         df = r2.build_descriptor(save_csv=True)
         print("Saving the Z-Matrix descriptor dataframe...\n")
         zmt = ZMatrix(gc)
