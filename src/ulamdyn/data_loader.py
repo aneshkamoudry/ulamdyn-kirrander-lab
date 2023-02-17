@@ -1133,11 +1133,12 @@ class GetProperties:
         append_trajs = traj_id.append
 
         for trj in self.trajectories:
-            print("Reading oscillator strength from %s" % trj + "...")
             data = read_h5_nx(trj)
             if data is None:
                 continue
-
+            if "oscillator_strengths" not in data["observables"].keys():
+                return
+            print("Reading oscillator strength from %s" % trj + "...")
             osc_traj = np.array(data["observables/oscillator_strengths/value"])
             t_vec = np.array(data["observables/oscillator_strengths/time"])
             n_states = osc_traj.shape[-1]
@@ -1147,16 +1148,17 @@ class GetProperties:
             current_traj = np.int(trj.replace("TRAJ", ""))
             append_trajs(np.full(n_steps, current_traj, dtype=np.int))
 
-        all_osc_strengths = np.concatenate(all_osc_strengths, axis=0)
-        traj_id = np.concatenate(traj_id, axis=0)
-        times = np.concatenate(times, axis=0)
+        if len(all_osc_strengths) != 0: 
+            all_osc_strengths = np.concatenate(all_osc_strengths, axis=0)
+            traj_id = np.concatenate(traj_id, axis=0)
+            times = np.concatenate(times, axis=0)
 
-        col_names = ["f_0" + str(state) for state in range(1, n_states + 1)]
-        df = pd.DataFrame(all_osc_strengths, columns=col_names)
-        df.insert(loc=0, column="TRAJ", value=traj_id)
-        df.insert(loc=1, column="time", value=times)
+            col_names = ["f_0" + str(state) for state in range(1, n_states + 1)]
+            df = pd.DataFrame(all_osc_strengths, columns=col_names)
+            df.insert(loc=0, column="TRAJ", value=traj_id)
+            df.insert(loc=1, column="time", value=times)
 
-        return df
+            return df
 
     def _os_from_txt(self):
 

@@ -118,6 +118,32 @@ class R2(GetCoords):
 
         return r2_vector
 
+    def _transform(self, delta_r2_data, funct):
+        """Apply a non-linear transformation to the delta R2 descriptor.
+
+        Functions implemented:
+        ----------------------
+          -sigmoid: retuns a dataframe with values ranging from 0 to 1
+          -tanh: hyperbolic tangent for bond distances and cosine for angles,
+                 returns a dataframe with values in the range [-1,1]
+
+        :param delta_r2_data: dataset will all stacked delta R2 descriptors.
+        :type transf_dr2_data: numpy.ndarray
+        """
+        # Normalization functions
+        sigmoid = np.vectorize(lambda x: 1 / (1 + np.exp(-x)))
+        tanh = np.vectorize(
+            lambda x: (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+        )
+
+        if funct.lower() == "sigmoid":
+            trans_dr2_data = sigmoid(delta_r2_data)
+
+        if funct.lower() == "tanh":
+            trans_dr2_data = tanh(delta_r2_data)
+
+        return trans_dr2_data
+
     def _derived_model(self, variant: str) -> None:
 
         if variant == "inv-R2":
@@ -138,12 +164,15 @@ class R2(GetCoords):
             if variant == "RE":
                 self.r2_descriptor = self.r2_ref_geom / self.r2_descriptor
 
-    def build_descriptor(self, variant=None, save_csv=False):
+    def build_descriptor(self, variant=None, apply_to_delta=None, save_csv=False):
         """Generate a dataframe with R2-based descriptors for all molecular geometries.
 
         :param variant: molecular representation derived from the R2 descriptor,
                         defaults to None.
         :type variant: str, optional
+        :param apply_to_delta: select a nonlinear function to apply as a transformation (sigmoid
+                          or hyperbolic tangent) on delta-R2 descriptors, defaults to None.
+        :type apply_to_delta: str, optional
         :param save_csv: if True export the data set with all calculated descriptors in
                          a csv format with name all_geoms_r2.csv, defaults to False.
         :type save_csv: bool, optional
@@ -173,6 +202,8 @@ class R2(GetCoords):
 
         if variant in ["inv-R2", "delta-R2", "RE"]:
             self._derived_model(variant)
+            if  (apply_to_delta is not None) and (variant == "delta-R2"):
+                self.r2_descriptor = self._transform(self.r2_descriptor, apply_to_delta)
 
         df_r2 = pd.DataFrame(self.r2_descriptor, columns=col_names)
         if self.traj_time is not None:
@@ -456,7 +487,7 @@ class ZMatrix(GetCoords):
         :param delta: if True, the Z_matrix feature vector of each geometry will be subtracted
                       from the Z_Matrix of the reference geometry, defaults to False.
         :type delta: bool, optional
-        :param apply_to_delta: select a nonlinear function to apply as a transformation (sigmooid
+        :param apply_to_delta: select a nonlinear function to apply as a transformation (sigmoid
                           or hyperbolic tangent) on the delta Z-matrix, defaults to None.
         :type apply_to_delta: str, optional
         :param save_csv: if true save a single csv file named all_geoms_zmatrix.csv containing

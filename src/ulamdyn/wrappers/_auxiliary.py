@@ -74,7 +74,7 @@ def build_descriptor(descriptor, mwc, transform, getcoords_obj):
         return df_xyz
     elif descriptor in ["R2", "inv-R2", "delta-R2", "RE"]:
         r2 = R2(getcoords_obj, mwc)
-        df_r2 = r2.build_descriptor(descriptor)
+        df_r2 = r2.build_descriptor(variant=descriptor, apply_to_delta=transform)
         df_r2.to_csv(descriptor + ".csv", index=False)
         return df_r2
     elif descriptor in ["Zmat", "delta-Zmat"]:

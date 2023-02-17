@@ -753,7 +753,7 @@ class ClusterGeoms(Utils):
         n_init=100,
         affinity="rbf",
         gamma=0.01,
-        n_neighbors=20,
+        n_neighbors=10,
         degree=3,
         coef0=1,
         kernel_params=None,
