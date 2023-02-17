@@ -249,8 +249,9 @@ def create_stats(selected_data, save_csv=False):
 
     if save_csv:
         for key, df in all_stats.items():
-            csv_name = "stats_" + key + ".csv"
-            df.to_csv(csv_name, index=False, header=True, float_format="%.8f")
+            if df is not None:
+                csv_name = "stats_" + key + ".csv"
+                df.to_csv(csv_name, index=False, header=True, float_format="%.8f")
 
     return all_stats
 
