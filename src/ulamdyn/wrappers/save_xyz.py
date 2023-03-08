@@ -38,7 +38,7 @@ class SaveXYZ:
     @classmethod
     def _load_geoms(cls):
         cls.gc = GetCoords()
-        cls.gc.read_all_trajs()
+        cls.gc.read_all_trajs(calc_rmsd=False)
         cls.rmsd_vals = cls.gc.rmsd
         cls.labels = cls.gc.labels
         cls.n_atoms = len(cls.labels)
@@ -126,10 +126,11 @@ class SaveXYZ:
                 "Writing gradient matrices of state {} to XYZ file...\n".format(state)
             )
             grads = cls.all_grads[state].copy()
+            grads *= 1 / HARTREE_TO_eV
             n_atoms = grads.shape[1]
             empty_labels = np.array([[""] for i in range(n_atoms)])
             if cls.use_au:
-                grads *= BOHR_TO_ANG / HARTREE_TO_eV
+                grads *= BOHR_TO_ANG
             out_name = "all_gradients_" + state.lower() + ".xyz"
             geoms = Geometries(empty_labels, cls.df_props)
             geoms.save_xyz(grads, out_name)

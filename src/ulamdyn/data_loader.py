@@ -373,7 +373,7 @@ class GetCoords:
         )
         self.xyz = np.concatenate(all_geoms, axis=0)
         # Important: capitalize the labels coming from h5 file (NX NS).
-        self.labels = [s.upper() for s in atom_labels]
+        self.labels = np.asarray([s.upper() for s in atom_labels])
 
         if calc_rmsd:
             self.align_geoms
