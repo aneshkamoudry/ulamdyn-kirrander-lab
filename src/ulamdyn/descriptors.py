@@ -660,6 +660,8 @@ class RingParams(GetCoords):
         Q = np.sqrt(np.power(pucker_coords[:, :2], 2).sum(axis=1))
         theta = np.arctan(pucker_coords[:, 0] / pucker_coords[:, 1])
         theta = theta * (180 / np.pi)
+        # Shift the negative angles to stay within the 360 deg circle
+        theta = np.where(theta < 0, theta + 360, theta)
         phi = pucker_coords[:, -1]
         polar_coords = {"Q": Q, "theta": theta, "phi": phi}
         return polar_coords
@@ -713,7 +715,285 @@ class RingParams(GetCoords):
         cppar = np.concatenate([amplitude, angle])
         return cppar
 
-    def build_dataframe(self, delta=False, save_csv=False):
+    @staticmethod
+    def _reduce_angle(*args):
+        if len(args) == 1:
+            phi = args[0]
+            theta = None
+        elif len(args) == 2:
+            phi, theta = args
+
+        # Reduce angle to 0 <= phi <= 360
+        while phi < 0:
+            phi += 360
+        while phi > 360:
+            phi -= 360
+
+        if theta is not None:
+            # Reduce theta
+            if (theta < 0) or (theta > 360):
+                sign = np.sign(theta)
+                n360 = max(1, int(abs(theta) / 360))
+                theta = theta - sign * n360 * 360
+            if theta > 180:
+                theta = theta - 180
+        return (phi, theta)
+        
+    def get_conf_5memb(self, phi) -> str:
+        """Determine the class of a 5-membered ring deformation based on the CP parameters."""
+        # Reduce angle to 0 <= phi <= 360
+        phi, _ = self._reduce_angle(phi)
+        #while phi < 0:
+        #    phi += 360
+        #while phi > 360:
+        #    phi -= 360
+
+        invert = False
+        if phi >= 180:
+            phi -= 180
+            invert = True
+
+        classes = ['1E', '2T1', '2E', '2T3', '3E', '4T3',
+                '4E', '4T5', 'E5', '1T5', '1E']
+
+        conf = classes[int(phi / 18)]
+        if invert:
+           conf = conf[::-1]
+        return conf
+
+    def get_conf_6memb(self, theta, phi) -> str:
+        """Determine the conformation class for a 6-membered ring based on the CP parameters."""
+        sqrt2 = np.sqrt(2.0)
+        sqrt32 = np.sqrt(1.5)
+        
+        phi, theta = self._reduce_angle(phi, theta)
+        # DEG -> RAD
+        phi = np.radians(phi)
+        theta = np.radians(theta)
+
+        # Phi test
+        n_test = 6.0 / np.pi * phi
+        trunc_n = int(n_test)
+        remainder_n = n_test - trunc_n
+        if remainder_n < 0.5:
+            n_final = trunc_n
+        elif remainder_n >= 0.5:
+            n_final = trunc_n + 1
+        if n_final % 2:
+            phi_class = "HST"
+        else:
+            phi_class = "EBE"
+
+        # Theta test
+        L_C = 0.0
+        L_C1 = np.pi
+        if phi_class == "EBE":
+            L_E1 = np.arctan(sqrt2)
+            L_B = np.pi/2.0
+            L_E2 = np.pi + np.arctan(-sqrt2)
+            l0 = (L_C + L_E1)/2.0
+            l1 = (L_E1 + L_B)/2.0
+            l2 = (L_B + L_E2)/2.0
+            l3 = (L_E2 + L_C1)/2.0
+            if theta >= L_C and theta < l0:
+                class_ = "C"
+            elif theta >= l0 and theta < l1:
+                class_ = "E1"
+            elif theta >= l1 and theta < l2:
+                class_ = "B"
+            elif theta >= l2 and theta < l3:
+                class_ = "E2"
+            elif theta >= l3 and theta <= L_C1:
+                class_ = "C"
+            else:
+                raise ValueError(f"ERROR: theta = {np.degrees(theta)}deg: out of limits.")
+            if class_ != "C":
+                class_ = self._class_even_6memb(class_, n_final)
+        if phi_class == "HST":
+            L_H1 = np.arctan(sqrt32)
+            L_S1 = np.arctan(1.0 + sqrt2)
+            L_T = np.pi / 2.0
+            L_S2 = np.pi + np.arctan(-(1.0 + sqrt2))
+            L_H2 = np.pi + np.arctan(-sqrt32)
+            l0 = (L_C + L_H1) / 2.0
+            l1 = (L_H1 + L_S1) / 2.0
+            l2 = (L_S1 + L_T) / 2.0
+            l3 = (L_T + L_S2) / 2.0
+            l4 = (L_S2 + L_H2) / 2.0
+            l5 = (L_H2 + L_C1) / 2.0
+            if theta >= L_C and theta < l0:
+               class_ = "C"
+            elif theta >= l0 and theta < l1:
+               class_ = "H1"
+            elif theta >= l1 and theta < l2:
+               class_ = "S1"
+            elif theta >= l2 and theta < l3:
+               class_ = "T"
+            elif theta >= l3 and theta < l4:
+               class_ = "S2"
+            elif theta >= l4 and theta < l5:
+               class_ = "H2"
+            elif theta >= l5 and theta <= L_C1:
+               class_ = "C"
+            else:
+                raise ValueError(f"ERROR: theta = {np.degrees(theta)}deg: out of limits.")
+            if class_ != "C":
+                class_ = self._class_odd_6memb(class_, n_final)
+            if class_ == "C":
+                class_ = self._class_c_6memb(class_, theta, phi)
+        return class_
+
+    @staticmethod
+    def _class_even_6memb(class_var, n_final):
+        cl = class_var[0]
+        ind1 = (n_final + 2) // 2
+        ind2 = ""
+        if class_var == "E2":
+            ind1 = ""
+
+        if ind1 == "7":
+            ind1 = 1
+
+        if n_final == 0:
+            if class_var in ["B", "E2"]:
+                ind2 = 4
+            class_var = str(ind1) + str(ind2) + cl
+        elif n_final == 2:
+            if class_var in ["B", "E2"]:
+                ind2 = 5
+            class_var = cl + str(ind1) + str(ind2)
+        elif n_final == 4:
+            if class_var in ["B", "E2"]:
+                ind2 = 6
+            class_var = str(ind2) + str(ind1) + cl
+        elif n_final == 6:
+            if class_var in ["B", "E2"]:
+                ind2 = 1
+            class_var = cl + str(ind1) + str(ind2)
+        elif n_final == 8:
+            if class_var in ["B", "E2"]:
+                ind2 = 2
+            class_var = str(ind2) + str(ind1) + cl
+        elif n_final == 10:
+            if class_var in ["B", "E2"]:
+                ind2 = 3
+            class_var = cl + str(ind1) + str(ind2)
+        elif n_final == 12:
+            if class_var in ["B", "E2"]:
+                ind2 = 4
+            class_var = str(ind2) + str(ind1) + cl
+        else:
+            raise ValueError("ERROR: phi angle is out of limits.")
+        return class_var
+
+    @staticmethod    
+    def _class_odd_6memb(class_var, n_final):
+        if 'H' in class_var:
+            cl = 'H'
+        elif 'S' in class_var:
+            cl = 'S'
+        elif 'T' in class_var:
+            cl = 'T'
+
+        if n_final == 1:
+            if class_var in ["H1", "S1"]:
+                ind1 = 1
+                ind2 = 2
+            elif class_var in ["H2", "S2"]:
+                ind1 = 4
+                ind2 = 5
+            elif class_var == "T":
+                ind1 = 4
+                ind2 = 2
+        elif n_final == 3:
+            if class_var in ["H1", "S1"]:
+                ind1 = 3
+                ind2 = 2
+            elif class_var in ["H2", "S2"]:
+                ind1 = 6
+                ind2 = 5
+            elif class_var == "T":
+                ind1 = 6
+                ind2 = 2
+        elif n_final == 5:
+            if class_var in ["H1", "S1"]:
+                ind1 = 3
+                ind2 = 4
+            elif class_var in ["H2", "S2"]:
+                ind1 = 6
+                ind2 = 1
+            elif class_var == "T":
+                ind1 = 3
+                ind2 = 1
+        elif n_final == 7:
+            if class_var in ["H1", "S1"]:
+                ind1 = 5
+                ind2 = 4
+            elif class_var in ["H2", "S2"]:
+                ind1 = 2
+                ind2 = 1
+            elif class_var == "T":
+                ind1 = 2
+                ind2 = 4
+        elif n_final == 9:
+            if class_var in ["H1", "S1"]:
+                ind1 = 5
+                ind2 = 6
+            elif class_var in ["H2", "S2"]:
+                ind1 = 2
+                ind2 = 3
+            elif class_var == "T":
+                ind1 = 2
+                ind2 = 6
+        elif n_final == 11:
+            if class_var in ["H1", "S1"]:
+                ind1 = 1
+                ind2 = 6
+            elif class_var in ["H2", "S2"]:
+                ind1 = 4
+                ind2 = 3
+            elif class_var == "T":
+                ind1 = 1
+                ind2 = 3
+        else:
+            raise ValueError("ERROR: phi angle is out of limits.")                    
+        class_var = f"{ind1}{cl}{ind2}"
+        return class_var
+
+    @staticmethod    
+    def _class_c_6memb(class_var, theta, phi):
+        ind1 = ""
+        ind2 = ""
+        if (0 <= phi) and (phi < np.pi/6):
+            ind1=1
+            ind2=4
+        if (np.pi/6 <= phi) and (phi < np.pi/2):
+            ind1=2
+            ind2=5
+        if (np.pi/2 <= phi) and (phi < 5*np.pi/6):
+            ind1=3
+            ind2=6
+        if (5*np.pi/6 <= phi) and (phi < 7*np.pi/6):
+            ind1=1
+            ind2=4
+        if (7*np.pi/6 <= phi) and (phi < 3*np.pi/2):
+            ind1=2
+            ind2=5
+        if (3*np.pi/2 <= phi) and (phi < 11*np.pi/6):
+            ind1=3
+            ind2=6
+        if (11*np.pi/6 <= phi) and (phi < np.pi):
+            ind1=1
+            ind2=4
+        if (theta > np.pi/2.0):
+            indaux=ind1
+            ind1=ind2
+            ind2=indaux
+        class_var = f"{ind1}{class_var}{ind2}"
+        return class_var
+
+
+    def build_dataframe(self, save_csv=False):
         """Construct a data frame containing the Cremer-Pople parameters of all collected geometries."""
         all_pucker_params = []
         append_pucker_params = all_pucker_params.append
@@ -725,11 +1005,15 @@ class RingParams(GetCoords):
         if self.ring_size == 6:
             polar_coords = self._cp_to_polar(all_pucker_params)
             df = pd.DataFrame(polar_coords)
+            func_vec = np.vectorize(self.get_conf_6memb)
+            df['class'] = func_vec(df['theta'].values, df['phi'].values)
         else:
             n_ring_params = self.ring_size - 3
             col_names = ["q" + str(i + 1) for i in range(n_ring_params - 1)]
             col_names += ["phi"]
             df = pd.DataFrame(all_pucker_params, columns=col_names)
+            func_vec = np.vectorize(self.get_conf_5memb)
+            df['class'] = func_vec(df['phi'].values)
         # If the trajectory indices and time steps are available in the parent class (GetCoords),
         # these information will be added to the current dataframe.
         df = self._insert_traj_time(df)

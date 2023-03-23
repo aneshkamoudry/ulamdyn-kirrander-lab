@@ -50,6 +50,7 @@ def aggregate_data(data, vars_to_group=["time"]):
     :return: dataframe object with statistical description of the input data
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
     """
+    data = data.select_dtypes(include=np.number)
     skip_cols = ["time", "State", "TRAJ"]
     if vars_to_group != ["time"]:
         skip_cols = vars_to_group + ["State", "TRAJ"]
@@ -280,6 +281,8 @@ def bootstrap(dataframe, n_samples=None, n_repeats=1000, save_csv=False):
     :return: dataset containing all the bootstrapped data with estimated mean
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
     """
+    dataframe = dataframe.select_dtypes(include=np.number)
+    
     if not n_samples:
         n_samples = dataframe.shape[0]
 
