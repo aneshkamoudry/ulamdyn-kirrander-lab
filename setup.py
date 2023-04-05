@@ -60,5 +60,5 @@ setup(
     ],
     install_requires=requirements,
     extras_require={"modin": ["modin"]},
-    python_requires=">=3.7",
+    python_requires=">=3.8",
 )

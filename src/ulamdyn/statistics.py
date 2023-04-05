@@ -18,6 +18,7 @@ except ModuleNotFoundError:
     import pandas as pd
 
 from ulamdyn.data_loader import GetCoords, GetProperties
+from ulamdyn.data_writer import Geometries
 from ulamdyn.descriptors import R2, ZMatrix
 from ulamdyn.kinetics import KineticEnergy, VibrationalSpectra
 
@@ -50,8 +51,7 @@ def aggregate_data(data, vars_to_group=["time"]):
     :return: dataframe object with statistical description of the input data
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
     """
-    data = data.select_dtypes(include=np.number)
-    skip_cols = ["time", "State", "TRAJ"]
+    skip_cols = ["time", "State", "TRAJ", "class"]
     if vars_to_group != ["time"]:
         skip_cols = vars_to_group + ["State", "TRAJ"]
     col_names = data.columns.values.tolist()
@@ -188,7 +188,6 @@ def create_stats(selected_data, save_csv=False):
         _ = gp.populations()
         df = gp.dataset
 
-        # time_vec = df["time"].values
         df_prop_stats = aggregate_data(df)
 
         df_occ = calc_avg_occupations(df)
@@ -203,14 +202,23 @@ def create_stats(selected_data, save_csv=False):
         gc = GetCoords()
         gc.read_all_trajs()
         gc.align_geoms
-        time_vec = gc.traj_time[:, 1]
+        # time_vec = gc.traj_time[:, 1]
         r2 = R2(gc)
         df = r2.build_descriptor(save_csv=False)
         df = _add_column(df, "RMSD", gc.rmsd)
         df_r2_stats = aggregate_data(df)
         all_stats["r2"] = df_r2_stats
 
-        print("\nCalculating statistics for the Z-Matrix...\n")
+        print("Generating average XYZ geometries from the R2 descriptor...\n")
+        select_mean_cols = [c for c in df_r2_stats.columns if "mean" in c]
+        time_vec = df_r2_stats["time"].values
+        r2_mean = df_r2_stats[select_mean_cols].values
+        xyz_mean = r2.reconstruct_xyz(r2_mean)
+
+        geoms = Geometries(gc.labels, df_prop_stats)
+        geoms.save_xyz(xyz_mean, "average_geometries.xyz")
+
+        print("Calculating statistics for the Z-Matrix...\n")
         zmt = ZMatrix(gc)
         df = zmt.build_descriptor(save_csv=False)
         df_zmt_stats = aggregate_data(df)
@@ -282,7 +290,7 @@ def bootstrap(dataframe, n_samples=None, n_repeats=1000, save_csv=False):
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
     """
     dataframe = dataframe.select_dtypes(include=np.number)
-    
+
     if not n_samples:
         n_samples = dataframe.shape[0]
 

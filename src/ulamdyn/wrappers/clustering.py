@@ -38,9 +38,7 @@ class ClusteringAnalysis:
 
     @classmethod
     def _load_params(cls, **kw):
-        # Another option to set the variables using loop:
-        # for k, v in kw.items():
-        #    setattr(cls, k, v)
+        # List of valid keywords
         keywords = [
             "space",
             "method",
@@ -60,6 +58,8 @@ class ClusteringAnalysis:
 
         cls.space = cls.space.lower().strip()
         cls.method = cls.method.lower().strip().replace("-", "")
+        if cls.method == "gmm":
+            cls.method = "gaussian_mixture"
         cls.n_clusters = cls.n_clusters.lower().strip().replace(" ", "")
         cls.dist_metric = cls.dist_metric.lower().strip()
 

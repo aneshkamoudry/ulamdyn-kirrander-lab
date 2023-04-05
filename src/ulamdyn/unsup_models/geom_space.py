@@ -31,6 +31,7 @@ try:
     from sklearn.cluster import AgglomerativeClustering
     from sklearn.metrics import silhouette_score
     from sklearn.metrics import calinski_harabasz_score
+    from sklearn.mixture import GaussianMixture
 except ModuleNotFoundError as e:
     print("Required sklearn modules were not found.")
     print("Please make sure that sklearn library has been installed.")
@@ -99,7 +100,6 @@ class DimensionReduction(Utils):
         self.indices = self.df.index.values
 
     def _run_model(self, model, data):
-
         self._print_model_params(model)
         model_name = type(model).__name__.lower()
 
@@ -116,7 +116,6 @@ class DimensionReduction(Utils):
         return df
 
     def _create_pca_importance(self, pca):
-
         df_importance = pd.DataFrame(pca.components_)
         df_importance.columns = self.df.columns
         df_importance = df_importance.apply(np.abs)
@@ -473,7 +472,7 @@ class ClusterGeoms(Utils):
         indices=None,
         n_samples=None,
         scaler=None,
-        random_state=42,
+        random_state=51,
         n_cpus=-1,
         verbosity=0,
     ):
@@ -529,7 +528,6 @@ class ClusterGeoms(Utils):
         self.model = None
 
     def _run_model(self, data):
-
         if isinstance(self.model.n_clusters, list) or self.model.n_clusters == "best":
             clean_model = clone(self.model)
             print("Searching for the optimal number of clusters...\n")
@@ -562,10 +560,9 @@ class ClusterGeoms(Utils):
         return df
 
     def _opt_num_clusters(self, model):
-
         df_temp = self.df.copy(deep=True)
-        if df_temp.shape[0] > 5000:
-            df_temp = df_temp.sample(5000)
+        if df_temp.shape[0] > 8000:
+            df_temp = df_temp.sample(8000)
 
         if isinstance(model.n_clusters, list):
             range_n_clusters = np.array(model.n_clusters)
@@ -644,7 +641,7 @@ class ClusterGeoms(Utils):
         :return: Dataframe of shape (n_samples,) with cluster labels for each data point.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
-        print("\n***********************************************")
+        print("***********************************************")
         print("*  Starting the K-Means clustering analysis:  *")
         print("***********************************************\n")
 
@@ -664,6 +661,63 @@ class ClusterGeoms(Utils):
 
         if save_model:
             filename = "kmeans_model_geoms_nc" + str(self.model.n_clusters) + ".joblib"
+            dump(self.model, filename)
+
+        return df_labels
+
+    def gaussian_mixture(
+        self,
+        n_clusters=5,
+        covariance="full",
+        tol=0.0001,
+        n_init=10,
+        max_iter=1000,
+        init="k-means++",
+        save_model=True,
+    ):
+        """Perform probabilist clustering in geometry space with Gaussian Mixture model.
+
+        :param n_clusters: The number of clusters to find, which in this model corresponds
+                           to the number of mixed gaussians.
+        :type n_clusters: int, optional
+        """
+        print("***********************************************")
+        print("*    Starting the GMM clustering analysis:    *")
+        print("***********************************************\n")
+
+        model = GaussianMixture(
+            n_components=n_clusters,
+            covariance_type=covariance,
+            tol=tol,
+            n_init=n_init,
+            max_iter=max_iter,
+            init_params=init,
+            random_state=self.random_state,
+            verbose=self.verbosity,
+        )
+
+        self.model = model
+        self._print_model_params(self.model)
+
+        labels = self.model.fit_predict(self.df)
+        df_labels = pd.DataFrame(labels, columns=["gmm_labels"])
+        probabilities = self.model.predict_proba(self.df)
+        col_name = [f"P{i}" for i in range(n_clusters)]
+        df_prob = pd.DataFrame(probabilities, columns=col_name)
+        df_labels = pd.concat([df_labels, df_prob], axis=1)
+        df_labels.index = self.indices
+
+        cluster_count = df_labels.groupby(["gmm_labels"]).size().reset_index().values
+
+        print(36 * "_")
+        print(" Number of geometries per cluster:\n")
+        for n, size in cluster_count:
+            print("       cluster {} ---> {:<6}".format(str(n), str(size)))
+        print(36 * "_")
+        print(" ")
+
+        if save_model:
+            filename = "gm_model_geoms_nc" + str(self.model.n_components) + ".joblib"
             dump(self.model, filename)
 
         return df_labels
@@ -717,7 +771,7 @@ class ClusterGeoms(Utils):
         if isinstance(distance_threshold, float):
             n_clusters = None
 
-        print("\n*****************************************************")
+        print("*****************************************************")
         print("*  Starting the Agglomerative clustering analysis:  *")
         print("*****************************************************\n")
 

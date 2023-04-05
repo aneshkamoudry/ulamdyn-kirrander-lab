@@ -200,7 +200,7 @@ def _get_parser():
         type=str,
         metavar="",
         default=None,
-        help="R| Variables used for grouping data to compute the statistics.\n Options: time or state or time,state.",
+        help="R| Variables used for grouping data to compute the statistics.\n Options: time or state or time,state or class.",
     )
 
     dimred_analysis = subparsers.add_parser(
@@ -255,7 +255,7 @@ def _get_parser():
         type=str,
         metavar="",
         default=None,
-        help="R| Select model to perform clustering analysis.\n Options: K-means (for geoms or trajs), Hierarchical, Spectral.",
+        help="R| Select model to perform clustering analysis.\n Options: K-means (for geoms or trajs), GMM, Hierarchical, Spectral.",
     )
     clustering_analysis.add_argument(
         "--n_clusters",
@@ -280,7 +280,6 @@ def _get_parser():
 
 
 def main():
-
     args = _get_parser()
     _check_geom_file()
 

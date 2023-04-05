@@ -1,10 +1,8 @@
 # __author__ = 'Max Pinheiro Jr <maxjr82@gmail.com>'
 # __date__ = '03/14/2021'
 
-import os
 import numpy as np
 import pandas as pd
-from ulamdyn.data_loader import *
 
 __all__ = ["Geometries"]
 
@@ -13,7 +11,7 @@ class Geometries:
     """Handle and save XYZ coordinates for selected frames of MD trajectories."""
 
     def __str__(self) -> str:
-        return "Module to export molecular geometries in xyz format."
+        return "Module to export molecular geometries (or gradients) in xyz format."
 
     def __init__(self, atom_labels, properties_data=None, add_properties=[]):
         """Class initialization.
@@ -40,7 +38,6 @@ class Geometries:
                 )
 
     def _info(self, idx, props_to_print) -> str:
-
         comment_line = ""
 
         for p in props_to_print:
@@ -81,7 +78,6 @@ class Geometries:
         mask = "{:<6s} {:12.8f} {:12.8f} {:12.8f} \n"
 
         for n, xyz in enumerate(geoms_array):
-
             if len(self.props_name) > 0:
                 comment_line = self._info(n, self.props_name)
 

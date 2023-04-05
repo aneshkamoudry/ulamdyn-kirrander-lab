@@ -49,7 +49,7 @@ class R2(GetCoords):
 
     def __init__(self, all_geoms=None, use_mwc=False) -> None:
         """Class initializer.
-        
+
         :param all_geoms: contain geometry information either collected from available
                           MD trajectories as an object of the :class:`~ulamdyn.GetCoords
                           or given as a tensor with all stacked XYZ coordinates in the
@@ -68,7 +68,7 @@ class R2(GetCoords):
             self.xyz = all_geoms.xyz
             self.traj_time = all_geoms.traj_time
         elif isinstance(all_geoms, np.ndarray):
-            self.xyz = all_geoms    
+            self.xyz = all_geoms
 
         self.r2_ref_geom = None
         self.r2_descriptor = None
@@ -81,7 +81,6 @@ class R2(GetCoords):
     def _get_mass_weights(self) -> np.ndarray:
         traj = list(self.trajectories)[0]
         _, atom_mass = get_labels_masses(traj)
-        # sqrt_atom_mass = np.sqrt(atom_mass).reshape(-1, 1)
         atom_mass = atom_mass.reshape(-1, 1)
         return atom_mass
 
@@ -118,7 +117,53 @@ class R2(GetCoords):
 
         return r2_vector
 
-    def _transform(self, delta_r2_data, funct):
+    @staticmethod
+    def __build_r2_matrix(n, arr):
+        m = np.zeros([n, n], dtype=np.float64)
+        ind_lower_triang = np.tril_indices(n, -1)
+        ind_pair = [(i, j) for i, j in zip(ind_lower_triang[0], ind_lower_triang[1])]
+        for n, pair in enumerate(ind_pair):
+            i, j = pair
+            m[i, j] = arr[n]
+            m[j, i] = arr[n]
+        return m
+
+    @staticmethod
+    def reconstruct_xyz(r2_vec: np.ndarray) -> np.ndarray:
+        """Reconstruct the XYZ coordinates from the pairwise atom distance vector.
+
+        :param r2_vec: Numpy 2D array of shape (n_samples, n_atoms * (n_atoms - 1)/2)
+                       that contains stacked R2 vectors.
+        :type r2_vec: numpy.ndarray
+        :return: Numpy 3D array of shape (n_samples, n_atoms, 3) containing the molecular
+                 geometries transformed back into the Cartesian coordinate space.
+        :rtype: numpy.ndarray
+        """
+        n_samples, dim = r2_vec.shape
+        n_atoms = np.int((1 + np.sqrt(1 + 8 * dim)) / 2)
+
+        xyz_reconstructed = np.zeros([n_samples, n_atoms, 3], dtype=np.float64)
+        for n, vec in enumerate(r2_vec):
+            d = R2.__build_r2_matrix(n_atoms, vec)
+            # Multidimensional scaling algorithm
+            E = -0.5 * d**2
+
+            # Use mat to generate column and row means.
+            Er = np.mat(np.mean(E, 1))
+            Es = np.mat(np.mean(E, 0))
+
+            # From Principles of Multivariate Analysis: A User's Perspective (page 107).
+            F = np.array(E - np.transpose(Er) - Es + np.mean(E))
+
+            [U, S, V] = np.linalg.svd(F)
+            Y = U * np.sqrt(S)
+
+            coords = np.asarray(Y[:, 0:3])
+            xyz_reconstructed[n] = coords
+        return xyz_reconstructed
+
+    @staticmethod
+    def _transform(delta_r2_data, funct):
         """Apply a non-linear transformation to the delta R2 descriptor.
 
         Functions implemented:
@@ -145,7 +190,6 @@ class R2(GetCoords):
         return trans_dr2_data
 
     def _derived_model(self, variant: str) -> None:
-
         if variant == "inv-R2":
             self.r2_descriptor = 1 / self.r2_descriptor
         else:
@@ -176,7 +220,7 @@ class R2(GetCoords):
         :param save_csv: if True export the data set with all calculated descriptors in
                          a csv format with name all_geoms_r2.csv, defaults to False.
         :type save_csv: bool, optional
-        :return: a dataframe object of shape (nsamples, natoms * (natoms - 1)/2), where
+        :return: a dataframe object of shape (n_samples, n_atoms * (n_atoms - 1)/2), where
                  each row is a vector with the R2-based descriptor computed for a given
                  molecular geometry.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
@@ -202,14 +246,14 @@ class R2(GetCoords):
 
         if variant in ["inv-R2", "delta-R2", "RE"]:
             self._derived_model(variant)
-            if  (apply_to_delta is not None) and (variant == "delta-R2"):
+            if (apply_to_delta is not None) and (variant == "delta-R2"):
                 self.r2_descriptor = self._transform(self.r2_descriptor, apply_to_delta)
 
         df_r2 = pd.DataFrame(self.r2_descriptor, columns=col_names)
         if self.traj_time is not None:
-            df_r2.insert(0, "TRAJ", self.traj_time[:,0])
-            df_r2.insert(1, "time", self.traj_time[:,1])
-            df_r2["TRAJ"] = df_r2["TRAJ"].astype('int32')
+            df_r2.insert(0, "TRAJ", self.traj_time[:, 0])
+            df_r2.insert(1, "time", self.traj_time[:, 1])
+            df_r2["TRAJ"] = df_r2["TRAJ"].astype("int32")
 
         if save_csv:
             df_r2.to_csv("all_geoms_r2.csv", index=False)
@@ -260,7 +304,7 @@ class ZMatrix(GetCoords):
 
     def __init__(self, all_geoms=None) -> None:
         """Class initializer.
-        
+
         :param all_geoms: contain geometry information either collected from available
                           MD trajectories as an object of the :class:`~ulamdyn.GetCoords
                           or given as a tensor with all stacked XYZ coordinates in the
@@ -414,7 +458,6 @@ class ZMatrix(GetCoords):
         return omega
 
     def _build_distance_matrix(self, xyz_matrix: np.ndarray):
-
         n_atoms = xyz_matrix.shape[0]
         self.distancematrix = np.zeros((n_atoms, n_atoms))
         for i in range(n_atoms):
@@ -473,9 +516,7 @@ class ZMatrix(GetCoords):
 
         return zmat_data
 
-    def build_descriptor(
-        self, delta=False, apply_to_delta=None, save_csv=False
-    ):
+    def build_descriptor(self, delta=False, apply_to_delta=None, save_csv=False):
         """Construct the standard Z-Matrix descriptor and other variants.
 
         .. note:: By default, the algorithm will calculate the three main components of the
@@ -582,7 +623,6 @@ class ZMatrix(GetCoords):
         # Here we calculate the elements of the Z-Matrix for the whole dataset
         # using the atom indices obtained from the reference geometry
         for i, geom in enumerate(all_geoms):
-
             for j, idx in enumerate(self.connectivity):
                 distances[i][j] = self.get_distance(geom, idx)
 
@@ -606,9 +646,9 @@ class ZMatrix(GetCoords):
         col_names = self._gen_column_labels
         df = pd.DataFrame(zmat_all, columns=col_names)
         if self.traj_time is not None:
-            df.insert(0, "TRAJ", self.traj_time[:,0])
-            df.insert(1, "time", self.traj_time[:,1])
-            df["TRAJ"] = df["TRAJ"].astype('int32')
+            df.insert(0, "TRAJ", self.traj_time[:, 0])
+            df.insert(1, "time", self.traj_time[:, 1])
+            df["TRAJ"] = df["TRAJ"].astype("int32")
 
         if save_csv:
             df.to_csv("all_geoms_zmatrix.csv", index=False)
@@ -673,7 +713,7 @@ class RingParams(GetCoords):
         qsin = self._fixzero(-np.sqrt(2 / rs) * np.array(sin_term))
         return (qcos, qsin)
 
-    def displacement(self, coords):
+    def displacement(self, coords: np.ndarray):
         """Calculate the ring displacement (z)"""
         rs = self.ring_size
         R1 = np.dot(np.sin(2 * np.pi * np.arange(0, rs) / rs), coords)
@@ -738,14 +778,14 @@ class RingParams(GetCoords):
             if theta > 180:
                 theta = theta - 180
         return (phi, theta)
-        
+
     def get_conf_5memb(self, phi) -> str:
         """Determine the class of a 5-membered ring deformation based on the CP parameters."""
         # Reduce angle to 0 <= phi <= 360
         phi, _ = self._reduce_angle(phi)
-        #while phi < 0:
+        # while phi < 0:
         #    phi += 360
-        #while phi > 360:
+        # while phi > 360:
         #    phi -= 360
 
         invert = False
@@ -753,19 +793,30 @@ class RingParams(GetCoords):
             phi -= 180
             invert = True
 
-        classes = ['1E', '2T1', '2E', '2T3', '3E', '4T3',
-                '4E', '4T5', 'E5', '1T5', '1E']
+        classes = [
+            "1E",
+            "2T1",
+            "2E",
+            "2T3",
+            "3E",
+            "4T3",
+            "4E",
+            "4T5",
+            "E5",
+            "1T5",
+            "1E",
+        ]
 
         conf = classes[int(phi / 18)]
         if invert:
-           conf = conf[::-1]
+            conf = conf[::-1]
         return conf
 
     def get_conf_6memb(self, theta, phi) -> str:
         """Determine the conformation class for a 6-membered ring based on the CP parameters."""
         sqrt2 = np.sqrt(2.0)
         sqrt32 = np.sqrt(1.5)
-        
+
         phi, theta = self._reduce_angle(phi, theta)
         # DEG -> RAD
         phi = np.radians(phi)
@@ -789,12 +840,12 @@ class RingParams(GetCoords):
         L_C1 = np.pi
         if phi_class == "EBE":
             L_E1 = np.arctan(sqrt2)
-            L_B = np.pi/2.0
+            L_B = np.pi / 2.0
             L_E2 = np.pi + np.arctan(-sqrt2)
-            l0 = (L_C + L_E1)/2.0
-            l1 = (L_E1 + L_B)/2.0
-            l2 = (L_B + L_E2)/2.0
-            l3 = (L_E2 + L_C1)/2.0
+            l0 = (L_C + L_E1) / 2.0
+            l1 = (L_E1 + L_B) / 2.0
+            l2 = (L_B + L_E2) / 2.0
+            l3 = (L_E2 + L_C1) / 2.0
             if theta >= L_C and theta < l0:
                 class_ = "C"
             elif theta >= l0 and theta < l1:
@@ -806,7 +857,9 @@ class RingParams(GetCoords):
             elif theta >= l3 and theta <= L_C1:
                 class_ = "C"
             else:
-                raise ValueError(f"ERROR: theta = {np.degrees(theta)}deg: out of limits.")
+                raise ValueError(
+                    f"ERROR: theta = {np.degrees(theta)}deg: out of limits."
+                )
             if class_ != "C":
                 class_ = self._class_even_6memb(class_, n_final)
         if phi_class == "HST":
@@ -822,21 +875,23 @@ class RingParams(GetCoords):
             l4 = (L_S2 + L_H2) / 2.0
             l5 = (L_H2 + L_C1) / 2.0
             if theta >= L_C and theta < l0:
-               class_ = "C"
+                class_ = "C"
             elif theta >= l0 and theta < l1:
-               class_ = "H1"
+                class_ = "H1"
             elif theta >= l1 and theta < l2:
-               class_ = "S1"
+                class_ = "S1"
             elif theta >= l2 and theta < l3:
-               class_ = "T"
+                class_ = "T"
             elif theta >= l3 and theta < l4:
-               class_ = "S2"
+                class_ = "S2"
             elif theta >= l4 and theta < l5:
-               class_ = "H2"
+                class_ = "H2"
             elif theta >= l5 and theta <= L_C1:
-               class_ = "C"
+                class_ = "C"
             else:
-                raise ValueError(f"ERROR: theta = {np.degrees(theta)}deg: out of limits.")
+                raise ValueError(
+                    f"ERROR: theta = {np.degrees(theta)}deg: out of limits."
+                )
             if class_ != "C":
                 class_ = self._class_odd_6memb(class_, n_final)
             if class_ == "C":
@@ -886,14 +941,14 @@ class RingParams(GetCoords):
             raise ValueError("ERROR: phi angle is out of limits.")
         return class_var
 
-    @staticmethod    
+    @staticmethod
     def _class_odd_6memb(class_var, n_final):
-        if 'H' in class_var:
-            cl = 'H'
-        elif 'S' in class_var:
-            cl = 'S'
-        elif 'T' in class_var:
-            cl = 'T'
+        if "H" in class_var:
+            cl = "H"
+        elif "S" in class_var:
+            cl = "S"
+        elif "T" in class_var:
+            cl = "T"
 
         if n_final == 1:
             if class_var in ["H1", "S1"]:
@@ -956,42 +1011,41 @@ class RingParams(GetCoords):
                 ind1 = 1
                 ind2 = 3
         else:
-            raise ValueError("ERROR: phi angle is out of limits.")                    
+            raise ValueError("ERROR: phi angle is out of limits.")
         class_var = f"{ind1}{cl}{ind2}"
         return class_var
 
-    @staticmethod    
+    @staticmethod
     def _class_c_6memb(class_var, theta, phi):
         ind1 = ""
         ind2 = ""
-        if (0 <= phi) and (phi < np.pi/6):
-            ind1=1
-            ind2=4
-        if (np.pi/6 <= phi) and (phi < np.pi/2):
-            ind1=2
-            ind2=5
-        if (np.pi/2 <= phi) and (phi < 5*np.pi/6):
-            ind1=3
-            ind2=6
-        if (5*np.pi/6 <= phi) and (phi < 7*np.pi/6):
-            ind1=1
-            ind2=4
-        if (7*np.pi/6 <= phi) and (phi < 3*np.pi/2):
-            ind1=2
-            ind2=5
-        if (3*np.pi/2 <= phi) and (phi < 11*np.pi/6):
-            ind1=3
-            ind2=6
-        if (11*np.pi/6 <= phi) and (phi < np.pi):
-            ind1=1
-            ind2=4
-        if (theta > np.pi/2.0):
-            indaux=ind1
-            ind1=ind2
-            ind2=indaux
+        if (0 <= phi) and (phi < np.pi / 6):
+            ind1 = 1
+            ind2 = 4
+        if (np.pi / 6 <= phi) and (phi < np.pi / 2):
+            ind1 = 2
+            ind2 = 5
+        if (np.pi / 2 <= phi) and (phi < 5 * np.pi / 6):
+            ind1 = 3
+            ind2 = 6
+        if (5 * np.pi / 6 <= phi) and (phi < 7 * np.pi / 6):
+            ind1 = 1
+            ind2 = 4
+        if (7 * np.pi / 6 <= phi) and (phi < 3 * np.pi / 2):
+            ind1 = 2
+            ind2 = 5
+        if (3 * np.pi / 2 <= phi) and (phi < 11 * np.pi / 6):
+            ind1 = 3
+            ind2 = 6
+        if (11 * np.pi / 6 <= phi) and (phi < np.pi):
+            ind1 = 1
+            ind2 = 4
+        if theta > np.pi / 2.0:
+            indaux = ind1
+            ind1 = ind2
+            ind2 = indaux
         class_var = f"{ind1}{class_var}{ind2}"
         return class_var
-
 
     def build_dataframe(self, save_csv=False):
         """Construct a data frame containing the Cremer-Pople parameters of all collected geometries."""
@@ -1006,14 +1060,14 @@ class RingParams(GetCoords):
             polar_coords = self._cp_to_polar(all_pucker_params)
             df = pd.DataFrame(polar_coords)
             func_vec = np.vectorize(self.get_conf_6memb)
-            df['class'] = func_vec(df['theta'].values, df['phi'].values)
+            df["class"] = func_vec(df["theta"].values, df["phi"].values)
         else:
             n_ring_params = self.ring_size - 3
             col_names = ["q" + str(i + 1) for i in range(n_ring_params - 1)]
             col_names += ["phi"]
             df = pd.DataFrame(all_pucker_params, columns=col_names)
             func_vec = np.vectorize(self.get_conf_5memb)
-            df['class'] = func_vec(df['phi'].values)
+            df["class"] = func_vec(df["phi"].values)
         # If the trajectory indices and time steps are available in the parent class (GetCoords),
         # these information will be added to the current dataframe.
         df = self._insert_traj_time(df)
