@@ -30,7 +30,8 @@ from ulamdyn.nx_utils import *
 
 __all__ = ["GetCoords", "GetGradients", "GetCouplings", "GetProperties"]
 
-#%% Starting the first class: GetCoords
+
+# %% Starting the first class: GetCoords
 class GetCoords:
     """Class object used to read the Cartesian coordinates from Newton-X MD trajectories.
 
@@ -81,7 +82,9 @@ class GetCoords:
         )
         cls_status += " \u2022 Atom labels -> {}\n".format(self.labels)
         if self.xyz is not None:
-            cls_status += " \u2022 Total number of geometries -> {}\n".format(self.xyz.shape[0])
+            cls_status += " \u2022 Total number of geometries -> {}\n".format(
+                self.xyz.shape[0]
+            )
         if self.dataset is not None:
             cls_status += " \u2022 Size of loaded dataset -> {}\n".format(
                 self.dataset.shape
@@ -251,7 +254,6 @@ class GetCoords:
 
         with open(outfile, "r") as dyn_out:
             for line in dyn_out:
-
                 # By keeping track of the current time we can deal with
                 # repetitions in restart calculations, but also to deal
                 # with switching in QM/MM dynamics.
@@ -341,7 +343,7 @@ class GetCoords:
         append_times = t_vals.append
         append_all_geoms = all_geoms.append
         for trj in self.trajectories:
-            print("Reading geometries from %s" % trj + "...")
+            # print("Reading geometries from %s" % trj + "...")
             tmax = self.trajectories.get(trj)
             results_dir = trj + "/RESULTS/"
             files = os.listdir(results_dir)
@@ -376,7 +378,7 @@ class GetCoords:
         self.labels = np.asarray([s.upper() for s in atom_labels])
 
         if calc_rmsd:
-            self.align_geoms
+            self.align_geoms()
 
     def read_eq_geom(self) -> None:
         """Read the XYZ coordinates of a reference geometry.
@@ -399,8 +401,7 @@ class GetCoords:
             print("Check if the geom.xyz file is available in the current dir.")
             print("-----------------------------------------------------------\n")
 
-    @property
-    def align_geoms(self) -> None:
+    def align_geoms(self, xyz_data=None) -> None:
         """Calculate the RMSD between the current and reference geometries.
 
         .. note:: Before calculating the RMSD, the method uses the Kabsch algorithm to find
@@ -416,20 +417,23 @@ class GetCoords:
 
         self.eq_xyz -= rmsd.centroid(self.eq_xyz)
 
-        if self.xyz is not None:
-            xyz_dim = self.xyz.shape
-            aligned_geoms = np.empty(xyz_dim, dtype=np.float64)
-            rmsd_values = np.empty((xyz_dim[0]), dtype=np.float64)
-        else:
-            error_msg = "---------------------------------------------------" + "\n "
-            error_msg += "XYZ coordinates not loaded!" + "\n "
-            error_msg += "Please make sure that the read_all_trajs function "
-            error_msg += "has been executed." + "\n "
-            error_msg += "---------------------------------------------------" + "\n "
-            print(error_msg)
-            return
+        if xyz_data is None:
+            if self.xyz is not None:
+                xyz_data = self.xyz.copy()
+            else:
+                error_msg = "---------------------------------------------------" + "\n "
+                error_msg += "XYZ coordinates not loaded!" + "\n "
+                error_msg += "Please make sure that the read_all_trajs function "
+                error_msg += "has been executed." + "\n "
+                error_msg += "---------------------------------------------------" + "\n "
+                print(error_msg)
+                return
 
-        for idx, geom in enumerate(self.xyz):
+        dim = xyz_data.shape
+        aligned_geoms = np.empty(dim, dtype=np.float64)
+        rmsd_values = np.empty((dim[0]), dtype=np.float64)
+
+        for idx, geom in enumerate(xyz_data):
             geom -= rmsd.centroid(geom)
             U = rmsd.kabsch(geom, self.eq_xyz)
             geom = np.dot(geom, U)
@@ -441,7 +445,7 @@ class GetCoords:
         self.rmsd = rmsd_values
 
 
-#%% Starting new class: GetGradients
+# %% Starting new class: GetGradients
 class GetGradients:
     """Class used to read the QM gradients from Newton-X MD trajectories.
 
@@ -520,7 +524,6 @@ class GetGradients:
 
         with open(outfile, "r") as nx_log:
             for line in nx_log:
-
                 # This condition is used to monitor the MD restarting, and
                 # then skip the repeated gradients (Step 0 of each restart)
                 if "STARTING MOLECULAR DYNAMICS" in line:
@@ -631,7 +634,7 @@ class GetGradients:
                 df.to_csv(output, index=False, header=True)
 
 
-#%% Starting new class: GetCouplings
+# %% Starting new class: GetCouplings
 class GetCouplings:
     """Class used to read the Nonadiabatic Coupling Vectors (NAC) from the MD trajectories.
 
@@ -714,7 +717,6 @@ class GetCouplings:
 
         with open(outfile, "r") as nx_log:
             for line in nx_log:
-
                 if "STARTING MOLECULAR DYNAMICS" in line:
                     count_start += 1
 
@@ -738,7 +740,6 @@ class GetCouplings:
                     ]
 
                 if "phase adjustment" in line:
-
                     if count_start == 2:
                         read_nacs = False
                         count_start -= 1
@@ -827,7 +828,7 @@ class GetCouplings:
                 df.to_csv(output, index=False, header=True)
 
 
-#%% Starting new class: GetProperties
+# %% Starting new class: GetProperties
 class GetProperties:
     """Class used to read all properties available in the Newton-X MD trajectories.
 
@@ -979,7 +980,6 @@ class GetProperties:
                 df_diff.to_csv("properties_diff.csv", index=False, header=True)
 
     def _energies_from_h5(self) -> np.ndarray:
-
         all_energies = list()
         traj_id = list()
 
@@ -1018,7 +1018,6 @@ class GetProperties:
         return all_energies
 
     def _energies_from_dat(self) -> np.ndarray:
-
         all_energies = []
         append_energies = all_energies.append
         traj_id = []
@@ -1126,7 +1125,6 @@ class GetProperties:
         return df
 
     def _os_from_h5(self):
-
         all_osc_strengths = []
         traj_id = []
         times = []
@@ -1149,7 +1147,7 @@ class GetProperties:
             current_traj = np.int(trj.replace("TRAJ", ""))
             append_trajs(np.full(n_steps, current_traj, dtype=np.int))
 
-        if len(all_osc_strengths) != 0: 
+        if len(all_osc_strengths) != 0:
             all_osc_strengths = np.concatenate(all_osc_strengths, axis=0)
             traj_id = np.concatenate(traj_id, axis=0)
             times = np.concatenate(times, axis=0)
@@ -1162,7 +1160,6 @@ class GetProperties:
             return df
 
     def _os_from_txt(self):
-
         osc_dict = dict()
         traj_id = []
         times = []
@@ -1269,7 +1266,6 @@ class GetProperties:
         return df
 
     def _populations_from_h5(self):
-
         all_populations = []
         traj_id = []
         times = []
@@ -1299,14 +1295,12 @@ class GetProperties:
         return (all_populations, times, traj_id)
 
     def _populations_from_txt(self):
-
         coefs_list = []
         traj_id = []
         times = []
         append_coefs = coefs_list.append
 
         for trj in self.trajectories:
-
             print("Reading populations from %s" % trj + "...")
 
             try:
@@ -1327,7 +1321,6 @@ class GetProperties:
             lines = f.readlines()
             # Start reading the properties file
             for line in lines:
-
                 if "ERROR TERMINATION" in line:
                     error_en_conserv = True
 
@@ -1427,14 +1420,12 @@ class GetProperties:
             return df
 
     def _mcscf_coefs_from_txt(self):
-
         all_mcscf_coefs = []
         traj_id = []
         times = []
         check_csf = "   csf       coeff       coeff**2    step(*)\n"
 
         for trj in self.trajectories:
-
             try:
                 nxlog = trj + "/RESULTS/nx.log"
                 f = open(nxlog, "r")
@@ -1463,7 +1454,6 @@ class GetProperties:
             # Start reading the properties file
             print("Reading MCSCF coefficients from %s" % trj + "...")
             for line in lines:
-
                 if "FINISHING STEP" in line:
                     t_current = np.float(line.split()[4])
                     if replace_previous:

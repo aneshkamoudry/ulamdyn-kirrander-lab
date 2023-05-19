@@ -37,7 +37,14 @@ class R2(GetCoords):
 
     """
 
-    __slots__ = ["r2_ref_geom", "r2_descriptor", "mass_weights", "norm_factor"]
+    __slots__ = [
+        "r2_ref_geom",
+        "r2_descriptor",
+        "mass_weights",
+        "norm_factor",
+        "apply_to_delta",
+        "variant",
+    ]
 
     def __str__(self) -> str:
         """Provide a string representation of the class.
@@ -74,6 +81,8 @@ class R2(GetCoords):
         self.r2_descriptor = None
         self.mass_weights = None
         self.norm_factor = 1
+        self.variant = None
+        self.apply_to_delta = None
         if use_mwc:
             self.mass_weights = self._get_mass_weights()
             self.norm_factor = self._mass_norm_factor(self.mass_weights)
@@ -163,29 +172,36 @@ class R2(GetCoords):
         return xyz_reconstructed
 
     @staticmethod
-    def _transform(delta_r2_data, funct):
+    def _transform(delta_r2_data, funct, inverse=False):
         """Apply a non-linear transformation to the delta R2 descriptor.
 
         Functions implemented:
         ----------------------
           -sigmoid: retuns a dataframe with values ranging from 0 to 1
-          -tanh: hyperbolic tangent for bond distances and cosine for angles,
-                 returns a dataframe with values in the range [-1,1]
+          -tanh: apply the hyperbolic tangent function to all features,
+                 returning a dataframe with values in the range [-1,1]
 
         :param delta_r2_data: dataset will all stacked delta R2 descriptors.
         :type transf_dr2_data: numpy.ndarray
+        :param funct: select function for nonlinear transformation.
+        :type funct: str
+        :param inverse: calculate the inverse transformation for funct.
+        :type inverse: bool
         """
         # Normalization functions
         sigmoid = np.vectorize(lambda x: 1 / (1 + np.exp(-x)))
         tanh = np.vectorize(
             lambda x: (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
         )
+        # Inverse transformation for the normalization functions
+        inv_sigmoid = np.vectorize(lambda x: np.log(x / (1 - x)))
+        inv_tanh = np.vectorize(np.arctanh)
 
-        if funct.lower() == "sigmoid":
-            trans_dr2_data = sigmoid(delta_r2_data)
-
-        if funct.lower() == "tanh":
-            trans_dr2_data = tanh(delta_r2_data)
+        funct = funct.strip().replace(" ", "").lower()
+        if inverse:
+            funct = "inv_" + funct
+        funct = eval(funct)
+        trans_dr2_data = funct(delta_r2_data)
 
         return trans_dr2_data
 
@@ -207,6 +223,23 @@ class R2(GetCoords):
 
             if variant == "RE":
                 self.r2_descriptor = self.r2_ref_geom / self.r2_descriptor
+
+    def inverse_transform(self, descriptor):
+        """Apply all transformations in reverse order to recover the original R2 vector."""
+
+        if self.variant == "inv-R2":
+            descriptor = 1 / descriptor
+        if self.variant == "RE":
+            descriptor = (1 / descriptor) * self.r2_ref_geom
+        if self.variant == "delta-R2":
+            if self.apply_to_delta is not None:
+                descriptor = self._transform(
+                    descriptor, self.apply_to_delta, inverse=True
+                )
+            descriptor = descriptor + self.r2_ref_geom
+
+        descriptor *= 1 / self.norm_factor
+        return descriptor
 
     def build_descriptor(self, variant=None, apply_to_delta=None, save_csv=False):
         """Generate a dataframe with R2-based descriptors for all molecular geometries.
@@ -246,8 +279,10 @@ class R2(GetCoords):
 
         if variant in ["inv-R2", "delta-R2", "RE"]:
             self._derived_model(variant)
-            if (apply_to_delta is not None) and (variant == "delta-R2"):
+            self.variant = variant
+            if (variant == "delta-R2") and (apply_to_delta is not None):
                 self.r2_descriptor = self._transform(self.r2_descriptor, apply_to_delta)
+                self.apply_to_delta = apply_to_delta
 
         df_r2 = pd.DataFrame(self.r2_descriptor, columns=col_names)
         if self.traj_time is not None:

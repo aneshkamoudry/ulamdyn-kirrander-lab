@@ -677,8 +677,8 @@ class ClusterGeoms(Utils):
     ):
         """Perform probabilist clustering in geometry space with Gaussian Mixture model.
 
-        :param n_clusters: The number of clusters to find, which in this model corresponds
-                           to the number of mixed gaussians.
+        :param n_clusters: The number of clusters to find, which corresponds to the
+                           number of mixed gaussians.
         :type n_clusters: int, optional
         """
         print("***********************************************")
@@ -702,7 +702,7 @@ class ClusterGeoms(Utils):
         labels = self.model.fit_predict(self.df)
         df_labels = pd.DataFrame(labels, columns=["gmm_labels"])
         probabilities = self.model.predict_proba(self.df)
-        col_name = [f"P{i}" for i in range(n_clusters)]
+        col_name = [f"Prob_C{i}" for i in range(n_clusters)]
         df_prob = pd.DataFrame(probabilities, columns=col_name)
         df_labels = pd.concat([df_labels, df_prob], axis=1)
         df_labels.index = self.indices

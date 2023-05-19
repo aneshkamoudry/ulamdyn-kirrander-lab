@@ -30,6 +30,7 @@ class Geometries:
             self.props_name = list(
                 set(["TRAJ", "time"]).intersection(properties_data.columns.tolist())
             )
+            self.props_data = self.props_data.round(4)
 
             if len(add_properties) != 0:
                 self.props_name += add_properties

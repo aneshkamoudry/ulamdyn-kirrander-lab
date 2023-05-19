@@ -45,6 +45,7 @@ from ulamdyn.kinetics import *
 from ulamdyn.unsup_models.geom_space import *
 from ulamdyn.unsup_models.traj_space import *
 from ulamdyn.unsup_models.dist_metrics import *
+from ulamdyn.unsup_models.geom_sampling import *
 from ulamdyn.nx_utils import *
 
 from ulamdyn.wrappers.dim_reduction import *

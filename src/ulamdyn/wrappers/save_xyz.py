@@ -1,7 +1,6 @@
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: June 6, 2022
 
-import sys
 import numpy as np
 
 try:
@@ -11,7 +10,7 @@ except:
     import pandas as pd
 
 from ulamdyn.data_loader import *
-from ulamdyn.data_writer import *
+from ulamdyn.data_writer import Geometries
 from ulamdyn.wrappers._auxiliary import *
 from ulamdyn.nx_utils import *
 
