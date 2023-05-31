@@ -544,8 +544,10 @@ class ClusterGeoms(Utils):
 
         self.model.fit(data)
 
-        col_name = [type(self.model).__name__.lower() + "_labels"]
-        df = pd.DataFrame(self.model.labels_, columns=col_name)
+        model_name = type(self.model).__name__.lower()
+        cluster_labels = self.model.labels_
+        col_name = [model_name + "_labels"]
+        df = pd.DataFrame(cluster_labels, columns=col_name)
         df.index = self.indices
 
         cluster_count = df.groupby(col_name).size().reset_index().values
@@ -671,15 +673,30 @@ class ClusterGeoms(Utils):
         covariance="full",
         tol=0.0001,
         n_init=10,
-        max_iter=1000,
+        max_iter=500,
         init="k-means++",
         save_model=True,
     ):
         """Perform probabilist clustering in geometry space with Gaussian Mixture model.
 
         :param n_clusters: The number of clusters to find, which corresponds to the
-                           number of mixed gaussians.
+                           number of mixed gaussians, defaults to 5.
         :type n_clusters: int, optional
+        :param covariance: String describing the type of covariance parameters to use,
+                           default is "full". Acceptable values are "full", "tied",
+                           "diag", "spherical" (equivalent to K-Means).
+        :type covariance: str, optional
+        :param tol: Convergence criteria of the lower bound average gain, below which
+                    the EM iterations stop, defaults to 1e-4.
+        :type tol: float, optional
+        :param n_init: The number of initializations to perform, where best results
+                       are kept. The default is 10.
+        :type n_init: int, optional
+        :param max_iter: The number of EM iterations to perform, defaults to 500.
+        :type max_iter: int, optional
+        :param init: The method used to initialize the weights, the means and the
+                     precisions, default is "k-means++". Acceptable strings are "k-means",
+                     "k-means++", "random", or "‘random_from_data".
         """
         print("***********************************************")
         print("*    Starting the GMM clustering analysis:    *")

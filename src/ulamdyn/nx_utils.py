@@ -25,15 +25,15 @@ __all__ = [
     "check_nx_trajs",
 ]
 
-#%% List of constants
+# %% List of constants
 BOHR_TO_ANG = 0.529177210903
 HARTREE_TO_KCAL = 627.5096080305927
 HARTREE_TO_eV = 27.211399
 PROTON_MASS = 1822.888515
 # Convert t from atomic units to femtosecond
-AU_TO_FS = 2.418884326509 * 10**(-2)
+AU_TO_FS = 2.418884326509 * 10 ** (-2)
 
-#%% Auxiliary functions
+# %% Auxiliary functions
 
 
 def get_traj_dirs() -> list:
@@ -60,7 +60,7 @@ def get_nx_version(traj_dir: str) -> str:
     """
     nx_version = None
     if os.path.isdir(traj_dir):
-        if os.path.isfile(traj_dir + "/" + "configuration.inp"):
+        if os.path.isfile(traj_dir + "/" + "nx_exported_config.nml"):
             nx_version = "ns"
         elif os.path.isfile(traj_dir + "/" + "control.dyn"):
             nx_version = "cs"
@@ -139,14 +139,14 @@ def read_nx_control(traj_dir: str) -> dict:
                      will be read.
     :type traj_dir: str
     :return: Dictionary with all Newton-X keywords and corresponding values read from
-             the control.dyn file (NX-CS) or from the configuration.inp file (NX-NS).
+             the control.dyn file (NX-CS) or from the nx_exported_config.nml file (NX-NS).
     :rtype: dict
     """
     control = {}
     if os.path.isfile(traj_dir + "/control.dyn"):
         control_input = traj_dir + "/control.dyn"
-    elif os.path.isfile(traj_dir + "/configuration.inp"):
-        control_input = traj_dir + "/configuration.inp"
+    elif os.path.isfile(traj_dir + "/nx_exported_config.nml"):
+        control_input = traj_dir + "/nx_exported_config.nml"
     else:
         control_missing_error = (
             "--------------------------------------------------------------\n"

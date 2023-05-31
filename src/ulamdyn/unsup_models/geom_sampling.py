@@ -26,7 +26,7 @@ class GeomSampling:
     def __init__(
         self,
         descriptor,
-        num_samples,
+        n_samples,
         n_clusters,
         transform=None,
         use_mwc=False,
@@ -35,7 +35,7 @@ class GeomSampling:
         self.use_mwc = use_mwc
         self.descriptor = descriptor
         self.transf_descr = transform
-        self.n_samples = int(num_samples)
+        self.n_samples = int(n_samples)
         self.scaler = feat_scaler
         self.n_clusters = n_clusters
 
@@ -43,6 +43,19 @@ class GeomSampling:
         self.descr_obj = None
         self.model = None
         self._properties_data = None
+
+    def __getitem__(self, idx) -> str:
+        if self.sampled_xyz is not None:
+            labels = self.descr_obj.labels
+            n_atoms = len(labels)
+            geom_string = ""
+            selected_geom = self.sampled_xyz[idx]
+            comment_line = " "
+            geom_string = str(n_atoms) + "\n" + comment_line + "\n"
+            mask = "{:<6s} {:12.8f} {:12.8f} {:12.8f} \n"
+            for l, atom_coords in zip(labels, selected_geom):
+                geom_string += mask.format(l[0], *atom_coords)
+            return geom_string
 
     def _build_descriptor(self):
         self.descr_obj = R2(use_mwc=self.use_mwc)

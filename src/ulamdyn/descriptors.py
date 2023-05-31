@@ -368,7 +368,7 @@ class ZMatrix(GetCoords):
         self.zmat_ref_geom = None
 
     @staticmethod
-    def get_distance(geom: np.ndarray, idx_atoms: list) -> np.float:
+    def get_distance(geom: np.ndarray, idx_atoms: list) -> np.float64:
         """Calculate the Euclidean distance between a pair of atoms.
 
         :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
@@ -386,7 +386,7 @@ class ZMatrix(GetCoords):
         return dist
 
     @staticmethod
-    def get_angle(geom: np.ndarray, idx_atoms: list) -> np.float:
+    def get_angle(geom: np.ndarray, idx_atoms: list) -> np.float64:
         """Calculate the angle formed by three selected atoms.
 
         :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
@@ -408,7 +408,7 @@ class ZMatrix(GetCoords):
         return theta
 
     @staticmethod
-    def get_dihedral(geom: np.ndarray, idx_atoms: list) -> np.float:
+    def get_dihedral(geom: np.ndarray, idx_atoms: list) -> np.float64:
         """Calculate the dihedral angle formed by four selected atoms.
 
         :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
@@ -450,7 +450,7 @@ class ZMatrix(GetCoords):
         return phi
 
     @staticmethod
-    def get_bending(geom: np.ndarray, idx_atoms: list) -> np.float:
+    def get_bending(geom: np.ndarray, idx_atoms: list) -> np.float64:
         """Calculate the bending angle between two planes of the molecule.
 
         This method is particularly useful to describe large out-of-plane distortions in the

@@ -226,7 +226,7 @@ class ClusteringAnalysis:
             print("ERROR:                                             \n")
             print("Model {} not recognized or not implemented.".format(cls.method))
             print("Please select one of the available methods:")
-            print("     geometries ---> K-Means, Hierarchical or Spectral.")
+            print("     geometries ---> K-Means, Hierarchical, Spectral or GMM.")
             print("   trajectories ---> K-Means.")
             print("--------------------------------------------------------")
             sys.exit(1)
