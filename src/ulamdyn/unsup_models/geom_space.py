@@ -569,7 +569,7 @@ class ClusterGeoms(Utils):
         if isinstance(model.n_clusters, list):
             range_n_clusters = np.array(model.n_clusters)
         elif model.n_clusters == "best":
-            range_n_clusters = np.arange(2, 12)
+            range_n_clusters = np.arange(2, 15)
 
         print("Evaluate clustering performance:\n")
         scores_silhouette = []
@@ -597,6 +597,56 @@ class ClusterGeoms(Utils):
         best_n_clusters = range_n_clusters[idx_best]
 
         print("The optimal number of clusters is {}\n".format(best_n_clusters))
+
+        return best_n_clusters
+
+    def _opt_gmm_clusters(self, model):
+        """Find the optimal number of cluster for Gaussian Mixture model"""
+        # STEP 1: Split the dataset into 70% train and 30 % test
+        df_test = self.df.sample(frac=0.3)
+        idx_test = df_test.index.tolist()
+        df_train = self.df.drop(idx_test, axis=0)
+
+        if isinstance(model.n_components, list):
+            clusters_range = np.array(model.n_components)
+        elif model.n_components == "best":
+            clusters_range = np.arange(2, 15)
+
+        # STEP 2: Evaluate the GM clustering using Bayesian metrics (AIC and BIC)
+        scores_aic = []
+        scores_bic = []
+        scores_silhouette = []
+
+        for k in clusters_range:
+            gmm = clone(model)
+            gmm.n_components = k
+            fitted_gmm = gmm.fit(df_train)
+            # Use the average of silhouette coef. as a measure of clustering goodness
+            cluster_labels = fitted_gmm.predict(df_test)
+            silhouette_avg = silhouette_score(df_test, cluster_labels)
+            scores_silhouette.append(silhouette_avg)
+            # Evaluate the goodness of Gaussian Mixture Model as a density estimator
+            # The best number of clusters is the one that minimizes the AIC or BIC
+            aic = fitted_gmm.aic(df_test)
+            scores_aic.append(aic)
+            bic = fitted_gmm.bic(df_test)
+            scores_bic.append(bic)
+
+        idx_sil_max = np.argmax(scores_silhouette)
+        best_k_sil = clusters_range[idx_sil_max]
+        idx_aic_min = np.argmin(scores_aic)
+        best_k_aic = clusters_range[idx_aic_min]
+        idx_bic_min = np.argmin(scores_bic)
+        best_k_bic = clusters_range[idx_bic_min]
+
+        print("Optimal number of clusters according to:")
+        print(f"   silhouette ---> k = {best_k_sil}")
+        print(f"          AIC ---> k = {best_k_aic}")
+        print(f"          BIC ---> k = {best_k_bic}\n")
+
+        # STEP 3: Return the average of the best number of clusters given by each metric
+        best_n_clusters = int(np.mean([best_k_sil, best_k_aic, best_k_bic]))
+        print("Average of optimal clusters' number = {}\n".format(best_n_clusters))
 
         return best_n_clusters
 
@@ -643,7 +693,7 @@ class ClusterGeoms(Utils):
         :return: Dataframe of shape (n_samples,) with cluster labels for each data point.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
-        print("***********************************************")
+        print("\n***********************************************")
         print("*  Starting the K-Means clustering analysis:  *")
         print("***********************************************\n")
 
@@ -698,7 +748,7 @@ class ClusterGeoms(Utils):
                      precisions, default is "k-means++". Acceptable strings are "k-means",
                      "k-means++", "random", or "‘random_from_data".
         """
-        print("***********************************************")
+        print("\n***********************************************")
         print("*    Starting the GMM clustering analysis:    *")
         print("***********************************************\n")
 
@@ -714,6 +764,16 @@ class ClusterGeoms(Utils):
         )
 
         self.model = model
+        if (
+            isinstance(self.model.n_components, list)
+            or self.model.n_components == "best"
+        ):
+            clean_model = clone(self.model)
+            print("Searching for the optimal number of clusters...\n")
+            n_clusters = self._opt_gmm_clusters(self.model)
+            clean_model.n_components = n_clusters
+            self.model = clean_model
+
         self._print_model_params(self.model)
 
         labels = self.model.fit_predict(self.df)
@@ -788,7 +848,7 @@ class ClusterGeoms(Utils):
         if isinstance(distance_threshold, float):
             n_clusters = None
 
-        print("*****************************************************")
+        print("\n*****************************************************")
         print("*  Starting the Agglomerative clustering analysis:  *")
         print("*****************************************************\n")
 

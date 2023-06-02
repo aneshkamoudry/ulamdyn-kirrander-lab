@@ -18,7 +18,8 @@ from ulamdyn.nx_utils import *
 
 __all__ = ["GetVelocities", "KineticEnergy", "VibrationalSpectra"]
 
-#%% Starting the first class: GetVelocities
+
+# %% Starting the first class: GetVelocities
 class GetVelocities:
     """Class used to collect velocities from all MD trajectories of Newton-X."""
 
@@ -95,9 +96,8 @@ class GetVelocities:
             count_steps = -1
 
             for line in lines:
-
                 if "TIME" in line:
-                    current_time = np.float(line.split()[-2])
+                    current_time = np.float64(line.split()[-2])
                     if current_time > tmax:
                         break
 
@@ -353,7 +353,7 @@ class KineticEnergy:
         return df
 
 
-#%% Starting the third class: VibrationalSpectra
+# %% Starting the third class: VibrationalSpectra
 class VibrationalSpectra(GetVelocities):
     """Calculate the vibrational density of states for each MD trajectory."""
 
@@ -372,7 +372,6 @@ class VibrationalSpectra(GetVelocities):
         self.dt = self._get_time_step(traj)
 
     def _get_time_step(self, traj) -> float:
-
         control = read_nx_control(traj)
         dt = control.get("dt")
         return dt
@@ -449,11 +448,11 @@ class VibrationalSpectra(GetVelocities):
                 print("Check the directory %s" % trj + "/RESULTS" + "\n")
                 continue
 
-            traj_id += [np.int(trj.replace("TRAJ", ""))] * veloc.shape[0]
+            traj_id += [np.int64(trj.replace("TRAJ", ""))] * veloc.shape[0]
             spec = self.calc_pdos(veloc, dt, mass)
             all_vib_spec.append(spec)
 
-        self.all_traj_ids = np.array(traj_id, dtype=np.int)
+        self.all_traj_ids = np.array(traj_id, dtype=np.int64)
         all_vib_spec = np.concatenate(all_vib_spec, axis=0)
         self.spectrum = all_vib_spec
 

@@ -258,7 +258,7 @@ class GetCoords:
                 # repetitions in restart calculations, but also to deal
                 # with switching in QM/MM dynamics.
                 if "TIME" in line:
-                    current_time = np.float(line.split()[-2])
+                    current_time = np.float64(line.split()[-2])
                     if current_time > tmax:
                         break
 
@@ -365,8 +365,8 @@ class GetCoords:
             append_all_geoms(xyz)
             append_times(t)
             n_steps = len(t)
-            current_traj = np.int(trj.replace("TRAJ", ""))
-            append_trajs(np.full(n_steps, current_traj, dtype=np.int))
+            current_traj = np.int64(trj.replace("TRAJ", ""))
+            append_trajs(np.full(n_steps, current_traj, dtype=np.int64))
 
         t_vals = np.concatenate(t_vals)
         traj_id = np.concatenate(traj_id)
@@ -421,11 +421,15 @@ class GetCoords:
             if self.xyz is not None:
                 xyz_data = self.xyz.copy()
             else:
-                error_msg = "---------------------------------------------------" + "\n "
+                error_msg = (
+                    "---------------------------------------------------" + "\n "
+                )
                 error_msg += "XYZ coordinates not loaded!" + "\n "
                 error_msg += "Please make sure that the read_all_trajs function "
                 error_msg += "has been executed." + "\n "
-                error_msg += "---------------------------------------------------" + "\n "
+                error_msg += (
+                    "---------------------------------------------------" + "\n "
+                )
                 print(error_msg)
                 return
 
@@ -530,16 +534,16 @@ class GetGradients:
                     count_start += 1
 
                 if "Nat" in line:
-                    num_atoms = np.int(line.split()[-1])
+                    num_atoms = np.int64(line.split()[-1])
 
                 if "STEP" in line:
                     line_list = line.replace(",", "").split()
-                    t_current = np.float(line_list[4])
+                    t_current = np.float64(line_list[4])
                     if t_current == tmax:
                         break
 
                 if "Time of hopping" in line:
-                    t_hop = np.float(line.split()[-2])
+                    t_hop = np.float64(line.split()[-2])
 
                 # The second condition in the if statement is used to skip
                 # the gradients recalculated after hopping
@@ -722,16 +726,16 @@ class GetCouplings:
 
                 if "STEP" in line:
                     line_list = line.replace(",", "").split()
-                    t_current = np.float(line_list[4])
+                    t_current = np.float64(line_list[4])
                     if t_current == tmax:
                         break
 
                 if "Nat" in line:
-                    num_atoms = np.int(line.split()[-1])
+                    num_atoms = np.int64(line.split()[-1])
 
                 if "nstat " in line:
-                    num_states = np.int(line.split()[-1])
-                    num_blocks = np.int(num_states * (num_states - 1) / 2)
+                    num_states = np.int64(line.split()[-1])
+                    num_blocks = np.int64(num_states * (num_states - 1) / 2)
                     if num_blocks == 1:
                         num_blocks += 1
                     states = [
@@ -1002,8 +1006,8 @@ class GetProperties:
             data = np.concatenate((time, epot, etot, current_state), axis=1)
 
             n_samples = data.shape[0]
-            idx = np.int(trj.replace("TRAJ", ""))
-            traj_id.append(np.full(n_samples, idx, dtype=np.int))
+            idx = np.int64(trj.replace("TRAJ", ""))
+            traj_id.append(np.full(n_samples, idx, dtype=np.int64))
             all_energies.append(data)
 
         traj_id = np.concatenate(traj_id)
@@ -1040,8 +1044,8 @@ class GetProperties:
             en = en[mask]
             append_energies(en)
             n_samples = en.shape[0]
-            idx = np.int(trj.replace("TRAJ", ""))
-            append_traj_id(np.full(n_samples, idx, dtype=np.int))
+            idx = np.int64(trj.replace("TRAJ", ""))
+            append_traj_id(np.full(n_samples, idx, dtype=np.int64))
 
         traj_id = np.concatenate(traj_id)
         traj_id = traj_id.reshape(-1, 1)
@@ -1097,8 +1101,8 @@ class GetProperties:
             from_to = j.replace("S", "") + i.replace("S", "")
             new_col = "DE" + from_to
             df[new_col] = df[j] - df[i]
-            si = np.int(i.replace("S", ""))
-            sj = np.int(j.replace("S", ""))
+            si = np.int64(i.replace("S", ""))
+            sj = np.int64(j.replace("S", ""))
             # Create a binary column to identify hopping geometries
             # The first condition corresponds to hoppings by state decay
             new_col = "Hops_S" + str(sj) + str(si)
@@ -1144,8 +1148,8 @@ class GetProperties:
             all_osc_strengths.append(osc_traj)
             append_times(t_vec)
             n_steps = len(t_vec)
-            current_traj = np.int(trj.replace("TRAJ", ""))
-            append_trajs(np.full(n_steps, current_traj, dtype=np.int))
+            current_traj = np.int64(trj.replace("TRAJ", ""))
+            append_trajs(np.full(n_steps, current_traj, dtype=np.int64))
 
         if len(all_osc_strengths) != 0:
             all_osc_strengths = np.concatenate(all_osc_strengths, axis=0)
@@ -1194,15 +1198,15 @@ class GetProperties:
 
             # for line in oscillator_lines:
             #    states = line.split()[2]
-            previous_state = np.int(lines[1].split()[-1])
+            previous_state = np.int64(lines[1].split()[-1])
             # Start reading the properties file
             for line in lines:
                 if "STEP:" in line:
-                    t_current = np.float(line.split()[2])
+                    t_current = np.float64(line.split()[2])
                     if t_current > tmax:
                         break
-                    current_step = np.int(line.split()[4])
-                    current_state = np.int(line.split()[-1])
+                    current_step = np.int64(line.split()[4])
+                    current_state = np.int64(line.split()[-1])
 
                     if current_state == previous_state:
                         read_line = True
@@ -1214,12 +1218,12 @@ class GetProperties:
 
                 if ("Oscillator" in line) and read_line:
                     count += 1
-                    x = np.float(line.split()[4])
+                    x = np.float64(line.split()[4])
                     states = line.split()[2]
                     osc_dict.setdefault(states, []).append(x)
                     if count == 1:
                         times.append(t_current)
-                        traj_id.append(np.int(trj.replace("TRAJ", "")))
+                        traj_id.append(np.int64(trj.replace("TRAJ", "")))
 
             f.close()
 
@@ -1282,11 +1286,11 @@ class GetProperties:
             pop_traj = np.array(data["observables/populations/value"], dtype=np.float64)
             t_vec = np.array(data["observables/populations/time"], dtype=np.float64)
             n_steps = len(t_vec)
-            current_traj = np.int(trj.replace("TRAJ", ""))
+            current_traj = np.int64(trj.replace("TRAJ", ""))
 
             append_pop(pop_traj)
             append_times(t_vec)
-            append_trajs(np.full(n_steps, current_traj, dtype=np.int))
+            append_trajs(np.full(n_steps, current_traj, dtype=np.int64))
 
         all_populations = np.concatenate(all_populations, axis=0)
         times = np.concatenate(times, axis=0)
@@ -1327,8 +1331,8 @@ class GetProperties:
                 if "STEP" in line:
                     count = 0
                     error_found = False
-                    current_step = np.int(line.split()[1])
-                    t_current = np.float(line.split()[-2])
+                    current_step = np.int64(line.split()[1])
+                    t_current = np.float64(line.split()[-2])
                     if t_current > tmax:
                         break
 
@@ -1341,7 +1345,7 @@ class GetProperties:
                         append_coefs(coefs)
                         if count == 1:
                             times.append(t_current)
-                            traj_id.append(np.int(trj.replace("TRAJ", "")))
+                            traj_id.append(np.int64(trj.replace("TRAJ", "")))
                     if current_step == 0:
                         n_states += 1
 
@@ -1455,14 +1459,14 @@ class GetProperties:
             print("Reading MCSCF coefficients from %s" % trj + "...")
             for line in lines:
                 if "FINISHING STEP" in line:
-                    t_current = np.float(line.split()[4])
+                    t_current = np.float64(line.split()[4])
                     if replace_previous:
                         times[-1] = t_current
-                        traj_id[-1] = np.int(trj.replace("TRAJ", ""))
+                        traj_id[-1] = np.int64(trj.replace("TRAJ", ""))
                         all_mcscf_coefs[-1] = current_coefs
                     else:
                         times.append(t_current)
-                        traj_id.append(np.int(trj.replace("TRAJ", "")))
+                        traj_id.append(np.int64(trj.replace("TRAJ", "")))
                         all_mcscf_coefs.append(current_coefs)
                     replace_previous = False
                     if t_current == tmax:
