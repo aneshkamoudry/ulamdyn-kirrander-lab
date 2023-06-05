@@ -1,4 +1,4 @@
-"""Classes and methods used to ML descriptors from molecular geometries."""
+"""Classes and methods used to generate ML descriptors from molecular geometries."""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: 03/10/2021
 

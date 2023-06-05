@@ -37,8 +37,9 @@ def export(func):
     return func
 
 
+from ulamdyn.nx_utils import *
 from ulamdyn.data_loader import *
-from ulamdyn.data_writer import *
+from ulamdyn.data_writer import Geometries
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
 from ulamdyn.kinetics import *
@@ -46,14 +47,12 @@ from ulamdyn.unsup_models.geom_space import *
 from ulamdyn.unsup_models.traj_space import *
 from ulamdyn.unsup_models.dist_metrics import *
 from ulamdyn.unsup_models.geom_sampling import *
-from ulamdyn.nx_utils import *
+
+from ulamdyn.nma.normal_mode_analysis import *
 
 from ulamdyn.wrappers.dim_reduction import *
 from ulamdyn.wrappers.clustering import *
 from ulamdyn.wrappers.ring_analysis import *
-from ulamdyn.wrappers.save_datasets import *
-from ulamdyn.wrappers.save_xyz import *
-from ulamdyn.wrappers.bootstrap import *
 
 from ulamdyn._version import get_versions
 
