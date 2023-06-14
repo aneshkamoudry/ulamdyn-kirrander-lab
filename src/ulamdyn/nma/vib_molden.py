@@ -6,7 +6,7 @@
 
 import os
 import numpy as np
-from ulamdyn.nma import file_handler
+from ulamdyn.nma import _file_handler as fh
 from ulamdyn.nx_utils import BOHR_TO_ANG
 
 
@@ -61,8 +61,8 @@ class VibMolden:
             elif Atoms:
                 self.atoms += [
                     atom(
-                        file_handler.line_to_words(line)[0],
-                        file_handler.line_to_words(line)[3:6],
+                        fh.line_to_words(line)[0],
+                        fh.line_to_words(line)[3:6],
                     )
                 ]
             elif FREQ:
@@ -72,7 +72,7 @@ class VibMolden:
                     actvib += 1
                     self.vibs += [vibration(self.freqs[actvib])]
                 else:
-                    self.vibs[actvib].add_vector(file_handler.line_to_words(line)[0:3])
+                    self.vibs[actvib].add_vector(fh.line_to_words(line)[0:3])
 
     def get_vib_matrix(self):
         """
@@ -121,7 +121,7 @@ class VibMolden:
             out_str += str(len(self.atoms)) + "\n"
             out_str += "Frequency " + str(vib.frequency) + "\n"
 
-            tmaker = file_handler.table_maker([5] + 6 * [20])
+            tmaker = fh.table_maker([5] + 6 * [20])
             for at_ind, atom in enumerate(self.atoms):
                 tmaker.write_line(
                     [" " + atom.name] + atom.pos + vib.vector_list[at_ind]
@@ -200,16 +200,12 @@ def make_molden_file(
     out_str += "[FR-NORM-COORD]\n"
     for ind in range(len(vibs)):
         out_str += " vibration" + str(ind + 1).rjust(5) + "\n"
-        #        tblm = file_handler.table_maker([1] + 3*[21])
         for j in range(num_at):
             out_str += "% 14.8f % 14.8f % 14.8f\n" % (
                 vibs[ind][3 * j],
                 vibs[ind][3 * j + 1],
                 vibs[ind][3 * j + 2],
             )
-    #            tblm.write_line([' '] + [coor for coor in vibs[ind][3*j:(3*j+3)]])
-    #        out_str += tblm.return_table()
-    # print out_str
 
     w_file = open(out_file, "w")
     w_file.write(out_str)
@@ -220,7 +216,7 @@ def ret_Atoms_table(struc):
     """
     Create the atoms part in the molden file.
     """
-    tblmaker = file_handler.table_maker([6, 4, 3, 21, 21, 21])
+    tblmaker = fh.table_maker([6, 4, 3, 21, 21, 21])
     for i in xrange(struc.ret_num_at()):
         atom = struc.mol.GetAtom(i + 1)
         tblmaker.write_line(
@@ -237,7 +233,7 @@ def ret_FRCOORD_table(struc):
     """
     Create the FRCOORD part in the molden file.
     """
-    tblmaker = file_handler.table_maker([4, 21, 21, 21])
+    tblmaker = fh.table_maker([4, 21, 21, 21])
     for i in xrange(struc.ret_num_at()):
         atom = struc.mol.GetAtom(i + 1)
         vec = atom.GetVector()

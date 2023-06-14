@@ -14,13 +14,14 @@ import time
 import argparse
 
 from ulamdyn.statistics import create_stats
-from ulamdyn.wrappers.clustering import ClusteringAnalysis
-from ulamdyn.wrappers.dim_reduction import DimensionReductionAnalysis
-from ulamdyn.wrappers.ring_analysis import RingAnalysis
-from ulamdyn.wrappers.save_datasets import SaveDataset
+from ulamdyn.wrappers.nma import NMAnalysis
 from ulamdyn.wrappers.save_xyz import SaveXYZ
 from ulamdyn.wrappers.bootstrap import Bootstrap
+from ulamdyn.wrappers.save_datasets import SaveDataset
 from ulamdyn.wrappers.sampling import SampleGeometries
+from ulamdyn.wrappers.ring_analysis import RingAnalysis
+from ulamdyn.wrappers.clustering import ClusteringAnalysis
+from ulamdyn.wrappers.dim_reduction import DimensionReductionAnalysis
 
 __all__ = ["main"]
 
@@ -90,7 +91,7 @@ def _get_parser():
         type=str,
         metavar="",
         default=None,
-        help="R| Compute the basic statistics and confidence intervals for the properties data set using the bootstrap approach.\n Args: n_repeats, and/or n_samples, and/or ci_level.",
+        help="R| Compute the basic statistics and confidence intervals for the properties data set using the bootstrap approach.\n Options: n_repeats, and/or n_samples, and/or ci_level.",
     )
 
     pp = argparse.ArgumentParser(add_help=False)
@@ -278,7 +279,7 @@ def _get_parser():
         type=str,
         metavar="",
         default="3",
-        help="R| Number of clusters (or mixed gaussians) from which new geometries will be sampled. If value is equal to best,\n the optimal number of clusters will be searched. (default: %(default)s)",
+        help="R| Number of mixed gaussians from which new geometries will be sampled. If value is equal to best,\n the optimal number of clusters will be searched. (default: %(default)s)",
     )
     geom_sampling.add_argument(
         "--n_new_geoms",
@@ -295,6 +296,27 @@ def _get_parser():
         metavar="",
         default="0",
         help='R| Select the cluster from which new geometries will be sampled. The argument can be the cluster ID (an integer)\n or a query string based on the properties dataset (e.g., "DE21<=0.5").',
+    )
+    nm_analysis = subparsers.add_parser(
+        "nma",
+        formatter_class=SmartFormatter,
+        help="Perform Normal Mode analysis to describe the molecular motion.",
+    )
+    nm_analysis.add_argument(
+        "--vib_file",
+        required=False,
+        type=str,
+        metavar="",
+        default="freq.molden",
+        help="R| Name of the MOLDEN input file that contains the normal modes for the reference geometry. (default: %(default)s)",
+    )
+    nm_analysis.add_argument(
+        "--time_intervals",
+        required=False,
+        type=str,
+        metavar="",
+        default="",
+        help="R| List of time intervals on which the average will be calculated (example: 0-250,251-500). (default: %(default)s)",
     )
 
     # If no command-line arguments are present, config file is parsed
@@ -348,6 +370,8 @@ def main():
             print("")
 
             analysis_type = analysis_type.title().replace(" ", "")
+            if analysis_type == "Nma":
+                analysis_type = "NM"
             func = eval(analysis_type + "Analysis.run")
             func(**keywords_dict)
 
