@@ -94,8 +94,8 @@ def _get_parser():
         help="R| Compute the basic statistics and confidence intervals for the properties data set using the bootstrap approach.\n Options: n_repeats, and/or n_samples, and/or ci_level.",
     )
 
-    pp = argparse.ArgumentParser(add_help=False)
-    pp.add_argument(
+    pp1 = argparse.ArgumentParser(add_help=False)
+    pp1.add_argument(
         "--n_samples",
         required=False,
         type=int,
@@ -104,7 +104,7 @@ def _get_parser():
         help="R| Number of samples randomly selected from the data set.",
     )
 
-    pp.add_argument(
+    pp1.add_argument(
         "--time_step",
         required=False,
         type=float,
@@ -113,24 +113,24 @@ def _get_parser():
         help="R| Size of the time step (dt) used to filter each trajectory in the data set.",
     )
 
-    pp.add_argument(
+    pp1.add_argument(
         "--descriptor",
         required=False,
         type=str,
         metavar="",
-        choices=["aXYZ", "R2", "inv-R2", "delta-R2", "RE", "Zmat", "delta-Zmat"],
+        choices=["aXYZ", "R2", "inv-R2", "delta-R2", "RE", "Zmat", "delta-Zmat", "NMP"],
         default="inv-R2",
         help="R| Descriptor used to represent molecular geometries.\n Options: %(choices)s. (default: %(default)s)",
     )
 
-    pp.add_argument(
+    pp1.add_argument(
         "--use_mwc",
         required=False,
         action="store_true",
         help="R| Use mass weighted Cartesian coordinates to build R2-based descriptors.",
     )
 
-    pp.add_argument(
+    pp1.add_argument(
         "--transform",
         required=False,
         type=str,
@@ -140,7 +140,7 @@ def _get_parser():
         help="R| Apply a nonlinear transformation on delta type descriptors.\n Options: %(choices)s.",
     )
 
-    pp.add_argument(
+    pp1.add_argument(
         "--data_scaler",
         required=False,
         type=str,
@@ -150,16 +150,8 @@ def _get_parser():
         help="R| Select the data rescaling method.\n Options: %(choices)s.",
     )
 
-    pp.add_argument(
-        "--n_cpus",
-        required=False,
-        type=int,
-        metavar="",
-        default=-1,
-        help="R| Number of CPUs allocated for parallelization. (default: %(default)s)",
-    )
-
-    pp.add_argument(
+    pp2 = argparse.ArgumentParser(add_help=False)
+    pp2.add_argument(
         "--dist_metric",
         required=False,
         type=str,
@@ -169,7 +161,7 @@ def _get_parser():
         help="R| Distance metric used for dimensionality reduction (Isomap and t-SNE) or clustering (Hierarchical).\n Options: %(choices)s. (default: %(default)s)",
     )
 
-    pp.add_argument(
+    pp2.add_argument(
         "--kernel",
         required=False,
         type=str,
@@ -177,6 +169,15 @@ def _get_parser():
         choices=["linear", "poly", "rbf", "laplacian", "sigmoid", "cosine"],
         default="rbf",
         help="R| Kernel function used for KPCA or Spectral clustering.\n Options: %(choices)s. (default: %(default)s)",
+    )
+
+    pp2.add_argument(
+        "--n_cpus",
+        required=False,
+        type=int,
+        metavar="",
+        default=-1,
+        help="R| Number of CPUs allocated for parallelization. (default: %(default)s)",
     )
 
     subparsers = parser.add_subparsers(title="Analysis", dest="command")
@@ -207,7 +208,7 @@ def _get_parser():
 
     dimred_analysis = subparsers.add_parser(
         "dim_reduction",
-        parents=[pp],
+        parents=[pp1,pp2],
         formatter_class=SmartFormatter,
         help="Dimensionality reduction analysis in molecular configuration space.",
     )
@@ -238,7 +239,7 @@ def _get_parser():
 
     clustering_analysis = subparsers.add_parser(
         "clustering",
-        parents=[pp],
+        parents=[pp1,pp2],
         formatter_class=SmartFormatter,
         help="Perform cluster analysis in geometry or trajectory space.",
     )
@@ -269,7 +270,7 @@ def _get_parser():
     )
     geom_sampling = subparsers.add_parser(
         "sampling",
-        parents=[pp],
+        parents=[pp1],
         formatter_class=SmartFormatter,
         help="Sample new molecular geometries using Gaussian Mixture model.",
     )

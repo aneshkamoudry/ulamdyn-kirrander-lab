@@ -1,6 +1,5 @@
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: June 3, 2021
-import os
 import sys
 import numpy as np
 
@@ -15,6 +14,7 @@ from ulamdyn.kinetics import *
 from ulamdyn.descriptors import *
 from ulamdyn.statistics import *
 from ulamdyn.nx_utils import *
+from ulamdyn.nma.normal_mode_analysis import NormalModeAnalysis
 
 
 def get_kinetic_energies(n_atoms=None):
@@ -72,6 +72,11 @@ def build_descriptor(descriptor, mwc, transform, getcoords_obj):
         df_xyz = df_xyz[select_cols]
         df_xyz.to_csv(descriptor + ".csv", index=False)
         return df_xyz
+    elif descriptor == "NMP":
+        nma = NormalModeAnalysis()
+        nma = nma.run()
+        df_nmp = nma.datasets.all_nma
+        return df_nmp
     elif descriptor in ["R2", "inv-R2", "delta-R2", "RE"]:
         r2 = R2(getcoords_obj, mwc)
         df_r2 = r2.build_descriptor(variant=descriptor, apply_to_delta=transform)

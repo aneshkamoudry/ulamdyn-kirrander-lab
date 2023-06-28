@@ -1,3 +1,6 @@
+"""
+The :mod:`ulamdyn.data_loader` module is used to build datasets from NAMD output files.
+"""
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: March 10 2021
 from __future__ import (
@@ -12,8 +15,8 @@ from __future__ import (
 import os
 import io
 from typing import Tuple
-from itertools import combinations
 from itertools import product
+from itertools import combinations
 
 import rmsd
 import h5py
@@ -26,13 +29,14 @@ except ModuleNotFoundError:
     import pandas as pd
 
 from ulamdyn.nx_utils import *
+from ulamdyn.base import BaseClass
 
 
 __all__ = ["GetCoords", "GetGradients", "GetCouplings", "GetProperties"]
 
 
 # %% Starting the first class: GetCoords
-class GetCoords:
+class GetCoords(BaseClass):
     """Class object used to read the Cartesian coordinates from Newton-X MD trajectories.
 
     .. note:: In the case of NX classical series, the Cartesian XYZ coordinates can be read
@@ -67,33 +71,6 @@ class GetCoords:
         "dataset",
         "traj_time",
     ]
-
-    def __str__(self) -> str:
-        """Provide a string representation of the class.
-
-        :return: Short description of the class functionality.
-        :rtype: str
-        """
-        cls_status = "Data loader object to read molecular geometries from NAMD trajectories.\n\n"
-        cls_status += "Current state of the class variables:\n"
-        cls_status += "---------------------------------------\n"
-        cls_status += " \u2022 Trajectories read -> {}\n".format(
-            list(self.trajectories.keys())
-        )
-        cls_status += " \u2022 Atom labels -> {}\n".format(self.labels)
-        if self.xyz is not None:
-            cls_status += " \u2022 Total number of geometries -> {}\n".format(
-                self.xyz.shape[0]
-            )
-        if self.dataset is not None:
-            cls_status += " \u2022 Size of loaded dataset -> {}\n".format(
-                self.dataset.shape
-            )
-            buf = io.StringIO()
-            self.dataset.info(buf=buf)
-            data_info = buf.getvalue()
-            cls_status += data_info
-        return cls_status
 
     def __init__(self) -> None:
         """Class initialization."""
@@ -145,7 +122,6 @@ class GetCoords:
                 geom_string += mask.format(l[0], *atom_coords)
             return geom_string
 
-    @property
     def save_csv(self) -> None:
         """Save all loaded geometries (raw format) into a csv file.
 
@@ -171,7 +147,7 @@ class GetCoords:
         return df
 
     def build_dataframe(self) -> None:
-        """Create a pandas DataFrame containing the XYZ coordinates from all trajectories.
+        """Create a DataFrame containing flattened XYZ coordinates from all MD trajectories.
 
         After running this function, the class attribute :attr:`~ulamdyn.GetCoords.dataset` will
         be updated with the loaded DataFrame object.
@@ -450,8 +426,8 @@ class GetCoords:
 
 
 # %% Starting new class: GetGradients
-class GetGradients:
-    """Class used to read the QM gradients from Newton-X MD trajectories.
+class GetGradients(BaseClass):
+    """Class used to collect QM gradients from Newton-X MD trajectories.
 
     This class does not require arguments in its constructor. The outputs generate by
     the class is given in eV/angstrom.
@@ -465,14 +441,6 @@ class GetGradients:
 
     # Defining slots to optimize memory access performance (RAM):
     __slots__ = ["trajectories", "all_grads", "datasets"]
-
-    def __str__(self) -> str:
-        """Provide a string representation of the class.
-
-        :return: Short description of the class functionality.
-        :rtype: str
-        """
-        return "Data loader object to collect QM gradients from NAMD trajectories."
 
     def __init__(self) -> None:
         """Class initializer."""
@@ -639,7 +607,7 @@ class GetGradients:
 
 
 # %% Starting new class: GetCouplings
-class GetCouplings:
+class GetCouplings(BaseClass):
     """Class used to read the Nonadiabatic Coupling Vectors (NAC) from the MD trajectories.
 
     This class does not require arguments in its constructor. The outputs generate by
@@ -654,14 +622,6 @@ class GetCouplings:
 
     # Define slots to optimize RAM memory access
     __slots__ = ["trajectories", "all_nacs", "datasets"]
-
-    def __str__(self) -> str:
-        """Provide a string representation of the class.
-
-        :return: Short description of the class functionality.
-        :rtype: str
-        """
-        return "Data loader object for nonadiabatic couplings."
 
     def __init__(self):
         """Class initializer."""
@@ -833,7 +793,7 @@ class GetCouplings:
 
 
 # %% Starting new class: GetProperties
-class GetProperties:
+class GetProperties(BaseClass):
     """Class used to read all properties available in the Newton-X MD trajectories.
 
     .. note:: This class does not require arguments in its constructor. All the energy quantities
@@ -874,33 +834,6 @@ class GetProperties:
         # and then use this information to decide which functions should be
         # used to collect the properties data.
         self.nx_version = get_nx_version(traj)
-
-    def __str__(self) -> str:
-        """Provide a summary for the current state of the class variables.
-
-        :return: Short description of the class functionality and state.
-        :rtype: str
-        """
-        cls_status = "Data loader object for (quantum/classical) properties of NAMD trajectories.\n\n"
-        cls_status += "Current state of the class variables:\n"
-        cls_status += "---------------------------------------\n"
-        cls_status += " \u2022 Trajectories read -> {}\n".format(
-            list(self.trajectories.keys())
-        )
-        cls_status += " \u2022 Number of states -> {}\n".format(self.num_states)
-        cls_status += " \u2022 NX version -> {}\n".format(self.nx_version)
-
-        if self.dataset is not None:
-            cls_status += " \u2022 Size of loaded dataset -> {}\n".format(
-                self.dataset.shape
-            )
-            buf = io.StringIO()
-            self.dataset.info(buf=buf)
-            data_info = buf.getvalue()
-            cls_status += data_info
-        else:
-            cls_status += " \u2022 The dataset variable is empty."
-        return cls_status
 
     @property
     def save_csv(self) -> None:

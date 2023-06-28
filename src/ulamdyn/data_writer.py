@@ -1,16 +1,23 @@
-# __author__ = 'Max Pinheiro Jr <maxjr82@gmail.com>'
-# __date__ = '03/14/2021'
+# Author: Max Pinheiro Jr <maxjr82@gmail.com>
+# Date: March 14, 2021
 
 import numpy as np
 import pandas as pd
 
+from ulamdyn.base import BaseClass
+
 __all__ = ["Geometries"]
 
 
-class Geometries:
+class Geometries(BaseClass):
     """Handle and save XYZ coordinates for selected frames of MD trajectories."""
 
     def __str__(self) -> str:
+        """Provide a description of the class functionality.
+
+        :return: Human-readable string explaining the class functionality.
+        :rtype: str
+        """
         return "Module to export molecular geometries (or gradients) in xyz format."
 
     def __init__(self, atom_labels, properties_data=None, add_properties=[]):

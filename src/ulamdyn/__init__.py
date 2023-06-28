@@ -7,7 +7,7 @@ ULaMDyn is a python package built on top of sklearn designed to perform
 data preprocessing, statistical and unsupervised learning analysis of
 (non-adiabatic) molecular dynamics simulations.
 
-ULaMDyn is composed of five general modules:
+ULaMDyn is composed of several Python modules:
 
 + Data_Loader
 + Data_Writer
@@ -15,6 +15,7 @@ ULaMDyn is composed of five general modules:
 + Kinetics
 + Descriptors
 + Unsup_Models
++ NMA
 
 """
 
@@ -52,7 +53,6 @@ from ulamdyn.nma.normal_mode_analysis import *
 
 from ulamdyn.wrappers.dim_reduction import *
 from ulamdyn.wrappers.clustering import *
-from ulamdyn.wrappers.ring_analysis import *
 
 from ulamdyn._version import get_versions
 

@@ -15,38 +15,17 @@ from scipy.fftpack import fft, fftfreq
 from scipy.ndimage.filters import gaussian_filter1d as gaussian
 
 from ulamdyn.nx_utils import *
+from ulamdyn.base import BaseClass
 
 __all__ = ["GetVelocities", "KineticEnergy", "VibrationalSpectra"]
 
 
 # %% Starting the first class: GetVelocities
-class GetVelocities:
+class GetVelocities(BaseClass):
     """Class used to collect velocities from all MD trajectories of Newton-X."""
 
     # Defining slots to optimize performance (RAM):
     __slots__ = ["trajectories", "n_atoms", "veloc", "dataset"]
-
-    def __str__(self) -> str:
-        """Provide a string representation of the class.
-
-        :return: Short description of the class functionality.
-        :rtype: str
-        """
-        cls_status = (
-            "Data loader object to read velocities from NX-NAMD trajectories.\n"
-        )
-        cls_status += "   Current state of the class variables:\n"
-        cls_status += "   \u2022 Trajectories read -> {}\n".format(
-            list(self.trajectories.keys())
-        )
-        cls_status += "   \u2022 Number of atoms -> {}\n".format(self.n_atoms)
-        if self.veloc is not None:
-            cls_status += "   \u2022 Shape of loaded velocity info -> {}\n".format(
-                self.veloc.shape
-            )
-        else:
-            cls_status += "   \u2022 Velocity data -> None"
-        return cls_status
 
     def __init__(self, n_atoms=None) -> None:
         """Class initializer."""

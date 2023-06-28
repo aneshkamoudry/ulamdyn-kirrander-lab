@@ -23,7 +23,7 @@ class SaveDataset:
         print("Saving the full XYZ coordinates dataframe...\n")
         gc = GetCoords()
         gc.read_all_trajs()
-        gc.save_csv
+        gc.save_csv()
         print("Saving the R2 descriptor dataframe...\n")
         r2 = R2(gc)
         df = r2.build_descriptor(save_csv=True)
