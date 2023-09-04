@@ -602,7 +602,7 @@ class GetGradients(BaseClass):
             )
             self.datasets[k] = df
             if save_csv:
-                output = "all_gradients_" + k.lower() + ".csv"
+                output = "all_gradients_" + str(k).lower() + ".csv"
                 df.to_csv(output, index=False, header=True)
 
 
