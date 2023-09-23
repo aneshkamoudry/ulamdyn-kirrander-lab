@@ -93,8 +93,11 @@ class SaveXYZ:
         cls._load_properties()
 
         if cls.use_au:
+            print('Distance unit: Bohr radius')
             cls.all_geoms *= 1 / BOHR_TO_ANG
-
+        else:
+            print('Distance unit: Angstrom')
+        print()
         cls.info2xyz = []
         if "RMSD" in cls.df_props.columns:
             cls.info2xyz.append("RMSD")
@@ -129,7 +132,11 @@ class SaveXYZ:
             n_atoms = grads.shape[1]
             empty_labels = np.array([[""] for i in range(n_atoms)])
             if cls.use_au:
+                print('Gradient units: Ha/bohr')
                 grads *= BOHR_TO_ANG
+            else:
+                print('Gradient units: Ha/Å')
+            print()
             out_name = "all_gradients_" + state.lower() + ".xyz"
             geoms = Geometries(empty_labels, cls.df_props)
             geoms.save_xyz(grads, out_name)
