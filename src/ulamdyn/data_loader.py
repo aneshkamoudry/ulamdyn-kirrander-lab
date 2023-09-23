@@ -159,6 +159,7 @@ class GetCoords(BaseClass):
                 for i in range(1, n_atoms + 1)
             ]
             col_names = sum(col_names, [])
+            print('Distance units: Angstrom')
             df = pd.DataFrame(self.xyz.reshape(-1, n_atoms * 3), columns=col_names)
             df = self._insert_traj_time(df)
 
@@ -198,7 +199,6 @@ class GetCoords(BaseClass):
         atom_labels = np.array(data[path_to_labels], dtype="U")
         path_to_time = "particles/all/position/time"
         t_list = np.array(data[path_to_time], dtype=np.float64)
-
         return (atom_labels, xyz_geoms, t_list)
 
     def from_dyn(
@@ -471,8 +471,7 @@ class GetGradients(BaseClass):
         n_states = xyz_grads.shape[-1]
 
         for state in range(n_states):
-            grads_dict[state] = xyz_grads[:, :, :, state]
-
+            grads_dict[state] = xyz_grads[:, :, :, state] * HARTREE_TO_eV / BOHR_TO_ANG
         return grads_dict
 
     @staticmethod
@@ -540,7 +539,7 @@ class GetGradients(BaseClass):
                         grads_dict[state].append(grads)
                     else:
                         read_grads = False
-
+        
         for k in grads_dict.keys():
             grads_dict[k] = np.array(grads_dict[k])
             grads_dict[k] = grads_dict[k].reshape(-1, num_atoms, 3)
@@ -596,6 +595,7 @@ class GetGradients(BaseClass):
         ]
         col_names = sum(col_names, [])
 
+        print('Gradient units: eV/Å')
         for k in self.all_grads.keys():
             df = pd.DataFrame(
                 self.all_grads[k].reshape(-1, n_atoms * 3), columns=col_names
