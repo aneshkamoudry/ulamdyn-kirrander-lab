@@ -137,7 +137,7 @@ class SaveXYZ:
             else:
                 print('Gradient units: Ha/Å')
             print()
-            out_name = "all_gradients_" + state.lower() + ".xyz"
+            out_name = "all_gradients_" + str(state).lower() + ".xyz"
             geoms = Geometries(empty_labels, cls.df_props)
             geoms.save_xyz(grads, out_name)
 
