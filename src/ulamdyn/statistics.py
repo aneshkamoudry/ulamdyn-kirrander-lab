@@ -32,6 +32,23 @@ __all__ = [
 ]
 
 
+def drop_hops(df):
+    """Removes rows for timesteps not multiple of kt.
+
+    When kt != 1 in NewtonX, there are extra timesteps printed at hopping times.
+    This creates rows in the dataframe that contains only a single trajectory
+    and the statistics at those timesteps are meaningless. This removes those 
+    extra steps.
+
+    :param df: input dataset to be cleaned
+    :return: dataframe without the extra time steps
+    """
+    dt = df.time[1] - df.time[0]
+    df = df[(df['time'] + 1E-5)%dt < 1E-3]
+    df = df.reset_index(drop=True)
+    return df
+
+
 def aggregate_data(data, vars_to_group=["time"]):
     """Group data based on variable(s) to calculate the statistical descriptors.
 
@@ -66,6 +83,8 @@ def aggregate_data(data, vars_to_group=["time"]):
     if "TRAJ" in col_names:
         count = data.groupby(vars_to_group)["TRAJ"].nunique().values
         df_stats.insert(1, "traj_count", count)
+
+    df_stats = drop_hops(df_stats)
     return df_stats
 
 
@@ -97,6 +116,7 @@ def calc_avg_occupations(df):
         values="Occ", index="time", columns="State", fill_value=0
     ).reset_index()
     # STEP 4: rename columns (state value -> 'Occ + state value')
+    df_occ = drop_hops(df_occ)
     df_occ.drop(["time"], axis=1, inplace=True)
     df_occ.columns = ["Occ" + str(i) for i in df_occ.columns]
     return df_occ
