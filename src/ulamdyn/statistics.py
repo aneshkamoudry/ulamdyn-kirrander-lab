@@ -107,17 +107,17 @@ def calc_avg_occupations(df):
     # Compute the average occupations of the trajectories for each state state
     # STEP 1 - count the number of trajectories occupying a given state at each time
     x = df.groupby(["time", "State"]).count().reset_index()[["time", "State", "TRAJ"]]
-    # STEP 2 - divide the number of trajectories in a given state by the total number
-    #          of successful trajectories
-    x["Occ"] = x["TRAJ"] / len(df["TRAJ"].unique())
-    # STEP 3 - create num_states new columns with the respective occupations, and fill
-    # missing values with zeros
+    # STEP 2 - create num_states new columns with the respective number of trajectories
+    #          and fill missing values with zeros
     df_occ = x.pivot_table(
-        values="Occ", index="time", columns="State", fill_value=0
+        values="TRAJ", index="time", columns="State", fill_value=0
     ).reset_index()
-    # STEP 4: rename columns (state value -> 'Occ + state value')
+    # STEP 3 - compute the occupation rowise considering that in each timestep the number
+    #          of trajectories migh be different
     df_occ = drop_hops(df_occ)
     df_occ.drop(["time"], axis=1, inplace=True)
+    df_occ = df_occ.div(df_occ.sum(axis=1), axis=0)
+    # STEP 4: rename columns (state value -> 'Occ + state value')
     df_occ.columns = ["Occ" + str(i) for i in df_occ.columns]
     return df_occ
 
