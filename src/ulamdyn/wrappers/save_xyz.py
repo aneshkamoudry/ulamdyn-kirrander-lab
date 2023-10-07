@@ -109,7 +109,7 @@ class SaveXYZ:
                 print(f"Writing selected geometries (in {units}) to XYZ file...\n")
                 cls._filter_by_property()
                 outname = "selected_geometries.xyz"
-            print(f"Writing all molecular geometries to XYZ (in {units}) file...\n")
+            print(f"Writing all molecular geometries (in {units}) to XYZ file...\n")
             geoms = Geometries(cls.labels, cls.df_props, cls.info2xyz)
             geoms.save_xyz(cls.all_geoms, outname)
 
