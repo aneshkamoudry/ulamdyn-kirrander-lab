@@ -32,6 +32,23 @@ __all__ = [
 ]
 
 
+def drop_hops(df):
+    """Removes rows for timesteps not multiple of kt.
+
+    When kt != 1 in NewtonX, there are extra timesteps printed at hopping times.
+    This creates rows in the dataframe that contains only a single trajectory
+    and the statistics at those timesteps are meaningless. This removes those 
+    extra steps.
+
+    :param df: input dataset to be cleaned
+    :return: dataframe without the extra time steps
+    """
+    dt = df.time[1] - df.time[0]
+    df = df[(df['time'] + 1E-5)%dt < 1E-3]
+    df = df.reset_index(drop=True)
+    return df
+
+
 def aggregate_data(data, vars_to_group=["time"]):
     """Group data based on variable(s) to calculate the statistical descriptors.
 
@@ -66,6 +83,8 @@ def aggregate_data(data, vars_to_group=["time"]):
     if "TRAJ" in col_names:
         count = data.groupby(vars_to_group)["TRAJ"].nunique().values
         df_stats.insert(1, "traj_count", count)
+
+    df_stats = drop_hops(df_stats)
     return df_stats
 
 
@@ -88,16 +107,17 @@ def calc_avg_occupations(df):
     # Compute the average occupations of the trajectories for each state state
     # STEP 1 - count the number of trajectories occupying a given state at each time
     x = df.groupby(["time", "State"]).count().reset_index()[["time", "State", "TRAJ"]]
-    # STEP 2 - divide the number of trajectories in a given state by the total number
-    #          of successful trajectories
-    x["Occ"] = x["TRAJ"] / len(df["TRAJ"].unique())
-    # STEP 3 - create num_states new columns with the respective occupations, and fill
-    # missing values with zeros
+    # STEP 2 - create num_states new columns with the respective number of trajectories
+    #          and fill missing values with zeros
     df_occ = x.pivot_table(
-        values="Occ", index="time", columns="State", fill_value=0
+        values="TRAJ", index="time", columns="State", fill_value=0
     ).reset_index()
-    # STEP 4: rename columns (state value -> 'Occ + state value')
+    # STEP 3 - compute the occupation rowise considering that in each timestep the number
+    #          of trajectories migh be different
+    df_occ = drop_hops(df_occ)
     df_occ.drop(["time"], axis=1, inplace=True)
+    df_occ = df_occ.div(df_occ.sum(axis=1), axis=0)
+    # STEP 4: rename columns (state value -> 'Occ + state value')
     df_occ.columns = ["Occ" + str(i) for i in df_occ.columns]
     return df_occ
 
