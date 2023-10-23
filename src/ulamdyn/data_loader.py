@@ -159,6 +159,7 @@ class GetCoords(BaseClass):
                 for i in range(1, n_atoms + 1)
             ]
             col_names = sum(col_names, [])
+            print('Distance units: Angstrom')
             df = pd.DataFrame(self.xyz.reshape(-1, n_atoms * 3), columns=col_names)
             df = self._insert_traj_time(df)
 
@@ -471,7 +472,7 @@ class GetGradients(BaseClass):
         n_states = xyz_grads.shape[-1]
 
         for state in range(n_states):
-            grads_dict[state] = xyz_grads[:, :, :, state]
+            grads_dict[state] = xyz_grads[:, :, :, state] * HARTREE_TO_eV / BOHR_TO_ANG
 
         return grads_dict
 

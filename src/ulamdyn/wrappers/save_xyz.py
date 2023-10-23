@@ -91,24 +91,25 @@ class SaveXYZ:
     def _geoms(cls):
         cls._load_geoms()
         cls._load_properties()
+        units = 'bohr' if cls.use_au else 'Å'
 
         if cls.use_au:
-            cls.all_geoms *= 1 / BOHR_TO_ANG
+            cls.all_geoms /= BOHR_TO_ANG
 
         cls.info2xyz = []
         if "RMSD" in cls.df_props.columns:
             cls.info2xyz.append("RMSD")
 
         if cls.select_points[0].lower() == "hops":
-            print("Writing hopping geometries to XYZ file...\n")
+            print(f"Writing hopping geometries (in {units}) to XYZ file...\n")
             cls._select_hops()
         else:
             outname = "all_geometries.xyz"
             if cls.select_points[0] != "all":
-                print("Writing selected geometries to XYZ file...\n")
+                print(f"Writing selected geometries (in {units}) to XYZ file...\n")
                 cls._filter_by_property()
                 outname = "selected_geometries.xyz"
-            print("Writing all molecular geometries to XYZ file...\n")
+            print(f"Writing all molecular geometries (in {units}) to XYZ file...\n")
             geoms = Geometries(cls.labels, cls.df_props, cls.info2xyz)
             geoms.save_xyz(cls.all_geoms, outname)
 
@@ -116,13 +117,14 @@ class SaveXYZ:
     def _grads(cls):
         cls._load_grads()
         cls._load_properties()
+        units = 'Ha/bohr' if cls.use_au else 'Ha/Å'
 
         if cls.select_points[0] != "all":
             cls._filter_by_property()
 
         for state in cls.all_grads.keys():
             print(
-                "Writing gradient matrices of state {} to XYZ file...\n".format(state)
+                "Writing gradient matrices (in {}) of state {} to XYZ file...\n".format(units,state)
             )
             grads = cls.all_grads[state].copy()
             grads *= 1 / HARTREE_TO_eV
@@ -130,7 +132,7 @@ class SaveXYZ:
             empty_labels = np.array([[""] for i in range(n_atoms)])
             if cls.use_au:
                 grads *= BOHR_TO_ANG
-            out_name = "all_gradients_" + state.lower() + ".xyz"
+            out_name = "all_gradients_" + str(state).lower() + ".xyz"
             geoms = Geometries(empty_labels, cls.df_props)
             geoms.save_xyz(grads, out_name)
 

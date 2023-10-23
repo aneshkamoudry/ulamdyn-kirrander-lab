@@ -50,7 +50,7 @@ class SaveDataset:
 
     @classmethod
     def _gradients(cls):
-        print("Saving the XYZ gradients for each available state as dataframes...\n")
+        print("Saving the XYZ gradients for each available state (in eV/Å) as dataframes...\n")
         gg = GetGradients()
         gg.build_dataframe(save_csv=True)
 
