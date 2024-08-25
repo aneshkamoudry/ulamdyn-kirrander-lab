@@ -1,3 +1,21 @@
+# virtual environments
+venv
+.venv
+
+# Documentation
 docs
 tutorials
-src/ulamdyn/.vscode
+
+# Cache files
+__pycache__/
+*.py[cod]
+*$py.class
+src/ulamdyn/__pycache__/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+eggs/
+.eggs/
