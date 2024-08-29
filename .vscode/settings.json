@@ -1,0 +1,45 @@
+{
+    // Enable Black as the formatter for Python
+    "python.formatting.provider": "black",
+
+    // Automatically format the code when saving
+    "editor.formatOnSave": true,
+
+    // Enable Pylint as the linter for Python
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.flake8Enabled": true,
+
+    // Set the maximum line length to 79 characters for Black and Pylint
+    "python.formatting.blackArgs": ["--line-length", "79"],
+    "python.linting.pylintArgs": ["--max-line-length=79"],
+    "python.linting.flake8Args": ["--max-line-length=79"],
+
+    // Adjust visualization settings
+    "editor.rulers": [80],
+
+    // Exclude specific file types or sections from being formatted by Black
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSaveMode": "modifications",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+
+    // Configure Black to keep optional parentheses around long imports
+    "python.sortImports.args": [
+        "--trailing-comma",
+        "--use-parentheses",
+        "--line-length=79"
+    ],
+
+    // Configure isort to sort imports on save
+    "python.sortImports": true,
+
+    // isort settings to be compatible with Black
+    "isort.args": [
+        "--profile",
+        "black"
+    ]
+}

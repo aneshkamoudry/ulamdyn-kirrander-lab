@@ -9,7 +9,6 @@ import os
 import versioneer
 from setuptools import setup, find_packages
 
-# VERSION = '0.0.2'
 DESCRIPTION = "Unsupervised learning analysis for molecular dynamics data"
 NAME = "ulamdyn"
 
@@ -60,5 +59,5 @@ setup(
     ],
     install_requires=requirements,
     extras_require={"modin": ["modin"]},
-    python_requires=">=3.8",
+    python_requires=">=3.9",
 )
