@@ -159,8 +159,8 @@ class R2(GetCoords):
             E = -0.5 * d**2
 
             # Use mat to generate column and row means.
-            Er = np.mat(np.mean(E, 1))
-            Es = np.mat(np.mean(E, 0))
+            Er = np.asmatrix(np.mean(E, 1))
+            Es = np.asmatrix(np.mean(E, 0))
 
             # From Principles of Multivariate Analysis: A User's Perspective (page 107).
             F = np.array(E - np.transpose(Er) - Es + np.mean(E))
