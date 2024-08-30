@@ -221,7 +221,7 @@ def create_stats(selected_data, save_csv=False):
         print("Calculating statistics for the R2 descriptor...\n")
         gc = GetCoords()
         gc.read_all_trajs()
-        gc.align_geoms
+        gc.align_geoms()
         # time_vec = gc.traj_time[:, 1]
         r2 = R2(gc)
         df = r2.build_descriptor(save_csv=False)
