@@ -2,9 +2,8 @@
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: May 17 2021
 
-import os
 import glob
-
+import os
 from typing import Tuple
 
 import h5py
@@ -61,6 +60,8 @@ def get_nx_version(traj_dir: str) -> str:
     nx_version = None
     if os.path.isdir(traj_dir):
         if os.path.isfile(traj_dir + "/" + "nx_exported_config.nml"):
+            nx_version = "ns"
+        if os.path.isfile(traj_dir + "/" + "user_config.nml"):
             nx_version = "ns"
         elif os.path.isfile(traj_dir + "/" + "control.dyn"):
             nx_version = "cs"
@@ -139,7 +140,8 @@ def read_nx_control(traj_dir: str) -> dict:
                      will be read.
     :type traj_dir: str
     :return: Dictionary with all Newton-X keywords and corresponding values read from
-             the control.dyn file (NX-CS) or from the nx_exported_config.nml file (NX-NS).
+             the control.dyn file (NX-CS) or from the nx_exported_config.nml / 
+             user_config.nml file (NX-NS).
     :rtype: dict
     """
     control = {}
@@ -147,6 +149,8 @@ def read_nx_control(traj_dir: str) -> dict:
         control_input = traj_dir + "/control.dyn"
     elif os.path.isfile(traj_dir + "/nx_exported_config.nml"):
         control_input = traj_dir + "/nx_exported_config.nml"
+    elif os.path.isfile(traj_dir + "/user_config.nml"):
+        control_input = traj_dir + "/user_config.nml"
     else:
         control_missing_error = (
             "--------------------------------------------------------------\n"
