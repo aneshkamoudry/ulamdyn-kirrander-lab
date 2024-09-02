@@ -5,22 +5,21 @@ The :mod:`ulamdyn.data_loader` module is used to build datasets from NAMD output
 # Date: March 10 2021
 from __future__ import (
     absolute_import,
+    annotations,
     division,
     print_function,
     unicode_literals,
     with_statement,
-    annotations,
 )
 
-import os
 import io
+import os
+from itertools import combinations, product
 from typing import Tuple
-from itertools import product
-from itertools import combinations
 
-import rmsd
 import h5py
 import numpy as np
+import rmsd
 
 try:
     import modin.pandas as pd
@@ -28,9 +27,8 @@ try:
 except ModuleNotFoundError:
     import pandas as pd
 
-from ulamdyn.nx_utils import *
 from ulamdyn.base import BaseClass
-
+from ulamdyn.nx_utils import *
 
 __all__ = ["GetCoords", "GetGradients", "GetCouplings", "GetProperties"]
 
@@ -1383,9 +1381,9 @@ class GetProperties(BaseClass):
 
             read_coefs = False
             # TODO: take this value from _init_
-            n_tot_state = int(
-                list(filter(lambda x: "nstat " in x, lines[0:100]))[0].split()[-1]
-            )
+            # n_tot_state = int(
+            #     list(filter(lambda x: "nstat " in x, lines[0:100]))[0].split()[-1]
+            # )
             t_current = 0
             replace_previous = False
 
@@ -1409,7 +1407,7 @@ class GetProperties(BaseClass):
                 elif "Restarting NX job" in line:
                     replace_previous = True
 
-                if "ENERG" in line:
+                if "Starting normal electronic structure calculation" in line:
                     current_coefs = []
                     continue
 
