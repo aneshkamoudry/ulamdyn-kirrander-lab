@@ -74,7 +74,7 @@ def aggregate_data(data, vars_to_group=["time"]):
     col_names = data.columns.values.tolist()
     skip_cols = list(set(col_names).intersection(set(skip_cols)))
     vars_to_aggregate = {
-        k: ["median", "mean", "std", "skew", pd.DataFrame.kurt]
+        k: ["median", "mean", "std", "skew", pd.Series.kurt]
         for k in data.drop(skip_cols, axis=1).columns.values
     }
     df_stats = data.groupby(vars_to_group, as_index=False).agg(vars_to_aggregate)
@@ -221,7 +221,7 @@ def create_stats(selected_data, save_csv=False):
         print("Calculating statistics for the R2 descriptor...\n")
         gc = GetCoords()
         gc.read_all_trajs()
-        gc.align_geoms
+        gc.align_geoms()
         # time_vec = gc.traj_time[:, 1]
         r2 = R2(gc)
         df = r2.build_descriptor(save_csv=False)

@@ -4,6 +4,7 @@
 
 import os
 from itertools import combinations
+
 import numpy as np
 
 try:
@@ -149,7 +150,7 @@ class R2(GetCoords):
         :rtype: numpy.ndarray
         """
         n_samples, dim = r2_vec.shape
-        n_atoms = np.int((1 + np.sqrt(1 + 8 * dim)) / 2)
+        n_atoms = np.int64((1 + np.sqrt(1 + 8 * dim)) / 2)
 
         xyz_reconstructed = np.zeros([n_samples, n_atoms, 3], dtype=np.float64)
         for n, vec in enumerate(r2_vec):
@@ -158,8 +159,8 @@ class R2(GetCoords):
             E = -0.5 * d**2
 
             # Use mat to generate column and row means.
-            Er = np.mat(np.mean(E, 1))
-            Es = np.mat(np.mean(E, 0))
+            Er = np.asmatrix(np.mean(E, 1))
+            Es = np.asmatrix(np.mean(E, 0))
 
             # From Principles of Multivariate Analysis: A User's Perspective (page 107).
             F = np.array(E - np.transpose(Er) - Es + np.mean(E))

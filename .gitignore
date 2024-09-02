@@ -19,3 +19,4 @@ develop-eggs/
 dist/
 eggs/
 .eggs/
+src/ulamdyn.egg-info/
