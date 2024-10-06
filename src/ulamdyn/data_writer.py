@@ -10,7 +10,8 @@ __all__ = ["Geometries"]
 
 
 class Geometries(BaseClass):
-    """Handle and save XYZ coordinates for selected frames of MD trajectories."""
+    """Handle and save XYZ coordinates for selected frames of
+    MD trajectories."""
 
     def __str__(self) -> str:
         """Provide a description of the class functionality.
@@ -18,16 +19,22 @@ class Geometries(BaseClass):
         :return: Human-readable string explaining the class functionality.
         :rtype: str
         """
-        return "Module to export molecular geometries (or gradients) in xyz format."
+        msg = "Module to export molecular geometries (or gradients) "
+        msg += "in xyz format."
+        return msg
 
     def __init__(self, atom_labels, properties_data=None, add_properties=[]):
         """Class initialization.
 
-        :param atom_labels: array of atom labels used to write the XYZ coordinates file.
+        :param atom_labels: array of atom labels used to write the XYZ
+                            coordinates file.
         :type atom_labels: np.array
-        :param properties_data: dataframe containing the property values of the selected geometries, defaults to None.
+        :param properties_data: dataframe containing the property values of
+                                the selected geometries, defaults to None.
         :type properties_data: pandas.DataFrame
-        :param add_properties: list of properties to be added in the comment line of the XYZ file, defaults to ["TRAJ", "time"]
+        :param add_properties: list of properties to be added in the comment
+                               line of the XYZ file.
+                               Defaults to ["TRAJ", "time"]
         :type add_properties: list
         """
         self.labels = atom_labels.reshape(-1, 1)
@@ -35,7 +42,9 @@ class Geometries(BaseClass):
         self.props_data = properties_data
         if isinstance(self.props_data, pd.DataFrame):
             self.props_name = list(
-                set(["TRAJ", "time"]).intersection(properties_data.columns.tolist())
+                set(["TRAJ", "time"]).intersection(
+                    properties_data.columns.tolist()
+                )
             )
             self.props_data = self.props_data.round(4)
 
@@ -72,12 +81,13 @@ class Geometries(BaseClass):
     ) -> None:
         """Save an XYZ file for a set of selected molecular geometries.
 
-        .. note:: The comment line of the XYZ file will contain a list of property values
-                  for each molecule.
+        .. note:: The comment line of the XYZ file will contain a list of
+                  property values for each molecule.
 
         :param geoms_array: a 3D array containing the list of XYZ matrices.
         :type geoms_array: numpy.ndarray
-        :param out_name: name of the XYZ file containing all the selected geometries, defaults to selected_geoms.xyz.
+        :param out_name: name of the XYZ file containing all the selected
+                         geometries, defaults to selected_geoms.xyz.
         :type out_name: str
         """
         n_atoms = len(self.labels)
@@ -90,8 +100,8 @@ class Geometries(BaseClass):
                 comment_line = self._info(n, self.props_name)
 
             geoms_string += str(n_atoms) + "\n" + comment_line + "\n"
-            for l, atom_coords in zip(self.labels, xyz):
-                geoms_string += mask.format(l[0], *atom_coords)
+            for label, atom_coords in zip(self.labels, xyz):
+                geoms_string += mask.format(label[0], *atom_coords)
 
         with open(out_name, "w") as out:
             out.write(geoms_string)

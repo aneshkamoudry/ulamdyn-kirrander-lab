@@ -1,21 +1,11 @@
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: June 7, 2022
 
-import sys
-import numpy as np
-
-try:
-    import modin.pandas as pd
-
-except:
-    import pandas as pd
-
-from ulamdyn.data_loader import *
-from ulamdyn.descriptors import *
-from ulamdyn.statistics import *
-from ulamdyn.wrappers._auxiliary import *
+from ulamdyn.statistics import bootstrap, create_bootstrap_stats
+from ulamdyn.wrappers._auxiliary import get_properties_data
 
 __all__ = ["Bootstrap"]
+
 
 class Bootstrap:
     @classmethod
@@ -46,13 +36,15 @@ class Bootstrap:
                 cls.boot_options = [i for i in cls.boot_options if i != "save"]
             if len(cls.boot_options) > 0:
                 try:
-                    cls.n_samples, cls.ci_level = list(map(int, cls.boot_options))
+                    cls.n_samples, cls.ci_level = list(
+                        map(int, cls.boot_options)
+                    )
                 except ValueError:
                     cls.ci_level = int(cls.boot_options[0])
         else:
             cls.save_csv = True
 
-        print("The following parameters will be used to run the bootstrap analysis:\n")
+        print("Parameters used to run the bootstrap analysis:\n")
         print("         number of repeats = {:<10}".format(cls.n_repeats))
         print("      sampled trajectories = {:<10}".format(cls.n_samples))
         print("       confidence interval = {:<1}%".format(cls.ci_level))

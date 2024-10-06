@@ -1,18 +1,15 @@
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: June 6, 2022
 
-import sys
-
-try:
-    import modin.pandas as pd
-
-except:
-    import pandas as pd
-
-from ulamdyn.data_loader import *
-from ulamdyn.descriptors import *
-from ulamdyn.statistics import aggregate_data
-from ulamdyn.wrappers._auxiliary import *
+from ulamdyn.data_loader import (
+    GetCoords,
+    GetCouplings,
+    GetGradients,
+    GetProperties,
+)
+from ulamdyn.descriptors import R2, ZMatrix
+from ulamdyn.kinetics import GetVelocities, VibrationalSpectra
+from ulamdyn.wrappers._auxiliary import get_properties_data
 
 __all__ = ["SaveDataset"]
 
@@ -50,25 +47,31 @@ class SaveDataset:
 
     @classmethod
     def _gradients(cls):
-        print("Saving the XYZ gradients for each available state (in eV/Å) as dataframes...\n")
+        msg = "Saving the XYZ gradients for each available state (in eV/Å) "
+        msg += "as dataframes...\n"
+        print(msg)
         gg = GetGradients()
         gg.build_dataframe(save_csv=True)
 
     @classmethod
     def _nacs(cls):
-        print("Saving the NACs for each state pair as separated dataframes...\n")
+        print(
+            "Saving the NACs for each state pair as separated dataframes...\n"
+        )
         gnac = GetCouplings()
         gnac.build_dataframe(save_csv=True)
 
     @classmethod
     def _velocities(cls):
-        print("Saving the atomic velocities for each MD step as a dataframe...\n")
+        print(
+            "Saving the atomic velocities for each MD step as a dataframe...\n"
+        )
         veloc = GetVelocities()
         veloc.build_dataframe(save_csv=True)
 
     @classmethod
     def _vibspec(cls):
-        print("Saving the vibrational (power) spectra for all MD trajectories...\n")
+        print("Saving the vibrational spectra for all MD trajectories...\n")
         vs = VibrationalSpectra()
         df_spec = vs.build_dataframe()
         gp = GetProperties()

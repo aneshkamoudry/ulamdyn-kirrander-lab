@@ -14,54 +14,53 @@ ULaMDyn is composed of several Python modules:
 + Statistics
 + Kinetics
 + Descriptors
++ Normal mode analysis
 + Unsup_Models
 + NMA
 
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import os
 import warnings
-import pkg_resources
-
-
-def export(func):
-    if callable(func) and hasattr(func, "__name__"):
-        globals()[func.__name__] = func
-    try:
-        __all__.append(func.__name__)
-    except NameError:
-        __all__ = [func.__name__]
-    return func
-
-
-from ulamdyn.nx_utils import *
-from ulamdyn.data_loader import *
-from ulamdyn.data_writer import Geometries
-from ulamdyn.descriptors import *
-from ulamdyn.statistics import *
-from ulamdyn.kinetics import *
-from ulamdyn.unsup_models.geom_space import *
-from ulamdyn.unsup_models.traj_space import *
-from ulamdyn.unsup_models.dist_metrics import *
-from ulamdyn.unsup_models.geom_sampling import *
-
-from ulamdyn.nma.normal_mode_analysis import *
-
-from ulamdyn.wrappers.dim_reduction import *
-from ulamdyn.wrappers.clustering import *
 
 from ulamdyn._version import get_versions
+from ulamdyn.data_loader import (
+    GetCoords,
+    GetCouplings,
+    GetGradients,
+    GetProperties,
+)
+from ulamdyn.data_writer import Geometries
+from ulamdyn.descriptors import R2, RingParams, ZMatrix
+from ulamdyn.kinetics import GetVelocities, KineticEnergy, VibrationalSpectra
+from ulamdyn.nma.normal_mode_analysis import NormalModeAnalysis
+from ulamdyn.unsup_models.geom_sampling import GeomSampling
+from ulamdyn.unsup_models.geom_space import ClusterGeoms, DimensionReduction
+from ulamdyn.unsup_models.traj_space import ClusterTrajs
+
+__all__ = [
+    "GetCoords",
+    "GetGradients",
+    "GetCouplings",
+    "GetProperties",
+    "Geometries",
+    "R2",
+    "ZMatrix",
+    "RingParams",
+    "GetVelocities",
+    "KineticEnergy",
+    "VibrationalSpectra",
+    "NormalModeAnalysis",
+    "GeomSampling",
+    "DimensionReduction",
+    "ClusterGeoms",
+    "ClusterTrajs",
+]
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-filedir = os.path.dirname(__file__)
-
 __title__ = "ULaMDyn"
-__version__ = _version.get_versions()["version"]
+__version__ = get_versions()["version"]
 __author__ = "Max Pinheiro Jr"
 __email__ = "maxjr82@gmail.com"
 __maintainer__ = "Max Pinheiro Jr"
@@ -70,6 +69,4 @@ __copyright__ = "Copyright 2021 Max Pinheiro"
 
 del get_versions
 
-from . import _version
-
-__version__ = _version.get_versions()["version"]
+filedir = os.path.dirname(__file__)

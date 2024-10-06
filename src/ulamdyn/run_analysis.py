@@ -8,20 +8,21 @@ from __future__ import (
     with_statement,
 )
 
+import argparse
 import os
 import sys
 import time
-import argparse
 
 from ulamdyn.statistics import create_stats
-from ulamdyn.wrappers.nma import NMAnalysis
-from ulamdyn.wrappers.save_xyz import SaveXYZ
 from ulamdyn.wrappers.bootstrap import Bootstrap
-from ulamdyn.wrappers.save_datasets import SaveDataset
+
+# from ulamdyn.wrappers.clustering import ClusteringAnalysis
+# from ulamdyn.wrappers.dim_reduction import DimensionReductionAnalysis
+# from ulamdyn.wrappers.nma import NMAnalysis
+# from ulamdyn.wrappers.ring_analysis import RingAnalysis
 from ulamdyn.wrappers.sampling import SampleGeometries
-from ulamdyn.wrappers.ring_analysis import RingAnalysis
-from ulamdyn.wrappers.clustering import ClusteringAnalysis
-from ulamdyn.wrappers.dim_reduction import DimensionReductionAnalysis
+from ulamdyn.wrappers.save_datasets import SaveDataset
+from ulamdyn.wrappers.save_xyz import SaveXYZ
 
 __all__ = ["main"]
 
@@ -55,7 +56,14 @@ def _get_parser():
         required=False,
         type=str,
         metavar="",
-        choices=["all", "properties", "gradients", "nacs", "velocities", "vibspec"],
+        choices=[
+            "all",
+            "properties",
+            "gradients",
+            "nacs",
+            "velocities",
+            "vibspec",
+        ],
         default=None,
         help="R| Select data set to build from the MD outputs and save as csv file.\n Options: %(choices)s.",
     )
@@ -118,7 +126,16 @@ def _get_parser():
         required=False,
         type=str,
         metavar="",
-        choices=["aXYZ", "R2", "inv-R2", "delta-R2", "RE", "Zmat", "delta-Zmat", "NMP"],
+        choices=[
+            "aXYZ",
+            "R2",
+            "inv-R2",
+            "delta-R2",
+            "RE",
+            "Zmat",
+            "delta-Zmat",
+            "NMP",
+        ],
         default="inv-R2",
         help="R| Descriptor used to represent molecular geometries.\n Options: %(choices)s. (default: %(default)s)",
     )
@@ -208,7 +225,7 @@ def _get_parser():
 
     dimred_analysis = subparsers.add_parser(
         "dim_reduction",
-        parents=[pp1,pp2],
+        parents=[pp1, pp2],
         formatter_class=SmartFormatter,
         help="Dimensionality reduction analysis in molecular configuration space.",
     )
@@ -239,7 +256,7 @@ def _get_parser():
 
     clustering_analysis = subparsers.add_parser(
         "clustering",
-        parents=[pp1,pp2],
+        parents=[pp1, pp2],
         formatter_class=SmartFormatter,
         help="Perform cluster analysis in geometry or trajectory space.",
     )
@@ -357,7 +374,9 @@ def main():
     if args.command is not None:
         if args.command == "sampling":
             print("=" * 55)
-            print("Molecular geometries will be sampled using Gaussian Mixture")
+            print(
+                "Molecular geometries will be sampled using Gaussian Mixture"
+            )
             print("=" * 55)
             print("")
             SampleGeometries.run(**keywords_dict)

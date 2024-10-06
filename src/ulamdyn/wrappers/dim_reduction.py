@@ -1,27 +1,32 @@
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: June 10, 2022
 
-import os
 import sys
-import numpy as np
 
-try:
-    import modin.pandas as pd
-
-except:
-    import pandas as pd
-
-from ulamdyn.data_loader import *
-from ulamdyn.data_writer import *
-from ulamdyn.unsup_models.geom_space import DimensionReduction
+from ulamdyn.data_loader import GetCoords
 from ulamdyn.unsup_models.dist_metrics import calc_rmsd
-from ulamdyn.wrappers._auxiliary import *
-from ulamdyn.nx_utils import *
+from ulamdyn.unsup_models.geom_space import DimensionReduction
+from ulamdyn.wrappers._auxiliary import build_descriptor, get_properties_data
 
 __all__ = ["DimensionReductionAnalysis"]
 
 
 class DimensionReductionAnalysis:
+    descriptor: str = None
+    mwc: bool = None
+    transform: str = None
+    n_samples: int = None
+    time_step: float = None
+    data_scaler: str = None
+    method: str = None
+    n_dim: int = None
+    dist_metric: str = None
+    # Parameter specific to KPCA or Isomap
+    kernel: str = None
+    # Parameter specific to t-SNE
+    perplexity: float = None
+    n_cpus: int = None
+
     @classmethod
     def _load_data(cls):
         # Step 1: Load XYZ data from all trajectories and align coordinates
@@ -29,7 +34,8 @@ class DimensionReductionAnalysis:
         cls.gc.read_all_trajs()
         cls.rmsd_vals = cls.gc.rmsd
 
-        # Step 2: build the dataset of properties that can be used for color map.
+        # Step 2: build the dataset of properties that can be used for
+        #         color map.
         cls.df_props = get_properties_data(cls.rmsd_vals)
 
     @classmethod
@@ -57,11 +63,19 @@ class DimensionReductionAnalysis:
 
         if cls.dist_metric == "rmsd":
             if cls.descriptor != "aXYZ":
-                print("*********************************************************")
-                print("WARNING:                                             \n")
+                print(
+                    "*********************************************************"
+                )
+                print(
+                    "WARNING:                                             \n"
+                )
                 print("RMSD should be used only with the aXYZ descriptor.")
-                print("The Euclidean distance will be used instead as default.")
-                print("*********************************************************")
+                print(
+                    "The Euclidean distance will be used instead as default."
+                )
+                print(
+                    "*********************************************************"
+                )
                 cls.dist_metric = "euclidean"
             else:
                 cls.dist_metric = calc_rmsd
@@ -74,16 +88,20 @@ class DimensionReductionAnalysis:
         )
         csv_name = cls.method + "_ndim" + str(cls.n_dim) + "_"
         csv_name += cls.descriptor.lower() + ".csv"
-        reduced_data.to_csv(csv_name, header=True, index=True, index_label="index")
+        reduced_data.to_csv(
+            csv_name, header=True, index=True, index_label="index"
+        )
 
     @classmethod
     def run(cls, **kw):
         cls._load_data()
         cls._load_params(**kw)
 
-        # Step 3: create the dataset to perform the dimensionality reduction analysis.
-        df_input = build_descriptor(cls.descriptor, cls.mwc, cls.transform, cls.gc)
-    
+        # Step 3: create the dataset to perform dimension reduction analysis
+        df_input = build_descriptor(
+            cls.descriptor, cls.mwc, cls.transform, cls.gc
+        )
+
         # Step 4: create an instance of the dimensionality reduction class
         dimred = DimensionReduction(
             data=df_input,

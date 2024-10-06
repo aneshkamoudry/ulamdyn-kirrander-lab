@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """Setup file to install ulamdyn package."""
 
-from __future__ import with_statement
-from __future__ import absolute_import
+from __future__ import absolute_import, with_statement
 
 import os
+
+from setuptools import find_packages, setup
+
 import versioneer
-from setuptools import setup, find_packages
 
 DESCRIPTION = "Unsupervised learning analysis for molecular dynamics data"
 NAME = "ulamdyn"
@@ -16,7 +17,16 @@ if os.path.exists("requirements.txt"):
     requirements = open("requirements.txt").read()
 else:
     requirements = (
-        ["numpy", "scipy", "h5py", "rmsd", "pandas", "scikit-learn", "tslearn", "joblib"],
+        [
+            "numpy",
+            "scipy",
+            "h5py",
+            "rmsd",
+            "pandas",
+            "scikit-learn",
+            "tslearn",
+            "joblib",
+        ],
     )
 
 if os.path.exists("README.rst"):
@@ -41,7 +51,9 @@ setup(
     long_description=long_description,
     packages=find_packages("src"),
     package_dir={"": "src"},
-    entry_points={"console_scripts": ["run-ulamdyn=ulamdyn.run_analysis:main"]},
+    entry_points={
+        "console_scripts": ["run-ulamdyn=ulamdyn.run_analysis:main"]
+    },
     keywords=[
         "python",
         "chemistry",

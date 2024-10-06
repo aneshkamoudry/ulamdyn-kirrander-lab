@@ -1,4 +1,5 @@
-"""Class with a set of auxiliary functions to handle data preprocessing and printing."""
+"""Auxiliary module to handle data preprocessing and printing."""
+
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: May 31, 2022
 
@@ -9,11 +10,12 @@ except ModuleNotFoundError:
     import pandas as pd
 
 try:
-    from sklearn.base import clone
-    from sklearn.preprocessing import Normalizer
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.preprocessing import RobustScaler
-    from sklearn.preprocessing import StandardScaler
+    from sklearn.preprocessing import (
+        MinMaxScaler,
+        Normalizer,
+        RobustScaler,
+        StandardScaler,
+    )
 except ModuleNotFoundError as e:
     print("Required sklearn modules were not found.")
     print("Please make sure that sklearn library has been installed.")
@@ -34,12 +36,16 @@ class Utils:
         }
 
         if scaler not in sc_option:
-            print("Please choose a valid scaler: minmax, standard, robust or norm.")
+            err_msg = "ERROR! Please choose a valid scaler: "
+            err_msg += "minmax, standard, robust or norm."
+            print(err_msg)
             return
 
         print("\nScaling data with {} method\n".format(scaler))
         scaled_data = sc_option.get(scaler).fit_transform(df)
-        df_scaled = pd.DataFrame(scaled_data, index=df.index, columns=df.columns)
+        df_scaled = pd.DataFrame(
+            scaled_data, index=df.index, columns=df.columns
+        )
         return df_scaled
 
     @staticmethod
