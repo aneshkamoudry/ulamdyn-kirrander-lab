@@ -2,12 +2,24 @@
 # Date: May 29, 2023
 
 import sys
+
 from ulamdyn.unsup_models.geom_sampling import GeomSampling
 
 __all__ = ["SampleGeometries"]
 
 
 class SampleGeometries:
+    # Declare attributes with default values
+    descriptor: str = None
+    n_samples: int = None
+    mwc: bool = None
+    transform: str = None
+    time_step: float = None
+    data_scaler: str = None
+    n_new_geoms: int = None
+    sample_from: str = None
+    n_clusters: int = None
+
     @classmethod
     def _load_params(cls, **kw):
         # List of valid keywords
@@ -26,9 +38,10 @@ class SampleGeometries:
             val = kw.get(k)
             setattr(cls, k, val)
 
-        if "R2" not in cls.descriptor:
-            print("Geometry sampling is available only for R2-type descriptors.")
-            sys.exit()
+        if cls.descriptor is None or "R2" not in str(cls.descriptor):
+            err_msg = "Geometry sampling is available only for "
+            err_msg += "R2-type descriptors."
+            raise ValueError(err_msg)
 
         cls.n_samples = int(cls.n_samples)
         cls.n_new_geoms = int(cls.n_new_geoms)
@@ -53,7 +66,10 @@ class SampleGeometries:
         else:
             from_cluster = 0
             where_prop = cls.sample_from
-        new_geoms = gs.gen_geometries(
-            num_geoms=cls.n_new_geoms, from_cluster=from_cluster, where_prop=where_prop
+
+        _ = gs.gen_geometries(
+            num_geoms=cls.n_new_geoms,
+            from_cluster=from_cluster,
+            where_prop=where_prop,
         )
         gs.save_xyz()

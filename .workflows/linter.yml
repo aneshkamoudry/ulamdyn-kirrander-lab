@@ -1,0 +1,42 @@
+stages:
+  - check_lint
+
+variables:
+  REPORT_DIR: "lint_report"
+  ARTIFACT_NAME: "lint_report_${CI_JOB_ID}"
+
+before_script:
+  # Install ulamdyn dependencies from requirements.txt
+  - make venv
+  - source venv/bin/activate
+  - pip install --upgrade pip
+  - pip install flake8 flake8-html black isort pylint-gitlab
+  - pip install anybadge -U
+  # Configure environment to export artifacts
+  - mkdir -p $REPORT_DIR/lint $REPORT_DIR/flake8 $REPORT_DIR/badges
+  - echo undefined > $REPORT_DIR/lint/pylint.score
+
+check_lint:
+  stage: check_lint
+  script:
+    # Run flake8-html in the background and make check in parallel
+    - flake8 --format=html --htmldir=$REPORT_DIR/flake8 src/ || true &
+    - make check
+
+  after_script:
+    # Activate the virtual environment for after script
+    - source venv/bin/activate
+    - PYLINT_SCORE=$(cat $REPORT_DIR/lint/pylint.score)
+    - anybadge --overwrite --label $CI_JOB_NAME --value=$PYLINT_SCORE --file=$REPORT_DIR/badges/$CI_JOB_NAME.svg 4=red 6=orange 8=yellow 10=green
+    - |
+      echo "The lint code score is: $(cat $REPORT_DIR/lint/pylint.score)"
+    # Archive the flake8-html report
+    - tar -zcvf ${ARTIFACT_NAME}.tgz $REPORT_DIR
+ 
+  artifacts:
+    name: $ARTIFACT_NAME
+    paths:
+      - ${ARTIFACT_NAME}.tgz
+    expire_in: 1 week
+  rules:
+    - if: '$CI_MERGE_REQUEST_IID'

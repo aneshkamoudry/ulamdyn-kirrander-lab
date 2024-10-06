@@ -2,10 +2,13 @@
 #   Date: June 2, 2023
 #  usage: Package for reading a molden input vibration file.
 #         This input is used for normal mode analysis by nma.py.
-#         Also a multiple xyz vibration file compatible with Jmol can be printed out.
+#         Also a multiple xyz vibration file compatible with Jmol can be
+#         printed out.
 
 import os
+
 import numpy as np
+
 from ulamdyn.nma import _file_handler as fh
 from ulamdyn.nx_utils import BOHR_TO_ANG
 
@@ -76,8 +79,8 @@ class VibMolden:
 
     def get_vib_matrix(self):
         """
-        Return a normalised matrix that contains the coordinates for all the vibrations.
-        The modes are in the lines of this matrix!
+        Return a normalised matrix that contains the coordinates for all the
+        vibrations. The modes are in the lines of this matrix!
         """
         m_vib = np.array([vib.ret_joined_vector() for vib in self.vibs])
         return m_vib
@@ -91,9 +94,13 @@ class VibMolden:
     def ret_eff_masses(self, mol_calc, mass_wt_pw=1):
         """
         Returns a list with the effective masses for all the modes.
-        <mol_calc> is a struc_linalg.mol_calc instance with the mass information.
+        <mol_calc> is a struc_linalg.mol_calc instance with the mass
+        information.
         """
-        return [vib.ret_eff_mass(mol_calc, mass_wt_pw=mass_wt_pw) for vib in self.vibs]
+        return [
+            vib.ret_eff_mass(mol_calc, mass_wt_pw=mass_wt_pw)
+            for vib in self.vibs
+        ]
 
     def get_vib_data(self):
         """Output the vibrational data for the reference structure."""
@@ -164,7 +171,8 @@ class vibration:
 
     def ret_eff_mass(self, mol_calc, mass_wt_pw=1):
         """
-        Return the effective mass of the vibration according to structure <struc>.
+        Return the effective mass of the vibration according to
+        structure <struc>.
         """
         M = mol_calc.ret_mass_matrix(power=mass_wt_pw)
 
@@ -178,12 +186,12 @@ def make_molden_file(
     """
     Subroutine for making a molden file.
     """
-    if num_at == None:
+    if num_at is None:
         num_at = struc.ret_num_at()
 
     out_str = "[Molden Format]\n[Title]\n" + title + "\n"
 
-    if not struc == None:
+    if struc is not None:
         out_str += "[Atoms] AU\n"
         out_str += ret_Atoms_table(struc)
 
@@ -192,7 +200,7 @@ def make_molden_file(
     for freq in freqs:
         out_str += " " + str(freq) + "\n"
 
-    if not struc == None:
+    if struc is not None:
         out_str += "[FR-COORD]\n"
         out_str += ret_FRCOORD_table(struc)
 
@@ -217,7 +225,7 @@ def ret_Atoms_table(struc):
     Create the atoms part in the molden file.
     """
     tblmaker = fh.table_maker([6, 4, 3, 21, 21, 21])
-    for i in xrange(struc.ret_num_at()):
+    for i in range(struc.ret_num_at()):
         atom = struc.mol.GetAtom(i + 1)
         tblmaker.write_line(
             [struc.ret_symbol(i + 1), i + 1, atom.GetAtomicNum()]
@@ -234,9 +242,9 @@ def ret_FRCOORD_table(struc):
     Create the FRCOORD part in the molden file.
     """
     tblmaker = fh.table_maker([4, 21, 21, 21])
-    for i in xrange(struc.ret_num_at()):
+    for i in range(struc.ret_num_at()):
         atom = struc.mol.GetAtom(i + 1)
-        vec = atom.GetVector()
+        # vec = atom.GetVector()
         tblmaker.write_line(
             [struc.ret_symbol(i + 1)]
             + [atom.x() / BOHR_TO_ANG]

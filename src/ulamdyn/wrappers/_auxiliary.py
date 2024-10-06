@@ -1,20 +1,20 @@
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: June 3, 2021
 import sys
-import numpy as np
 
 try:
     import modin.pandas as pd
 
-except:
+except ModuleNotFoundError:
     import pandas as pd
 
-from ulamdyn.data_loader import *
-from ulamdyn.kinetics import *
-from ulamdyn.descriptors import *
-from ulamdyn.statistics import *
-from ulamdyn.nx_utils import *
+from ulamdyn.data_loader import GetProperties
+from ulamdyn.descriptors import R2, ZMatrix
+from ulamdyn.kinetics import KineticEnergy
 from ulamdyn.nma.normal_mode_analysis import NormalModeAnalysis
+
+# from ulamdyn.nx_utils import *
+# from ulamdyn.statistics import *
 
 
 def get_kinetic_energies(n_atoms=None):
@@ -48,13 +48,18 @@ def get_properties_data(rmsd_vec=None):
     if rmsd_vec is not None:
         try:
             df["RMSD"] = rmsd_vec
-        except:
+        except ValueError as err:
             s1, s2 = len(rmsd_vec), df.shape[0]
             print("--------------------------------------------------------")
             print("ERROR: \n")
-            print("The size of the coordinates ({}) and properties ({})".format(s1, s2))
+            print(
+                "The size of the coordinates ({}) and properties ({})".format(
+                    s1, s2
+                )
+            )
             print("data sets does not match.")
             print("The RMSD can not be added to the properties data set.")
+            print(err)
             print("--------------------------------------------------------")
 
     return df
@@ -79,14 +84,18 @@ def build_descriptor(descriptor, mwc, transform, getcoords_obj):
         return df_nmp
     elif descriptor in ["R2", "inv-R2", "delta-R2", "RE"]:
         r2 = R2(getcoords_obj, mwc)
-        df_r2 = r2.build_descriptor(variant=descriptor, apply_to_delta=transform)
+        df_r2 = r2.build_descriptor(
+            variant=descriptor, apply_to_delta=transform
+        )
         df_r2.to_csv(descriptor + ".csv", index=False)
         return df_r2
     elif descriptor in ["Zmat", "delta-Zmat"]:
         zmt = ZMatrix(getcoords_obj)
         dfs_dict = {
             "Zmat": zmt.build_descriptor(),
-            "delta-Zmat": zmt.build_descriptor(delta=True, apply_to_delta=transform),
+            "delta-Zmat": zmt.build_descriptor(
+                delta=True, apply_to_delta=transform
+            ),
         }
         df_zmt = dfs_dict[descriptor]
         df_zmt.to_csv(descriptor + ".csv", index=False)

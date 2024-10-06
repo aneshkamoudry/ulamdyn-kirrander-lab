@@ -1,6 +1,6 @@
-"""
-The :mod:`ulamdyn.data_loader` module is used to build datasets from NAMD output files.
-"""
+"""The :mod:`ulamdyn.data_loader` module is used to build datasets from NAMD
+output files."""
+
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: March 10 2021
 from __future__ import (
@@ -12,7 +12,6 @@ from __future__ import (
     with_statement,
 )
 
-import io
 import os
 from itertools import combinations, product
 from typing import Tuple
@@ -28,35 +27,48 @@ except ModuleNotFoundError:
     import pandas as pd
 
 from ulamdyn.base import BaseClass
-from ulamdyn.nx_utils import *
+from ulamdyn.nx_utils import (
+    BOHR_TO_ANG,
+    HARTREE_TO_eV,
+    check_nx_trajs,
+    get_nx_version,
+    read_h5_nx,
+    read_nx_control,
+)
 
 __all__ = ["GetCoords", "GetGradients", "GetCouplings", "GetProperties"]
 
 
 # %% Starting the first class: GetCoords
 class GetCoords(BaseClass):
-    """Class object used to read the Cartesian coordinates from Newton-X MD trajectories.
+    """Read the Cartesian coordinates from Newton-X MD trajectories.
 
-    .. note:: In the case of NX classical series, the Cartesian XYZ coordinates can be read
-              either from dyn.out or dyn.xyz. For NX new series, the data will be read from
-              the h5 file available in each TRAJ directory. Repeated geometries are skipped.
+    .. note:: In the case of NX classical series, the Cartesian XYZ coordinates
+              can be read either from dyn.out or dyn.xyz. For NX new series,
+              the data will be read from the h5 file available in each TRAJ
+              directory. Repeated geometries are skipped.
 
-    It also provides a function to calculate the root-mean-squared deviation (RMSD) between
-    each geometry read from the MD trajectories and a reference geometry. Before calculating
-    the RMSD, the two geometries are aligned using the Kabsch algorithm
-    (https://en.wikipedia.org/wiki/Kabsch_algorithm).
+    It also provides a function to calculate the root-mean-squared deviation
+    (RMSD) between each geometry read from the MD trajectories and a reference
+    geometry. Before calculating the RMSD, the two geometries are aligned using
+    the Kabsch algorithm (https://en.wikipedia.org/wiki/Kabsch_algorithm).
 
-    This class does not require arguments in its constructor. All the outputs generate by
-    the class are given in angstroms.
+    This class does not require arguments in its constructor. All the outputs
+    generate by the class are given in angstroms.
 
     Data attributes:
     ----------------
-       ``trajectories`` (dict): contain indices of the trajectories available with the respective maximum time to read.\n
+       ``trajectories`` (dict): contain indices of the trajectories available
+                                with the respective maximum time to read.\n
        ``labels`` (numpy.ndarray): stores the sequence of atom labels.\n
-       ``eq_xyz`` (numpy.ndarray): stores the XYZ matrix of the reference geometry (geom.xyz).\n
-       ``xyz`` (numpy.ndarray): stores the XYZ matrices of all geometries read from the TRAJ directories.\n
-       ``rmsd`` (numpy.ndarray): vector of RMSD values between all geometries and the reference one.\n
-       ``dataset`` (pandas.dataframe): stores a dataframe of the flattened XYZ matrices.
+       ``eq_xyz`` (numpy.ndarray): stores the XYZ matrix of the reference
+                                   geometry (geom.xyz).\n
+       ``xyz`` (numpy.ndarray): stores the XYZ matrices of all geometries read
+                                from the TRAJ directories.\n
+       ``rmsd`` (numpy.ndarray): vector of RMSD values between all geometries
+                                 and the reference one.\n
+       ``dataset`` (pandas.dataframe): stores a dataframe of the flattened
+                                       XYZ matrices.
     """
 
     # Defining slots to optimize performance (RAM):
@@ -72,8 +84,8 @@ class GetCoords(BaseClass):
 
     def __init__(self) -> None:
         """Class initialization."""
-        # This variable contains a dictionary storing the available trajectories
-        # as keys together with the corresponding t_max:
+        # This variable contains a dictionary storing the available
+        # trajectories as keys together with the corresponding t_max:
         # {'TRAJ1': tmax_1, 'TRAJ2': tmax_2,..., 'TRAJN': tmax_n}
         self.trajectories = check_nx_trajs()
         # Store the sequence of atom labels as a numpy array
@@ -109,22 +121,23 @@ class GetCoords(BaseClass):
                 selected_geom = self.xyz[(c1 & c2)][0]
             else:
                 print("ERROR: Invalid input!")
-                print("The input must be either a tuple with TRAJ and time values")
-                print("or a single integer corresponding to the data index.")
+                print("The input must be either a tuple with TRAJ and time")
+                print("values or a single integer corresponding to the data")
+                print("index.")
                 return geom_string
 
             comment_line = f"TRAJ = {traj}  |  time = {time}"
             geom_string = str(n_atoms) + "\n" + comment_line + "\n"
             mask = "{:<6s} {:12.8f} {:12.8f} {:12.8f} \n"
-            for l, atom_coords in zip(self.labels, selected_geom):
-                geom_string += mask.format(l[0], *atom_coords)
+            for label, atom_coords in zip(self.labels, selected_geom):
+                geom_string += mask.format(label[0], *atom_coords)
             return geom_string
 
     def save_csv(self) -> None:
         """Save all loaded geometries (raw format) into a csv file.
 
-        If the RMSD has been calculated, it will be included as an extra column in the
-        XYZ coordinates data set.
+        If the RMSD has been calculated, it will be included as an extra
+        column in the XYZ coordinates data set.
 
         The default name of the output file is all_coordinates.csv.
         """
@@ -135,7 +148,9 @@ class GetCoords(BaseClass):
         df.to_csv("all_coordinates.csv", index=False, header=True)
 
     def _insert_traj_time(self, df):
-        traj_time_in_cols = all(col in df.columns.tolist() for col in ["TRAJ", "time"])
+        traj_time_in_cols = all(
+            col in df.columns.tolist() for col in ["TRAJ", "time"]
+        )
         # Check first if the TRAJ and time columns already exist in dataframe
         if not traj_time_in_cols:
             if self.traj_time is not None:
@@ -145,10 +160,12 @@ class GetCoords(BaseClass):
         return df
 
     def build_dataframe(self) -> None:
-        """Create a DataFrame containing flattened XYZ coordinates from all MD trajectories.
+        """Create a DataFrame containing flattened XYZ coordinates from all
+        MD trajectories.
 
-        After running this function, the class attribute :attr:`~ulamdyn.GetCoords.dataset` will
-        be updated with the loaded DataFrame object.
+        After running this function, the class attribute
+        :attr:`~ulamdyn.GetCoords.dataset` will be updated with the loaded
+        DataFrame object.
         """
         if all(v is not None for v in [self.labels, self.xyz]):
             n_atoms = len(self.labels)
@@ -157,8 +174,10 @@ class GetCoords(BaseClass):
                 for i in range(1, n_atoms + 1)
             ]
             col_names = sum(col_names, [])
-            print('Distance units: Angstrom')
-            df = pd.DataFrame(self.xyz.reshape(-1, n_atoms * 3), columns=col_names)
+            print("Distance units: Angstrom")
+            df = pd.DataFrame(
+                self.xyz.reshape(-1, n_atoms * 3), columns=col_names
+            )
             df = self._insert_traj_time(df)
 
             if self.rmsd is not None:
@@ -181,13 +200,14 @@ class GetCoords(BaseClass):
 
     @staticmethod
     def from_h5(outfile: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Read the XYZ coordinates of the MD frames generated by the Newton-X new series.
+        """Read the XYZ coordinates of the MD frames generated by Newton-X NS.
 
         :param outfile: name of the NX output file, usually dyn.h5
         :type outfile: str
-        :return: tuple containing an array of strings defining the atom labels, a
-                 tensor of size (n_steps, n_atoms, 3) with all XYZ coordinates of a
-                 single MD trajectory, and an array with the time steps.
+        :return: tuple containing an array of strings defining the atom labels,
+                 a tensor of size (n_steps, n_atoms, 3) with all XYZ
+                 coordinates of a single MD trajectory, and an array with the
+                 time steps.
         :rtype: tuple in the form (numpy.ndarray, numpy.ndarray, numpy.ndarray)
         """
         data = h5py.File(outfile, "r")
@@ -207,9 +227,10 @@ class GetCoords(BaseClass):
 
         :param outfile: name of the NX output file, dyn.out
         :type outfile: str
-        :return: tuple containing an array of strings defining the atom labels, a
-                 tensor of size (n_steps, n_atoms, 3) with all XYZ coordinates of a
-                 single MD trajectory, and an array with the time steps.
+        :return: tuple containing an array of strings defining the atom labels,
+                 a tensor of size (n_steps, n_atoms, 3) with all XYZ
+                 coordinates of a single MD trajectory, and an array with the
+                 time steps.
         :rtype: tuple in the form (numpy.ndarray, numpy.ndarray, numpy.ndarray)
         """
         read_coords = False
@@ -249,7 +270,9 @@ class GetCoords(BaseClass):
                         # xyz_geoms.append(coords)
                         append_geoms(coords)
                         # Labels will be read only in the first iteration
-                        if current_time == 0.0 and isinstance(atom_labels, list):
+                        if current_time == 0.0 and isinstance(
+                            atom_labels, list
+                        ):
                             atom_labels.append(vals[0].upper())
                     else:
                         t_list.append(current_time)
@@ -267,7 +290,9 @@ class GetCoords(BaseClass):
         num_atoms = len(atom_labels)
 
         xyz_geoms = np.array(xyz_geoms)
+        # pylint: disable=too-many-function-args
         xyz_geoms = xyz_geoms.reshape(-1, num_atoms, 3)
+        # pylint: enable=too-many-function-args
         xyz_geoms *= BOHR_TO_ANG
         atom_labels = np.asarray(atom_labels)
         t_list = np.asarray(t_list)
@@ -278,11 +303,12 @@ class GetCoords(BaseClass):
     def from_xyz(xyzfile) -> Tuple[np.ndarray, np.ndarray]:
         """Get XYZ coordinates from the dyn.xyz file of classical Newton-X.
 
-        This method has the same parameters and return type as in :meth:`~ulamdyn.GetCoords.from_dyn`.
+        This method has the same parameters and return type as in
+        :meth:`~ulamdyn.GetCoords.from_dyn`.
         """
         count = 0
-        xyz_geoms = list()
-        atom_labels = list()
+        xyz_geoms = []
+        atom_labels = []
 
         with open(xyzfile, "r") as inp:
             for line in inp:
@@ -306,29 +332,36 @@ class GetCoords(BaseClass):
         return (atom_labels, xyz_array)
 
     def read_all_trajs(self, calc_rmsd: bool = True) -> None:
-        """Concatenate the XYZ coordinates read from all available MD trajectories.
+        """Concatenate the XYZ coordinates read from all MD trajectories.
 
-        After running this method, the class attributes :attr:`~ulamdyn.GetCoords.labels`
-        and :attr:`~ulamdyn.GetCoords.xyz` will be updated.
+        After running this method, the class attributes
+        :attr:`~ulamdyn.GetCoords.labels` and :attr:`~ulamdyn.GetCoords.xyz`
+        will be updated.
         """
         traj_id = []
         t_vals = []
         all_geoms = []
+
+        # Instanciate the append before the loop for better efficiency
         append_trajs = traj_id.append
         append_times = t_vals.append
         append_all_geoms = all_geoms.append
+
+        # Initiate the variable `ts` (timestamps) as an empty array to avoid
+        # pylint error E606 (temporary solution).
+        ts = np.array([])
+
         for trj in self.trajectories:
-            # print("Reading geometries from %s" % trj + "...")
             tmax = self.trajectories.get(trj)
             results_dir = trj + "/RESULTS/"
             files = os.listdir(results_dir)
             h5file = next((f for f in files if f.endswith(".h5")), None)
             if h5file:
                 h5file = results_dir + h5file
-                atom_labels, xyz, t = self.from_h5(h5file)
+                atom_labels, xyz, ts = self.from_h5(h5file)
             elif os.path.isfile(results_dir + "dyn.out"):
                 dynfile = results_dir + "dyn.out"
-                atom_labels, xyz, t = self.from_dyn(dynfile, tmax)
+                atom_labels, xyz, ts = self.from_dyn(dynfile, tmax)
             elif os.path.isfile(results_dir + "dyn.xyz"):
                 xyzfile = results_dir + "dyn.xyz"
                 atom_labels, xyz = self.from_xyz(xyzfile)
@@ -338,8 +371,8 @@ class GetCoords(BaseClass):
                 print("Check the directory %s" % trj + "/RESULTS" + "\n")
                 continue
             append_all_geoms(xyz)
-            append_times(t)
-            n_steps = len(t)
+            append_times(ts)
+            n_steps = len(ts)
             current_traj = np.int64(trj.replace("TRAJ", ""))
             append_trajs(np.full(n_steps, current_traj, dtype=np.int64))
 
@@ -358,34 +391,43 @@ class GetCoords(BaseClass):
     def read_eq_geom(self) -> None:
         """Read the XYZ coordinates of a reference geometry.
 
-        .. note:: This method should be executed before calculating the RMSD with the
-                  :meth:`~ulamdyn.GetCoords.align_geoms` function.
+        .. note:: This method should be executed before calculating the RMSD
+                  with the :meth:`~ulamdyn.GetCoords.align_geoms` function.
 
-        A file with name geom.xyz must be provided in the working directory (TRAJECTORIES).
-        After reading the coordinates, the method will update the class attributes
-        :attr:`~ulamdyn.GetCoords.labels` and :attr:`~ulamdyn.GetCoords.eq_xyz`.
+        A file with name geom.xyz must be provided in the working directory
+        (TRAJECTORIES). After reading the coordinates, the method will update
+        the class attributes :attr:`~ulamdyn.GetCoords.labels` and
+        :attr:`~ulamdyn.GetCoords.eq_xyz`.
         """
         try:
             atom_labels, ref_geom = self.from_xyz("geom.xyz")
             self.eq_xyz = np.squeeze(ref_geom, axis=0)
             self.labels = atom_labels
         except FileNotFoundError:
-            print("\n-----------------------------------------------------------")
+            print(
+                "\n-----------------------------------------------------------"
+            )
             print("Reference geometry not found!")
             print("The reference geometry is required to compute the RMSD. ")
-            print("Check if the geom.xyz file is available in the current dir.")
-            print("-----------------------------------------------------------\n")
+            print(
+                "Check if the geom.xyz file is available in the current dir."
+            )
+            print(
+                "-----------------------------------------------------------\n"
+            )
 
     def align_geoms(self, xyz_data=None) -> None:
         """Calculate the RMSD between the current and reference geometries.
 
-        .. note:: Before calculating the RMSD, the method uses the Kabsch algorithm to find
-                  the optimal alignment between the loaded molecular geometry for each time
-                  step t and the reference geometry.
+        .. note:: Before calculating the RMSD, the method uses the Kabsch
+                  algorithm to find the optimal alignment between the loaded
+                  molecular geometry for each time step t and the reference
+                  geometry.
 
         The calculated RMSD values will be stored in the class attribute
-        :attr:`~ulamdyn.GetCoords.rmsd_values`, while the :attr:`~ulamdyn.GetCoords.xyz`
-        attribute will be updated with the aligned geometries.
+        :attr:`~ulamdyn.GetCoords.rmsd_values`, while the
+        :attr:`~ulamdyn.GetCoords.xyz` attribute will be updated with the
+        aligned geometries.
         """
         if self.eq_xyz is None:
             self.read_eq_geom()
@@ -397,13 +439,17 @@ class GetCoords(BaseClass):
                 xyz_data = self.xyz.copy()
             else:
                 error_msg = (
-                    "---------------------------------------------------" + "\n "
+                    "---------------------------------------------------"
+                    + "\n "
                 )
                 error_msg += "XYZ coordinates not loaded!" + "\n "
-                error_msg += "Please make sure that the read_all_trajs function "
+                error_msg += (
+                    "Please make sure that the read_all_trajs function "
+                )
                 error_msg += "has been executed." + "\n "
                 error_msg += (
-                    "---------------------------------------------------" + "\n "
+                    "---------------------------------------------------"
+                    + "\n "
                 )
                 print(error_msg)
                 return
@@ -428,14 +474,17 @@ class GetCoords(BaseClass):
 class GetGradients(BaseClass):
     """Class used to collect QM gradients from Newton-X MD trajectories.
 
-    This class does not require arguments in its constructor. The outputs generate by
-    the class is given in eV/angstrom.
+    This class does not require arguments in its constructor. The outputs
+    generate by the class is given in eV/angstrom.
 
     Data attributes:
     ----------------
-       ``trajectories`` (dict): contain indices of the trajectories available with the respective maximum time to read.\n
-       ``all_grads`` (dict): store the gradient matrices (per state) for all MD trajectories.\n
-       ``dataset`` (dict): dictionary of dataframes with the flattened gradient matrices.
+       ``trajectories`` (dict): contain indices of the trajectories available
+                                with the respective maximum time to read.\n
+       ``all_grads`` (dict): store the gradient matrices (per state) for all
+                             MD trajectories.\n
+       ``dataset`` (dict): dictionary of dataframes with the flattened gradient
+                           matrices.
     """
 
     # Defining slots to optimize memory access performance (RAM):
@@ -443,7 +492,7 @@ class GetGradients(BaseClass):
 
     def __init__(self) -> None:
         """Class initializer."""
-        # This variable contains a dictionary storing the available trajectories
+        # This variable contains a dictionary storing the available TRAJs
         # as keys together with the corresponding t_max:
         # {'TRAJ1': tmax_1, 'TRAJ2': tmax_2,..., 'TRAJN': tmax_n}
         self.trajectories = check_nx_trajs()
@@ -454,13 +503,14 @@ class GetGradients(BaseClass):
 
     @staticmethod
     def from_h5(outfile) -> dict:
-        """Read XYZ gradients from a single trajectory generated by the new Newton-X.
+        """Read XYZ gradients from a single trajectory generated by Newton-X NS
 
-        :param outfile: name of the NX output file in the .h5 format, usually dyn.h5.
+        :param outfile: name of the NX output file in the .h5 format,
+                        usually dyn.h5.
         :type outfile: str
-        :return: stacked XYZ gradients for all steps of a single MD trajectory, returned as
-                 as a dictionary of tensors (numpy.ndarray, one for each state) with shape
-                 (n_steps, n_atoms, 3).
+        :return: stacked XYZ gradients for all steps of a single MD trajectory,
+                 returned as as a dictionary of tensors (numpy.ndarray, one for
+                 each state) with shape (n_steps, n_atoms, 3).
         :rtype: dict
         """
         grads_dict = dict()
@@ -470,27 +520,32 @@ class GetGradients(BaseClass):
         n_states = xyz_grads.shape[-1]
 
         for state in range(n_states):
-            grads_dict[state] = xyz_grads[:, :, :, state] * HARTREE_TO_eV / BOHR_TO_ANG
+            grads_dict[state] = (
+                xyz_grads[:, :, :, state] * HARTREE_TO_eV / BOHR_TO_ANG
+            )
 
         return grads_dict
 
     @staticmethod
     def from_nxlog(outfile, tmax=100000) -> dict:
-        """Read XYZ gradients from one trajectory generated by the old Newton-X.
+        """Read XYZ gradients from one trajectory generated by Newton-X CS.
 
-        This method has the same parameters and return type as in :meth:`~ulamdyn.GetGradients.from_h5`.
+        This method has the same parameters and return type as in
+        :meth:`~ulamdyn.GetGradients.from_h5`.
 
         :param outfile: Output file from Newton-X MD trajectory, namely nx.log.
         :type outfile: str
-        :return: dictionary of numpy.ndarray with shape (n_steps, n_atoms, 3), where the keys
-                 correspond to the state's id.
+        :return: dictionary of numpy.ndarray with shape (n_steps, n_atoms, 3),
+                 where the keys correspond to the state's id.
         :rtype: dict
         """
         read_grads = False
         count_start = 0
         t_current = 0
         t_hop = np.inf
+        num_atoms = None
 
+        # Dictionary used to store the gradients for each state
         grads_dict = dict()
 
         with open(outfile, "r") as nx_log:
@@ -548,7 +603,8 @@ class GetGradients(BaseClass):
         return grads_dict
 
     def read_all_trajs(self) -> None:
-        """Read gradients from all MD trajectories and store into a dictionary."""
+        """Read gradients from all MD trajectories and store into a
+        dictionary."""
         all_grads = {}
         for trj in self.trajectories:
             print("Reading gradients from %s" % trj + "...")
@@ -576,13 +632,14 @@ class GetGradients(BaseClass):
     def build_dataframe(self, save_csv=False) -> None:
         """Generate a dataset (pandas.DataFrame object) with all gradients.
 
-        The XYZ matrices with the gradients of each molecular geometry is flattened into a
-        one dimensional vector, such that every row of the dataset corresponds to one step
-        of the MD trajectories.
+        The XYZ matrices with the gradients of each molecular geometry is
+        flattened into a one dimensional vector, such that every row of the
+        dataset corresponds to one step of the MD trajectories.
 
-        :param save_csv: if True enable the output of all gradient dataframes in a csv format,
-                         defaults to False. The default name of the saved dataset is
-                         all_gradients_s[n].csv, where *n* is the number of the state.
+        :param save_csv: if True enable the output of all gradient dataframes
+                         in a csv format, defaults to False. The default name
+                         of the saved dataset is all_gradients_s[n].csv, where
+                         *n* is the number of the state.
         :type save_csv: bool, optional
         """
         if not self.all_grads:
@@ -591,7 +648,8 @@ class GetGradients(BaseClass):
         state = list(self.all_grads.keys())[0]
         n_atoms = self.all_grads[state].shape[1]
         col_names = [
-            ["Gx" + str(i), "Gy" + str(i), "Gz" + str(i)] for i in range(1, n_atoms + 1)
+            ["Gx" + str(i), "Gy" + str(i), "Gz" + str(i)]
+            for i in range(1, n_atoms + 1)
         ]
         col_names = sum(col_names, [])
 
@@ -607,16 +665,20 @@ class GetGradients(BaseClass):
 
 # %% Starting new class: GetCouplings
 class GetCouplings(BaseClass):
-    """Class used to read the Nonadiabatic Coupling Vectors (NAC) from the MD trajectories.
+    """Class used to read the Nonadiabatic Coupling Vectors (NAC) from the
+    MD trajectories.
 
-    This class does not require arguments in its constructor. The outputs generate by
-    the class is given in atomic units.
+    This class does not require arguments in its constructor. The outputs
+    generate by the class is given in atomic units.
 
     Data attributes:
     ----------------
-       ``trajectories`` (dict): contain indices of the trajectories available with the respective maximum time to read.\n
-       ``all_nacs`` (dict): store the NAC matrices (per state) for all MD trajectories.\n
-       ``dataset`` (dict): dictionary of dataframes with the flattened gradient matrices.
+       ``trajectories`` (dict): contain indices of the trajectories available
+                                with the respective maximum time to read.\n
+       ``all_nacs`` (dict): store the NAC matrices (per state) for all
+                            MD trajectories.\n
+       ``dataset`` (dict): dictionary of dataframes with the flattened gradient
+                           matrices.
     """
 
     # Define slots to optimize RAM memory access
@@ -624,8 +686,8 @@ class GetCouplings(BaseClass):
 
     def __init__(self):
         """Class initializer."""
-        # This variable contains a dictionary storing the available trajectories as keys
-        # together with the corresponding t_max:
+        # This variable contains a dictionary storing the available
+        # trajectories as keys together with the corresponding t_max:
         # {'TRAJ1': tmax_1, 'TRAJ2': tmax_2,..., 'TRAJN': tmax_n}
         self.trajectories = check_nx_trajs()
         # Store the NAC matrices per state as a dictionary, where
@@ -637,11 +699,13 @@ class GetCouplings(BaseClass):
     def from_h5(outfile) -> dict:
         """Read NACs from one trajectory generated by the new Newton-X.
 
-        :param outfile: name of the NX output file in the .h5 format, usually dyn.h5.
+        :param outfile: name of the NX output file in the .h5 format,
+                        usually dyn.h5.
         :type outfile: str
-        :return: stacked nonadiabatic coupling vectors (NAC) for all steps of a single MD
-                 trajectory, provided as a dictionary of tensors (numpy.ndarray, one for
-                 each state) with shape (n_steps, n_atoms, 3).
+        :return: stacked nonadiabatic coupling vectors (NAC) for all steps of
+                 a single MD trajectory, provided as a dictionary of tensors
+                 (numpy.ndarray, one for each state) with shape
+                 (n_steps, n_atoms, 3).
         :rtype: dict
         """
         nacs_dict = dict()
@@ -655,7 +719,9 @@ class GetCouplings(BaseClass):
 
         nacs = np.array(data[path_to_nacs], dtype=np.float64)
         # Temporary solution.
-        epot = np.array(data["observables/potential_energy/value"], dtype=np.float64)
+        epot = np.array(
+            data["observables/potential_energy/value"], dtype=np.float64
+        )
         num_blocks = nacs.shape[-1]
         num_states = epot.shape[-1]
         if num_blocks == 1:
@@ -671,10 +737,16 @@ class GetCouplings(BaseClass):
         return nacs_dict
 
     @staticmethod
-    def from_nxlog(outfile, tmax=100000) -> dict:
-        """Read NACs from one trajectory generated by the classical Newton-X."""
+    def from_nxlog(outfile: str, tmax=100000) -> dict:
+        """Read NACs from one trajectory generated by the Newton-X CS."""
         read_nacs = False
         count_start = 0
+
+        # Initiate variables with value None to avoid lint errors (temporary
+        # solution). Ideally, this value should be available before starting
+        # to process the NX output file.
+        num_atoms = None
+        states = None
 
         nacs_dict = dict()
 
@@ -709,7 +781,9 @@ class GetCouplings(BaseClass):
                     else:
                         read_nacs = True
                         count_line = 0
-                        nacs_step = np.full((num_atoms * num_blocks, 3), np.nan)
+                        nacs_step = np.full(
+                            (num_atoms * num_blocks, 3), np.nan
+                        )
                         continue
 
                 if read_nacs:
@@ -761,13 +835,15 @@ class GetCouplings(BaseClass):
     def build_dataframe(self, save_csv=False) -> None:
         """Generate a dataset (pandas.DataFrame object) with all NACs.
 
-        The XYZ matrices with the nonadiabatic couplings obtained for each molecular geometry
-        is flattened into a one dimensional vector. In this way, every row of the dataset
-        corresponds to one step of a given MD trajectory.
+        The XYZ matrices with the nonadiabatic couplings obtained for each
+        molecular geometry is flattened into a one dimensional vector. In this
+        way, every row of the dataset corresponds to one step of a given MD
+        trajectory.
 
-        :param save_csv: if True enable the output of all NAC dataframes in a csv format,
-                         defaults to False. The default name of the exported dataset is
-                         all_nacs_s[n].csv, where *n* is the number of the state.
+        :param save_csv: if True enable the output of all NAC dataframes in a
+                         csv format, defaults to False. The default name of the
+                         exported dataset is all_nacs_s[n].csv, where *n* is
+                         the number of the state.
         :type save_csv: bool, optional
         """
         if not self.all_nacs:
@@ -793,19 +869,24 @@ class GetCouplings(BaseClass):
 
 # %% Starting new class: GetProperties
 class GetProperties(BaseClass):
-    """Class used to read all properties available in the Newton-X MD trajectories.
+    """Read all properties available in the Newton-X MD trajectories.
 
-    .. note:: This class does not require arguments in its constructor. All the energy quantities
-              processed by the class are transformed from Ha to eV. For the other properties, the
-              original units used in Newton-X are kept.
+    .. note:: This class does not require arguments in its constructor. All the
+              energy quantities processed by the class are transformed from Ha
+              to eV. For the other properties, the original units used in
+              Newton-X are kept.
 
     Data attributes:
     ----------------
-       ``trajectories`` (dict): trajectories ID (TRAJXX) found in the working directory are stored as keys of the
-                                dictionary, and the corresponding values are the maximum simulation time to be read.\n
-       ``dataset`` (pd.dataframe): store a dataframe with all available properties.\n
-       ``num_states`` (int): keep track of the number of states considered in the MD simulation.\n
-       ``nx_version`` (str): identify the Newton-X version, can be either cs (classical series) or ns (new series).\n
+       ``trajectories`` (dict): trajectories ID (TRAJXX) found in the working
+                                directory are stored as keys of the
+                                dictionary, and the corresponding values are
+                                the maximum simulation time to be read.\n
+       ``dataset`` (pd.dataframe): store a dataframe with all properties.\n
+       ``num_states`` (int): keep track of the number of states considered in
+                             the MD simulation.\n
+       ``nx_version`` (str): identify the Newton-X version, can be either cs
+                             (classical series) or ns (new series).\n
 
     """
 
@@ -813,8 +894,8 @@ class GetProperties(BaseClass):
 
     def __init__(self) -> None:
         """Class initializer."""
-        # This variable contains a dictionary storing the available trajectories as keys
-        # together with the corresponding t_max:
+        # This variable contains a dictionary storing the available
+        # trajectories as keys together with the corresponding t_max:
         # {'TRAJ1': tmax_1, 'TRAJ2': tmax_2,..., 'TRAJN': tmax_n}
         self.trajectories = check_nx_trajs()
         traj = "TRAJ1"
@@ -826,17 +907,17 @@ class GetProperties(BaseClass):
         # Auxiliary variable to keep track of the number of states.
         # The default value will be updated in the energy function.
 
-        # TODO: Create a function to read the number of states either from the
+        # TO-DO: Create a function to read the number of states either from the
         # control.dyn file or from RESULTS/nx.log
         self.num_states = int(read_nx_control(traj).get("nstat", None))
-        # This variable is used to recognize the version of Newton-X (cs or ns),
-        # and then use this information to decide which functions should be
-        # used to collect the properties data.
+        # This variable is used to recognize the version of Newton-X
+        # (cs or ns), and then use this information to decide which functions
+        # should be used to collect the properties data.
         self.nx_version = get_nx_version(traj)
 
     @property
     def save_csv(self) -> None:
-        """Save the dataset with all QM properties read from the Newton-X trajectories.
+        """Save the dataset with QM properties read from the NX trajectories.
 
         The following properties are included in the dataset:
 
@@ -861,7 +942,10 @@ class GetProperties(BaseClass):
             print("------------------------------------------------\n")
 
             df.to_csv(
-                "all_properties.csv", index=False, header=True, float_format="%.10f"
+                "all_properties.csv",
+                index=False,
+                header=True,
+                float_format="%.10f",
             )
 
         else:
@@ -872,8 +956,9 @@ class GetProperties(BaseClass):
             print("---------------------------------------\n")
 
     def _update_properties(self, df):
-        # From now on, the input dataframe df must always contain the TRAJ and time columns.
-        # These columns are necessary to identify/export the differences between the two dfs.
+        # From now on, the input dataframe df must always contain the TRAJ and
+        # time columns. These columns are necessary to identify/export the
+        # differences between the two dfs.
         if self.dataset is None:
             print("\n-----------------------------------------------------")
             print("The properties dataset is empty.")
@@ -884,34 +969,36 @@ class GetProperties(BaseClass):
         if all(isinstance(i, pd.DataFrame) for i in (self.dataset, df)):
             if self.dataset.shape[0] == df.shape[0]:
                 current_cols = self.dataset.columns.tolist()
-                cols_to_add = df.columns.difference(self.dataset.columns).tolist()
+                cols_to_add = df.columns.difference(
+                    self.dataset.columns
+                ).tolist()
                 if len(cols_to_add) != 0:
                     df = df[cols_to_add]
                     if "time" in current_cols:
                         dfs_to_merge = (self.dataset, df)
                     else:
                         dfs_to_merge = (df, self.dataset)
-                    self.dataset = pd.concat(dfs_to_merge, axis=1, ignore_index=False)
+                    self.dataset = pd.concat(
+                        dfs_to_merge, axis=1, ignore_index=False
+                    )
             else:
                 select_cols = ["TRAJ", "time"]
                 df_diff = pd.concat(
                     [self.dataset[select_cols], df[select_cols]]
                 ).drop_duplicates(keep=False)
-                warning = (
-                    "***************************************************************\n"
+                warning = "*************************************************\n"
+                warning += (
+                    "WARNING: The size of the dataframes does not match!\n\n"
                 )
-                warning += "WARNING: The size of the dataframes does not match!\n\n"
                 warning += "    Dataset 1 contains {} rows\n".format(
                     self.dataset.shape[0]
                 )
-                warning += "    Dataset 2 contains {} rows\n\n".format(df.shape[0])
-                warning += (
-                    "         Please check the mismatched TRAJ and time values in\n"
+                warning += "    Dataset 2 contains {} rows\n\n".format(
+                    df.shape[0]
                 )
-                warning += "         in the properties_diff.csv file.\n"
-                warning += (
-                    "***************************************************************"
-                )
+                warning += "Please check the mismatched TRAJ and time values\n"
+                warning += "in the properties_diff.csv file.\n"
+                warning += "*************************************************"
                 print(warning)
                 df_diff.to_csv("properties_diff.csv", index=False, header=True)
 
@@ -924,12 +1011,18 @@ class GetProperties(BaseClass):
             if data is None:
                 continue
 
-            time = np.array(data["observables/potential_energy/time"], dtype=np.float64)
-            current_state = np.array(data["observables/nstatdyn/value"], dtype=np.int64)
+            time = np.array(
+                data["observables/potential_energy/time"], dtype=np.float64
+            )
+            current_state = np.array(
+                data["observables/nstatdyn/value"], dtype=np.int64
+            )
             epot = np.array(
                 data["observables/potential_energy/value"], dtype=np.float64
             )
-            etot = np.array(data["observables/total_energy/value"], dtype=np.float64)
+            etot = np.array(
+                data["observables/total_energy/value"], dtype=np.float64
+            )
 
             time = time.reshape(-1, 1)
             etot = etot.reshape(-1, 1)
@@ -948,7 +1041,8 @@ class GetProperties(BaseClass):
         all_energies[:, 1:-1] *= HARTREE_TO_eV
 
         # The final order of the columns in the array should be like:
-        # ['time', 'potential energies', 'total energy', 'current state', 'TRAJ']
+        # ['time', 'potential energies', 'total energy', 'current state',
+        # 'TRAJ']
         all_energies = np.concatenate((all_energies, traj_id), axis=1)
 
         return all_energies
@@ -984,7 +1078,8 @@ class GetProperties(BaseClass):
         all_energies = np.concatenate(all_energies, axis=0)
         all_energies[:, 1:] *= HARTREE_TO_eV
 
-        # After swapping the columns, the expected order of the columns should be like:
+        # After swapping the columns, the expected order of the columns should
+        # be like:
         # ['time', 'potential energies', 'total energy', 'current state']
         all_energies[:, -1], all_energies[:, -2] = (
             all_energies[:, -2],
@@ -996,12 +1091,14 @@ class GetProperties(BaseClass):
         return all_energies
 
     def energies(self):
-        """Read / process the energy information from the en.dat (classical NX) or .h5 (new NX) file.
+        """Read / process the energy information from the en.dat (classical NX)
+        or .h5 (new NX) file.
 
-        :return: a processed dataset with the information of all trajectories stacked, and
-                 containing the following columns "TRAJ", "time", "State", "Total_Energy" plus
-                 the energy gaps between the accessible states (e.g., DE12) and binary columns
-                 to identify the hopping points (e.g., Hops_S21).
+        :return: a processed dataset with the information of all trajectories
+                 stacked, and containing the following columns "TRAJ", "time",
+                 "State", "Total_Energy" plus the energy gaps between the
+                 accessible states (e.g., DE12) and binary columns to identify
+                 the hopping points (e.g., Hops_S21).
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
         if self.nx_version == "cs":
@@ -1015,20 +1112,27 @@ class GetProperties(BaseClass):
 
         self.num_states = all_energies.shape[1] - 4
         state_labels = ["S" + str(i + 1) for i in range(self.num_states)]
-        col_names = ["time"] + state_labels + ["Total_Energy", "Current_State", "TRAJ"]
+        col_names = (
+            ["time"] + state_labels + ["Total_Energy", "Current_State", "TRAJ"]
+        )
         df = pd.DataFrame(all_energies, columns=col_names)
         df["TRAJ"] = df["TRAJ"].astype(int)
 
         if self.nx_version == "cs":
-            df["State"] = df[state_labels].eq(df["Current_State"], axis=0).idxmax(1)
+            df["State"] = (
+                df[state_labels].eq(df["Current_State"], axis=0).idxmax(1)
+            )
             df["State"] = df["State"].str.replace("S", "").astype(int)
         elif self.nx_version == "ns":
             df["State"] = df["Current_State"].astype(int)
 
         # Auxiliary variable used to find the hopping points
-        df["State_Next"] = df.groupby(by="TRAJ")["State"].shift(-1, fill_value=-10)
+        df["State_Next"] = df.groupby(by="TRAJ")["State"].shift(
+            -1, fill_value=-10
+        )
 
-        # Loop to calculate energy difference between all possible pair of states
+        # Loop to calculate energy difference between all possible pair of
+        # states
         for i, j in combinations(state_labels, 2):
             from_to = j.replace("S", "") + i.replace("S", "")
             new_col = "DE" + from_to
@@ -1088,7 +1192,9 @@ class GetProperties(BaseClass):
             traj_id = np.concatenate(traj_id, axis=0)
             times = np.concatenate(times, axis=0)
 
-            col_names = ["f_0" + str(state) for state in range(1, n_states + 1)]
+            col_names = [
+                "f_0" + str(state) for state in range(1, n_states + 1)
+            ]
             df = pd.DataFrame(all_osc_strengths, columns=col_names)
             df.insert(loc=0, column="TRAJ", value=traj_id)
             df.insert(loc=1, column="time", value=times)
@@ -1101,7 +1207,7 @@ class GetProperties(BaseClass):
         times = []
 
         for trj in self.trajectories:
-            step = -1
+            # step = -1
             read_line = False
             tmax = self.trajectories.get(trj, 100000)
 
@@ -1137,7 +1243,7 @@ class GetProperties(BaseClass):
                     t_current = np.float64(line.split()[2])
                     if t_current > tmax:
                         break
-                    current_step = np.int64(line.split()[4])
+                    # current_step = np.int64(line.split()[4])
                     current_state = np.int64(line.split()[-1])
 
                     if current_state == previous_state:
@@ -1145,7 +1251,7 @@ class GetProperties(BaseClass):
                         count = 0
                     else:
                         read_line = False
-                    step = current_step
+                    # step = current_step
                     previous_state = current_state
 
                 if ("Oscillator" in line) and read_line:
@@ -1175,15 +1281,17 @@ class GetProperties(BaseClass):
     def oscillator_strength(self):
         """Collect the oscillator strength from properties file.
 
-        .. note:: The oscillator strength (OSS) is not always available in the output.
-                  If needed, check the Newton-Xdocumentation to see what are the required
-                  keywords and methods. The OSS data can be read from either classical or
-                  new series NX trajectories.
+        .. note:: The oscillator strength (OSS) is not always available in the
+                  output. If needed, check the Newton-Xdocumentation to see
+                  what are the required keywords and methods. The OSS data can
+                  be read from either classical or new series NX trajectories.
 
-        :return: a dataset with the oscillator strength information read from all available
-                 NX trajectories with one column for each transition between states; if the
-                 class variable :attr:`~ulamdyn.GetProperties.dataset` has been already
-                 updated with some properties, the oscillator strength data will be merged
+        :return: a dataset with the oscillator strength information read from
+                 all available NX trajectories with one column for each
+                 transition between states; if the class variable
+                 :attr:`~ulamdyn.GetProperties.dataset` has been already
+                 updated with some properties, the oscillator strength data
+                 will be merged
                  with the existing properties dataset.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
@@ -1215,8 +1323,12 @@ class GetProperties(BaseClass):
             if data is None:
                 continue
 
-            pop_traj = np.array(data["observables/populations/value"], dtype=np.float64)
-            t_vec = np.array(data["observables/populations/time"], dtype=np.float64)
+            pop_traj = np.array(
+                data["observables/populations/value"], dtype=np.float64
+            )
+            t_vec = np.array(
+                data["observables/populations/time"], dtype=np.float64
+            )
             n_steps = len(t_vec)
             current_traj = np.int64(trj.replace("TRAJ", ""))
 
@@ -1249,7 +1361,7 @@ class GetProperties(BaseClass):
                 print("-------------------------------------------------\n")
                 continue
 
-            step = -1
+            # step = -1
             current_step = 0
             error_en_conserv = False
             tmax = self.trajectories.get(trj, 100000)
@@ -1262,7 +1374,7 @@ class GetProperties(BaseClass):
 
                 if "STEP" in line:
                     count = 0
-                    error_found = False
+                    # error_found = False
                     current_step = np.int64(line.split()[1])
                     t_current = np.float64(line.split()[-2])
                     if t_current > tmax:
@@ -1294,14 +1406,16 @@ class GetProperties(BaseClass):
     def populations(self):
         """Read and calculate the population for each accessible state.
 
-        .. note:: If the MD simulations were performed with the classical Newton-X, the
-                  populations will be calculated using the wavefunction coefficients. In
-                  the new Newton-X, the populations are already calculated and available
-                  in the .h5 file.
+        .. note:: If the MD simulations were performed with the classical
+                  Newton-X, the populations will be calculated using the
+                  wavefunction coefficients. In the new Newton-X, the
+                  populations are already calculated and available in the
+                  .h5 file.
 
-        :return: a dataset with the populations obtained from all available NX trajectories with
-                 one column per state; if the class variable :attr:`~ulamdyn.GetProperties.dataset`
-                 has been already updated with some properties, the population data will be
+        :return: a dataset with the populations obtained from all available NX
+                 trajectories with one column per state; if the class variable
+                 :attr:`~ulamdyn.GetProperties.dataset` has been already
+                 updated with some properties, the population data will be
                  merged with the existing dataset.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
@@ -1327,15 +1441,17 @@ class GetProperties(BaseClass):
         return df
 
     def nac_norm(self):
-        """Calculate the norm of the nonadiabatic coupling matrices for each pair of states.
+        """Calculate the norm of the nonadiabatic coupling matrices for each
+        pair of states.
 
-        After running this function, the class variable :attr:`~ulamdyn.GetProperties.dataset`
-        will be updated with the loaded NACs norm data.
+        After running this function, the class variable
+        :attr:`~ulamdyn.GetProperties.dataset` will be updated with the loaded
+        NACs norm data.
 
-        :return: a dataset with the Frobenius norm of the nonadiabatic coupling matrices
-                 of all NX trajectories calculated for each possible transition between
-                 states; the number of columns in the NACs norm dataset is given by
-                 n_states * (n_states - 1)/2.
+        :return: a dataset with the Frobenius norm of the nonadiabatic
+                 coupling matrices of all NX trajectories calculated for each
+                 possible transition between states; the number of columns in
+                 the NACs norm dataset is given by n_states * (n_states - 1)/2.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
 
@@ -1375,21 +1491,30 @@ class GetProperties(BaseClass):
             tmax = self.trajectories.get(trj, 100000)
             lines = f.readlines()
 
-            if not check_csf in lines:
+            if check_csf not in lines:
                 print("\nMCSCF coefficients are not available in nx.log.\n")
                 return (None, None, None)
 
             read_coefs = False
-            # TODO: take this value from _init_
+            # TO-DO: take this value from _init_
             # n_tot_state = int(
-            #     list(filter(lambda x: "nstat " in x, lines[0:100]))[0].split()[-1]
+            #     list(
+            #         filter(
+            #             lambda x: "nstat " in x, lines[0:100]
+            #         )
+            #     )[0].split()[-1]
             # )
             t_current = 0
             replace_previous = False
+            current_coefs = []
 
             # Start reading the properties file
             print("Reading MCSCF coefficients from %s" % trj + "...")
+
             for line in lines:
+                # Note: in this logic, the file is not read in order from the
+                #       beginning to the end. Therefore, the `current_coefs`
+                #       must be created before to avoid lint error.
                 if "FINISHING STEP" in line:
                     t_current = np.float64(line.split()[4])
                     if replace_previous:
@@ -1433,18 +1558,21 @@ class GetProperties(BaseClass):
     def mcscf_coefs(self):
         """Collect the squared coefficients of the MCSCF wavefunction.
 
-        .. note:: This method works only for NAMD trajectories generated with Columbus.
+        .. note:: This method works only for NAMD trajectories generated with
+                  Columbus.
 
-        :return: a dataset with the three highest MCSCF coefficients (the three largest) for
-                 each electronic state read from the NX output per state; if the class variable
-                 :attr:`~ulamdyn.GetProperties.dataset` has been already updated with some
-                 properties, the population data will be merged with the existing dataset.
+        :return: a dataset with the three highest MCSCF coefficients (the three
+                 largest) for each electronic state read from the NX output per
+                 state; if the class variable
+                 :attr:`~ulamdyn.GetProperties.dataset` has been already
+                 updated with some properties, the population data will be
+                 merged with the existing dataset.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
         if self.nx_version == "cs":
             all_mcscf_coefs, times, traj_id = self._mcscf_coefs_from_txt()
         elif self.nx_version == "ns":
-            # TODO: all_mcscf_coefs = self._mcscf_coefs_from_h5()
+            # TO-DO: all_mcscf_coefs = self._mcscf_coefs_from_h5()
             print("This function is not available yet for the new NX.")
             return
         else:
@@ -1454,7 +1582,7 @@ class GetProperties(BaseClass):
 
         if all_mcscf_coefs is not None:
             n_coefs = 3
-            # TODO: n_states should be taken directly from _init_
+            # TO-DO: n_states should be taken directly from _init_
             n_states = int(all_mcscf_coefs.shape[1] / n_coefs)
             states_id = ["S" + str(i + 1) for i in range(n_states)]
             coefs_id = ["c" + str(i + 1) for i in range(n_coefs)]

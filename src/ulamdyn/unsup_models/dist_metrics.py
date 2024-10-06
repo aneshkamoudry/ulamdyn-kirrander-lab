@@ -1,15 +1,15 @@
-"""This module provides a set of methods to calculate distances between pairs of molecular geometries."""
+"""This module provides a set of methods to calculate distances between
+pairs of molecular geometries."""
+
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: 04/06/2022
-import rmsd
 import numpy as np
-
-from sklearn.metrics import pairwise_distances
+import rmsd
 
 __all__ = ["calc_rmsd"]
 
 
-def calc_rmsd(x1, x2):
+def calc_rmsd(x1: np.ndarray, x2: np.ndarray) -> float:
     """Calculate the root-mean square deviation between two aligned geometries.
 
     :param x1: Matrix of Cartesian coordinates for geometry 1.

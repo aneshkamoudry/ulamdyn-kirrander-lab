@@ -17,6 +17,9 @@ PY_FILES = $(shell find src/ -type f -name '*.py')
 # list of folders/files considered as source code (used by linters)
 SOURCE_CODE = src setup.py
 
+# Define directory for the lint outputs
+LINT_OUTPUTS ?= lint_report
+
 # clean environment
 clean:
 	@echo ">>> clean env:" $(ENV_NAME)
@@ -43,14 +46,25 @@ venv: requirements.txt
 	@echo Installing dependencies from requirements.txt
 	./$(ENV_NAME)/bin/python3 -m pip install -r requirements.txt
 
+# Ensure lint output directory exists
+prepare_lint_dir:
+	@if [ ! -d "$(LINT_OUTPUTS)/lint" ]; then \
+		echo "Creating lint report directory at $(LINT_OUTPUTS)/lint"; \
+		mkdir -p $(LINT_OUTPUTS)/lint; \
+	fi
+
 # run linter checks (and pytests whenever available) 
-check:
-	@echo Running pylint in the source code...
-	${ENV_NAME}/bin/pylint ${SOURCE_CODE}
+check: prepare_lint_dir
 	@echo Running isort...
 	${ENV_NAME}/bin/isort --profile black --check ${SOURCE_CODE}
 	@echo Checking code convention with black...
 	${ENV_NAME}/bin/black --check ${SOURCE_CODE}
+	@echo Running pylint in the source code...
+	${ENV_NAME}/bin/pylint --exit-zero --output-format=text ${SOURCE_CODE} | tee /tmp/pylint.txt
+	@sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' /tmp/pylint.txt > $(LINT_OUTPUTS)/lint/pylint.score
+	${ENV_NAME}/bin/pylint --exit-zero --output-format=pylint_gitlab.GitlabCodeClimateReporter ./src > $(LINT_OUTPUTS)/lint/codeclimate.json
+	${ENV_NAME}/bin/pylint --exit-zero --output-format=pylint_gitlab.GitlabPagesHtmlReporter ./src > $(LINT_OUTPUTS)/lint/index.html
+
 #	@echo Running tests...
 #	${ENV_NAME}/bin/pytest -s --cov=src tests --cov-report term --cov-report html:coverage_html --cov-report xml:coverage.xml
 

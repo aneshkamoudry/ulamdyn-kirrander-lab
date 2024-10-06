@@ -7,6 +7,9 @@ __all__ = ["NMAnalysis"]
 
 
 class NMAnalysis:
+    vib_file: str = None
+    time_intervals: str = None
+
     @classmethod
     def _load_params(cls, **kw):
         # List of valid keywords

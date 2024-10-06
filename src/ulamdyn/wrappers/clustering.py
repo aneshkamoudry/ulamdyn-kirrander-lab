@@ -1,31 +1,42 @@
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: June 3, 2022
 
-import os
 import sys
-import numpy as np
 
 try:
     import modin.pandas as pd
 
-except:
+except ImportError:
     import pandas as pd
 
-from ulamdyn.data_loader import *
-from ulamdyn.data_writer import *
-from ulamdyn.kinetics import *
-from ulamdyn.descriptors import *
-from ulamdyn.statistics import *
+from ulamdyn.data_loader import GetCoords
+from ulamdyn.data_writer import Geometries
+from ulamdyn.descriptors import ZMatrix
+
+# from ulamdyn.nx_utils import *
+from ulamdyn.statistics import aggregate_data
+from ulamdyn.unsup_models.dist_metrics import calc_rmsd
 from ulamdyn.unsup_models.geom_space import ClusterGeoms
 from ulamdyn.unsup_models.traj_space import ClusterTrajs
-from ulamdyn.unsup_models.dist_metrics import calc_rmsd
-from ulamdyn.wrappers._auxiliary import *
-from ulamdyn.nx_utils import *
+from ulamdyn.wrappers._auxiliary import build_descriptor, get_properties_data
 
 __all__ = ["ClusteringAnalysis"]
 
 
 class ClusteringAnalysis:
+    space: str = None
+    method: str = None
+    # The number of cluster can be an integer or 'best'.
+    n_clusters: str = None
+    descriptor: str = None
+    mwc: bool = None
+    transform: str = None
+    n_samples: int = None
+    time_step: float = None
+    data_scaler: str = None
+    dist_metric: str = None
+    n_cpus: int = None
+
     @classmethod
     def _load_data(cls):
         # Step 1: Load XYZ data from all trajectories and align coordinates
@@ -33,7 +44,8 @@ class ClusteringAnalysis:
         cls.gc.read_all_trajs()
         cls.rmsd_vals = cls.gc.rmsd
 
-        # Step 2: build the dataset of properties that can be used for color map.
+        # Step 2: build the dataset of properties that can be used for color
+        # map.
         cls.df_props = get_properties_data(cls.rmsd_vals)
 
     @classmethod
@@ -70,11 +82,19 @@ class ClusteringAnalysis:
 
         if cls.dist_metric == "rmsd":
             if cls.descriptor != "aXYZ":
-                print("*********************************************************")
-                print("WARNING:                                             \n")
+                print(
+                    "*********************************************************"
+                )
+                print(
+                    "WARNING:                                             \n"
+                )
                 print("RMSD should be used only with the aXYZ descriptor.")
-                print("The Euclidean distance will be used instead as default.")
-                print("*********************************************************")
+                print(
+                    "The Euclidean distance will be used instead as default."
+                )
+                print(
+                    "*********************************************************"
+                )
                 cls.dist_metric = "euclidean"
             else:
                 cls.dist_metric = calc_rmsd
@@ -91,7 +111,9 @@ class ClusteringAnalysis:
             cls.df_props = cls.df_props.merge(cluster_labels, on="TRAJ")
         csv_name = cls.space + "_" + cls.method + "_k" + str(cls.n_clusters)
         csv_name += "_properties.csv"
-        cls.df_props.to_csv(csv_name, header=True, index=True, index_label="index")
+        cls.df_props.to_csv(
+            csv_name, header=True, index=True, index_label="index"
+        )
 
     @classmethod
     def _save_cluster_geoms(cls, cluster_labels):
@@ -118,17 +140,17 @@ class ClusteringAnalysis:
                 df_temp = df_temp[coords_cols]
                 n_geoms = df_temp.shape[0]
                 xyz_cluster = df_temp.values.reshape(n_geoms, n_atoms, 3)
-                df_props_cluster = cls.df_props.query(select_cluster).sort_values(
-                    by=["time"]
-                )
+                df_props_cluster = cls.df_props.query(
+                    select_cluster
+                ).sort_values(by=["time"])
                 df_props_cluster = df_props_cluster.reset_index(drop=True)
                 geoms = Geometries(atom_labels, df_props_cluster, info2xyz)
-                out_name = cls.method + "_geoms_cluster" + str(cluster + 1) + ".xyz"
+                out_name = (
+                    cls.method + "_geoms_cluster" + str(cluster + 1) + ".xyz"
+                )
                 geoms.save_xyz(xyz_cluster, out_name=out_name)
 
-            print(
-                "Saving average geometries corresponding to the clusters' centroids...\n"
-            )
+            print("Saving average geometries from clusters' centroids...\n")
             select_cols = coords_cols + [col_labels]
             df_xyz = df_xyz[select_cols]
             df_xyz_mean = df_xyz.groupby(col_labels).mean()
@@ -142,18 +164,19 @@ class ClusteringAnalysis:
             df_xyz = df_xyz.merge(cluster_labels, on="TRAJ")
             df_xyz_mean = df_xyz.groupby([col_labels, "time"]).mean()
             df_xyz_mean = df_xyz_mean.filter(regex="x|y|z")
-            xyz_mean = df_xyz_mean.values.reshape(cls.n_clusters, -1, n_atoms, 3)
+            xyz_mean = df_xyz_mean.values.reshape(
+                cls.n_clusters, -1, n_atoms, 3
+            )
             for cluster in range(cls.n_clusters):
-                print(
-                    "Saving geometries for the average trajectory of cluster {}...\n".format(
-                        cluster
-                    )
-                )
+                print("Saving geometries for the average trajectory of")
+                print("cluster {}...\n".format(cluster))
                 select_cluster = col_labels + "==" + str(cluster)
                 df_props_cluster = cls.stats_data["prop"].query(select_cluster)
                 df_props_cluster = df_props_cluster.reset_index(drop=True)
                 geoms = Geometries(atom_labels, df_props_cluster)
-                out_name = cls.method + "_geoms_avg_traj" + str(cluster + 1) + ".xyz"
+                out_name = (
+                    cls.method + "_geoms_avg_traj" + str(cluster + 1) + ".xyz"
+                )
                 geoms.save_xyz(xyz_mean[cluster], out_name=out_name)
 
     @classmethod
@@ -180,20 +203,26 @@ class ClusteringAnalysis:
         cls.stats_data["prop"] = df_stats_prop.reset_index()
         csv_name = cls.space + "_" + cls.method + "_k" + str(cls.n_clusters)
         csv_name += "_stats_properties.csv"
-        df_stats_prop.to_csv(csv_name, header=True, index=True, index_label="index")
+        df_stats_prop.to_csv(
+            csv_name, header=True, index=True, index_label="index"
+        )
 
         print("Creating statistics for Z-Matrix data based on clusters...\n")
         df_stats_zmt = aggregate_data(df_zmt, vars_to_group)
         cls.stats_data["zmat"] = df_stats_zmt.reset_index()
         csv_name = csv_name.replace("properties", "zmatrix")
-        df_stats_zmt.to_csv(csv_name, header=True, index=True, index_label="index")
+        df_stats_zmt.to_csv(
+            csv_name, header=True, index=True, index_label="index"
+        )
 
     @classmethod
     def run(cls, **kw):
         cls._load_data()
         cls._load_params(**kw)
         # Step 3: create the dataset to perform the clustering analysis.
-        df_input = build_descriptor(cls.descriptor, cls.mwc, cls.transform, cls.gc)
+        df_input = build_descriptor(
+            cls.descriptor, cls.mwc, cls.transform, cls.gc
+        )
 
         # Step 4: create instance for the clustering method.
         if cls.space == "geoms":
@@ -221,14 +250,25 @@ class ClusteringAnalysis:
 
         try:
             df_labels = getattr(model, cls.method)(n_clusters=cls.n_clusters)
-        except:
-            print("------------------------------------------------------------")
+        except AttributeError as err:
+            print(
+                "------------------------------------------------------------"
+            )
             print("ERROR:                                             \n")
-            print("Model {} not recognized or not implemented.".format(cls.method))
+            print(
+                "Model {} not recognized or not implemented.".format(
+                    cls.method
+                )
+            )
             print("Please select one of the available methods:")
-            print("    geometries ---> K-Means, Hierarchical, Spectral or GMM.")
+            print(
+                "    geometries ---> K-Means, Hierarchical, Spectral or GMM."
+            )
             print("  trajectories ---> K-Means.")
-            print("------------------------------------------------------------")
+            print(err)
+            print(
+                "------------------------------------------------------------"
+            )
             sys.exit(1)
 
         col_labels = [s for s in df_labels.columns if "labels" in s][0]
@@ -236,7 +276,9 @@ class ClusteringAnalysis:
 
         print("Saving data set with all cluster labels...\n")
         filename = cls.space + "_" + cls.method + "_labels.csv"
-        df_labels.to_csv(filename, header=True, index=True, index_label="index")
+        df_labels.to_csv(
+            filename, header=True, index=True, index_label="index"
+        )
 
         cls._save_props_data(df_labels)
         cls._build_stats(df_labels)

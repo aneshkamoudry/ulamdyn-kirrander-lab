@@ -1,4 +1,5 @@
 """Module to perform statistical analysis of the MD datasets."""
+
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
 # Date: April 25, 2021
 from __future__ import (
@@ -9,6 +10,7 @@ from __future__ import (
 )
 
 import sys
+
 import numpy as np
 
 try:
@@ -32,38 +34,41 @@ __all__ = [
 ]
 
 
-def drop_hops(df):
+def drop_hops(df: pd.DataFrame) -> pd.DataFrame:
     """Removes rows for timesteps not multiple of kt.
 
-    When kt != 1 in NewtonX, there are extra timesteps printed at hopping times.
-    This creates rows in the dataframe that contains only a single trajectory
-    and the statistics at those timesteps are meaningless. This removes those 
-    extra steps.
+    When kt != 1 in NewtonX, there are extra timesteps printed at hopping
+    times. This creates rows in the dataframe that contains only a single
+    trajectory and the statistics at those timesteps are meaningless. This
+    removes those extra steps.
 
     :param df: input dataset to be cleaned
     :return: dataframe without the extra time steps
     """
     dt = df.time[1] - df.time[0]
-    df = df[(df['time'] + 1E-5)%dt < 1E-3]
+    df = df[(df["time"] + 1e-5) % dt < 1e-3]
     df = df.reset_index(drop=True)
     return df
 
 
-def aggregate_data(data, vars_to_group=["time"]):
-    """Group data based on variable(s) to calculate the statistical descriptors.
+def aggregate_data(
+    data: pd.DataFrame, vars_to_group: list = ["time"]
+) -> pd.DataFrame:
+    """Group data based on variables to calculate the statistical descriptors.
 
-    The statistical quantities calculated by this function are *mean* and *median*
-    to describe the central tendency, and *standard deviation* to measure the
-    variability or dispersion of the data. In addition, the skewness and kurtosis
-    of the distribution are also computed. So each feature of the original input
-    data will be unfolded into five new columns identified with the suffixes
-    '_median', '_mean', '_std', '_skew', and '_kurt'.
+    The statistical quantities calculated by this function are *mean* and
+    *median* to describe the central tendency, and *standard deviation* to
+    measure the variability or dispersion of the data. In addition, the
+    skewness and kurtosis of the distribution are also computed. So each
+    feature of the original input data will be unfolded into five new columns
+    identified with the suffixes '_median', '_mean', '_std', '_skew', and
+    '_kurt'.
 
     :param data: input dataset containing the information extracted from all MD
                  trajectories.
     :type data: pandas.DataFrame
-    :param vars_to_group: set of variables used by the function to group the data,
-                          defaults to ["time"]
+    :param vars_to_group: set of variables used by the function to group the
+                          data, defaults to ["time"]
     :type vars_to_group: list, optional
     :return: dataframe object with statistical description of the input data
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
@@ -77,8 +82,12 @@ def aggregate_data(data, vars_to_group=["time"]):
         k: ["median", "mean", "std", "skew", pd.Series.kurt]
         for k in data.drop(skip_cols, axis=1).columns.values
     }
-    df_stats = data.groupby(vars_to_group, as_index=False).agg(vars_to_aggregate)
-    df_stats.columns = ["_".join(col).strip() for col in df_stats.columns.values]
+    df_stats = data.groupby(vars_to_group, as_index=False).agg(
+        vars_to_aggregate
+    )
+    df_stats.columns = [
+        "_".join(col).strip() for col in df_stats.columns.values
+    ]
     df_stats.columns = [col.rstrip("_") for col in df_stats.columns.values]
     if "TRAJ" in col_names:
         count = data.groupby(vars_to_group)["TRAJ"].nunique().values
@@ -89,13 +98,15 @@ def aggregate_data(data, vars_to_group=["time"]):
 
 
 def calc_avg_occupations(df):
-    """Calculate the fraction of trajectories in each state as a function of time.
+    """Calculate the fraction of trajectories in each state as a function
+    of time.
 
-    .. note:: The fraction of trajectories (occupation) is an important quantity to
-              assess the quality of the surface hopping (SH) simulations. It should be
-              compared to the population of each state averaged over all trajectories,
-              which is provided by the method :meth:`~ulamdyn.aggregate_data`. If the
-              ensemble of SH trajectories is statistically converged, the occupation
+    .. note:: The fraction of trajectories (occupation) is an important
+              quantity to assess the quality of the surface hopping (SH)
+              simulations. It should be compared to the population of each
+              state averaged over all trajectories, which is provided by the
+              method :meth:`~ulamdyn.aggregate_data`. If the ensemble of SH
+              trajectories is statistically converged, the occupation
               and the average population should match.
 
     :param df: properties dataset with information collected from the available
@@ -105,15 +116,19 @@ def calc_avg_occupations(df):
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
     """
     # Compute the average occupations of the trajectories for each state state
-    # STEP 1 - count the number of trajectories occupying a given state at each time
-    x = df.groupby(["time", "State"]).count().reset_index()[["time", "State", "TRAJ"]]
-    # STEP 2 - create num_states new columns with the respective number of trajectories
-    #          and fill missing values with zeros
+    # STEP 1 - count the number of TRAJs occupying a given state at each time
+    x = (
+        df.groupby(["time", "State"])
+        .count()
+        .reset_index()[["time", "State", "TRAJ"]]
+    )
+    # STEP 2 - create num_states new columns with the respective number of
+    #          trajectories and fill missing values with zeros
     df_occ = x.pivot_table(
         values="TRAJ", index="time", columns="State", fill_value=0
     ).reset_index()
-    # STEP 3 - compute the occupation rowise considering that in each timestep the number
-    #          of trajectories migh be different
+    # STEP 3 - compute the occupation rowise considering that in each timestep
+    #          the number of trajectories migh be different
     df_occ = drop_hops(df_occ)
     df_occ.drop(["time"], axis=1, inplace=True)
     df_occ = df_occ.div(df_occ.sum(axis=1), axis=0)
@@ -126,16 +141,20 @@ def _add_column(dataframe, col_name, array):
     try:
         dataframe[col_name] = array
     except ValueError:
-        print("-----------------------------------------------------------------")
+        print(
+            "-----------------------------------------------------------------"
+        )
         print("ERROR:                                          \n")
         print(
-            "The size of the data set (n_rows = {}) and the inserted\n{} property \
+            "The dataset size (n_rows = {}) and the inserted\n{} property \
                (n_rows = {}) does not match.".format(
                 dataframe.shape[0], col_name, array.shape[0]
             )
         )
         print("Please check the number of lines in the related csv files.")
-        print("-----------------------------------------------------------------")
+        print(
+            "-----------------------------------------------------------------"
+        )
         sys.exit()
     return dataframe
 
@@ -143,15 +162,17 @@ def _add_column(dataframe, col_name, array):
 def stats_hopping(dataframe):
     """Generate a statistical summary for the hopping points.
 
-    :param dataframe: properties dataset with information collected from the available
-                      MD trajectories
+    :param dataframe: properties dataset with information collected from the
+                      available MD trajectories
     :type dataframe: pandas.DataFrame | modin.pandas.dataframe.DataFrame
-    :return: a new dataset containing the total number of hops per trajectory and
-             the minimum and maximum time in which the hops between each pair of
-             electronic states occur.
+    :return: a new dataset containing the total number of hops per trajectory
+             and the minimum and maximum time in which the hops between each
+             pair of electronic states occur.
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
     """
-    hopping_cols = list(filter(lambda k: "Hops" in k, dataframe.columns.tolist()))
+    hopping_cols = list(
+        filter(lambda k: "Hops" in k, dataframe.columns.tolist())
+    )
 
     if len(hopping_cols) == 0:
         print("---------------------------------------------")
@@ -165,15 +186,27 @@ def stats_hopping(dataframe):
 
         for k in hopping_cols:
             stats = ["min", "max"]
-            df1 = dataframe[dataframe[k] == 1].groupby(["TRAJ"])[["time"]].agg(stats)
+            df1 = (
+                dataframe[dataframe[k] == 1]
+                .groupby(["TRAJ"])[["time"]]
+                .agg(stats)
+            )
             new_col_labels = df1.columns.map("".join).str.strip()
             s = k.replace("Hops_", "")
-            df1.columns = [s + "_" + i.replace("time", "t") for i in new_col_labels]
+            df1.columns = [
+                s + "_" + i.replace("time", "t") for i in new_col_labels
+            ]
 
             ordered_states = tuple(s.replace("S", ""))
-            ordered_states = "".join(sorted(ordered_states, key=int, reverse=True))
+            ordered_states = "".join(
+                sorted(ordered_states, key=int, reverse=True)
+            )
             DE_col = "DE" + ordered_states
-            df2 = dataframe[dataframe[k] == 1].groupby(["TRAJ"])[[DE_col]].agg(stats)
+            df2 = (
+                dataframe[dataframe[k] == 1]
+                .groupby(["TRAJ"])[[DE_col]]
+                .agg(stats)
+            )
             df2.columns = df2.columns.map("_".join).str.strip("_")
             df_stats = pd.concat([df_stats, df1, df2], axis=1)
 
@@ -183,18 +216,20 @@ def stats_hopping(dataframe):
 
 
 def create_stats(selected_data, save_csv=False):
-    """Create datasets with the statistical summary of the requested quantities.
+    """Create datasets with statistical summary of the requested quantities.
 
-    :param selected_data: type of data used as input to compute the descriptive statistical
-                          properties using the :meth:`~ulamdyn.aggregate_data` function
+    :param selected_data: type of data used as input to compute the descriptive
+                          statistical properties using the
+                          :meth:`~ulamdyn.aggregate_data` function
     :type selected_data: str
-    :param save_csv: if true exports the calculated statistics for each dataframe in a csv
-                     format, defaults to false
+    :param save_csv: if true exports the calculated statistics for each
+                     dataframe in a csv format, defaults to false
     :type save_csv: bool, optional
-    :return: one or several datasets containing the median, mean and standard deviation
-             calculated for each feature of the input as a function of time; if the
-             attribute is equal to 'all', the statistics will be calculated for the
-             properties and descriptors (R2 and Z-Matrix) datasets.
+    :return: one or several datasets containing the median, mean and standard
+             deviation calculated for each feature of the input as a function
+             of time; if the attribute is equal to 'all', the statistics will
+             be calculated for the properties and descriptors (R2 and Z-Matrix)
+             datasets.
     :rtype: dict(pandas.DataFrame) | dict(modin.pandas.dataframe.DataFrame)
     """
     all_stats = dict()
@@ -257,7 +292,9 @@ def create_stats(selected_data, save_csv=False):
         all_stats["ekinetics"] = df_ekin_stats
 
     elif selected_data.lower() == "vibspec":
-        print("Calculating statistics for the vibrational spectra dataset...\n")
+        print(
+            "Calculating statistics for the vibrational spectra dataset...\n"
+        )
         gp = GetProperties()
         df = gp.energies()
         time_vec = df["time"].values
@@ -280,7 +317,9 @@ def create_stats(selected_data, save_csv=False):
         for key, df in all_stats.items():
             if df is not None:
                 csv_name = "stats_" + key + ".csv"
-                df.to_csv(csv_name, index=False, header=True, float_format="%.8f")
+                df.to_csv(
+                    csv_name, index=False, header=True, float_format="%.8f"
+                )
 
     return all_stats
 
@@ -294,12 +333,12 @@ def _calc_ci(a, which=95, axis=None):
 def bootstrap(dataframe, n_samples=None, n_repeats=1000, save_csv=False):
     """Estimate the mean by resampling the data with replacement.
 
-    :param dataframe: input dataset having the quantities extrated from all available
-                      MD trajectories; the dataset must contain the 'TRAJ' and 'time'
-                      columns
+    :param dataframe: input dataset having the quantities extrated from all
+                      available MD trajectories; the dataset must contain the
+                      'TRAJ' and 'time' columns
     :type dataframe: pandas.DataFrame | modin.pandas.dataframe.DataFrame
-    :param n_samples: number of trajectories considered in each round of the resampling,
-                      defaults to None
+    :param n_samples: number of trajectories considered in each round of the
+                      resampling, defaults to None
     :type n_samples: int, optional
     :param n_repeats: number of resampling to be performed, defaults to 1000
     :type n_repeats: int, optional
@@ -320,9 +359,13 @@ def bootstrap(dataframe, n_samples=None, n_repeats=1000, save_csv=False):
     df_bootstrap = pd.DataFrame()
 
     for i in range(n_repeats):
-        selected_trajs = np.random.choice(trajs_sample, size=n_samples, replace=True)
+        selected_trajs = np.random.choice(
+            trajs_sample, size=n_samples, replace=True
+        )
         df = dataframe[dataframe["TRAJ"].isin(selected_trajs)]
-        idx = [y for x in selected_trajs for y in df.index[df["TRAJ"].values == x]]
+        idx = [
+            y for x in selected_trajs for y in df.index[df["TRAJ"].values == x]
+        ]
         df = df.loc[idx].reset_index(drop=True)
         df = df.groupby(["time"], as_index=False).mean()
         df_bootstrap = df_bootstrap.append(df)
@@ -334,15 +377,20 @@ def bootstrap(dataframe, n_samples=None, n_repeats=1000, save_csv=False):
 
 
 def create_bootstrap_stats(boot_data, ci_level=95):
-    """Generate the descriptive statistics for the bootstrapped data within a given confidence interval.
+    """Generate the descriptive statistics for the bootstrapped data within a
+    given confidence interval.
 
-    :param boot_data: bootstrapped dataframe generate by the :meth:`~ulamdyn.bootstrap` function
+    :param boot_data: bootstrapped dataframe generate by the
+                      :meth:`~ulamdyn.bootstrap` function
     :type boot_data: pandas.DataFrame | modin.pandas.dataframe.DataFrame
-    :param ci_level: Size of the confidence interval to draw when aggregating the data (by time)
-                     to estimate the statistical descriptors (median, mean, std), defaults to 95
+    :param ci_level: Size of the confidence interval to draw when aggregating
+                     the data (by time) to estimate the statistical descriptors
+                     (median, mean, std), defaults to 95
     :type ci_level: int, optional
-    :return: dataframe grouped by the simulation time with each feature of the original dataset
-             unfolded into three columns representing the statistical descriptors and other two columns storing the values for the lowest and highest variability as defined by the
+    :return: dataframe grouped by the simulation time with each feature of the
+             original dataset unfolded into three columns representing the
+             statistical descriptors and other two columns storing the values
+             for the lowest and highest variability as defined by the
              confidence interval
     :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
     """
@@ -356,7 +404,9 @@ def create_bootstrap_stats(boot_data, ci_level=95):
             col_names = [c + "_ci_" + i for i in ["low", "high"]]
             grouped = boot_data.groupby(["time"])[c]
             df = pd.DataFrame(
-                grouped.apply(_calc_ci, which=ci_level).reset_index()[c].to_list(),
+                grouped.apply(_calc_ci, which=ci_level)
+                .reset_index()[c]
+                .to_list(),
                 columns=col_names,
             )
             ci_dataframes.append(df)
