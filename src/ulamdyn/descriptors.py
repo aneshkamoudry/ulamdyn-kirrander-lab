@@ -1,12 +1,17 @@
 """Module used to generate ML descriptors from molecular geometries."""
 
 # Author: Max Pinheiro Jr <maxjr82@gmail.com>
-# Date: 03/10/2021
+#         Bidhan Chandra Garain <bidhanchandragarain@gmail.com>
+# Date: 07/10/2024
 
 import os
 from itertools import combinations
 
 import numpy as np
+
+from tqdm import tqdm
+import ase
+from dscribe.descriptors import SOAP
 
 try:
     import modin.pandas as pd
@@ -17,7 +22,7 @@ except ModuleNotFoundError:
 from ulamdyn.data_loader import GetCoords
 from ulamdyn.nx_utils import get_labels_masses
 
-__all__ = ["R2", "ZMatrix", "RingParams"]
+__all__ = ["R2", "ZMatrix", "RingParams", "SOAPDescriptor"]
 
 filedir = os.path.dirname(__file__)
 
@@ -1220,3 +1225,123 @@ class RingParams(GetCoords):
             df.to_csv("all_ring_params.csv", index=False)
 
         return df
+
+class SOAPDescriptor(GetCoords):
+    """Generates SOAP (Smooth Overlap of Atomic Positions) descriptors.
+
+    This class extends the GetCoords class, handling molecular geometries
+    and generating SOAP descriptors based on atomic coordinates and species.
+    """
+
+    __slots__ = ["species", "soap", "atoms", "features_soap"]
+
+    def __str__(self) -> str:
+        """Provides a string representation of the class.
+
+        :return: Short description of the class functionality.
+        :rtype: str
+        """
+        return "Generator of SOAP descriptors from molecular geometries."
+
+    def __init__(self, all_geoms=None, atoms=None, r_cut=14, n_max=8, l_max=6, 
+                 average='outer', rbf='polynomial') -> None:
+        """Class initializer for generating SOAP descriptors.
+
+        This initializer sets up the SOAP descriptor generator based on molecular 
+        geometries and atomic species. The SOAP (Smooth Overlap of Atomic Positions) 
+        descriptor is a widely used tool for describing the local environment of 
+        atoms in a molecule.
+
+        More details about the SOAP descriptor can be found in the official DScribe 
+        documentation: https://singroup.github.io/dscribe/latest/tutorials/descriptors/soap.html
+
+        :param all_geoms: Molecular geometries, either as an object of 
+                          :class:`~ulamdyn.GetCoords` or a tensor with XYZ coordinates 
+                          (n_samples, n_atoms, 3). If not provided, the method 
+                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will load geometries. 
+                          Defaults to None.
+        :type all_geoms: ulamdyn.GetCoords | numpy.ndarray
+        :param atoms: List of atomic symbols for the geometries. If not provided,
+                      they will be read using `read_all_trajs().labels()`.
+        :type atoms: list[str]
+        :param r_cut: Cutoff radius for the local environment, defaults to 14.
+        :type r_cut: float, optional
+        :param n_max: Maximum radial basis functions, defaults to 8.
+        :type n_max: int, optional
+        :param l_max: Maximum degree of spherical harmonics, defaults to 6.
+        :type l_max: int, optional
+        :param average: Averaging mode over the center of interest. Options: 'outer', 
+                        'inner', 'off'. Defaults to 'outer'.
+        :type average: str, optional
+        :param rbf: Type of radial basis function. Options: 'gto' (Gaussian Type Orbitals), 
+                    'polynomial' (polynomial basis functions). Defaults to 'polynomial'.
+        :type rbf: str, optional
+        """
+        super().__init__()
+
+        # Handle all_geoms (molecular geometries)
+        if all_geoms is None:
+            self.read_all_trajs()
+        elif isinstance(all_geoms, GetCoords):
+            self.xyz = all_geoms.xyz
+            self.traj_time = all_geoms.traj_time
+        elif isinstance(all_geoms, np.ndarray):
+            self.xyz = all_geoms
+
+        # Handle atoms (atomic symbols)
+        if atoms is None:
+            # Use read_all_trajs() to get atomic labels if atoms are not provided
+            if hasattr(self, 'read_all_trajs'):
+                atoms = self.read_all_trajs().labels()
+            else:
+                raise ValueError("Atom list must be provided, or labels() must be "
+                                 "retrievable from read_all_trajs().")
+        self.atoms = atoms
+
+        # Sort species based on unique atomic symbols
+        self.species = list(set(self.atoms))
+        self.species.sort()
+
+        # Initialize SOAP descriptor
+        self.features_soap = None
+        self.soap = SOAP(
+            species=self.species,
+            periodic=False,
+            r_cut=r_cut,
+            n_max=n_max,
+            l_max=l_max,
+            average=average,
+            compression={'mode': 'off'},
+            rbf=rbf
+        )
+
+    def create_features(self) -> np.ndarray:
+        """Generates SOAP descriptors for provided molecular geometries.
+
+        :return: Array of SOAP descriptors for each molecular geometry.
+        :rtype: numpy.ndarray
+        """
+        if self.xyz is None or self.atoms is None:
+            raise ValueError("Molecular geometries (xyz) and atom types "
+                             "(atoms) must be provided.")
+
+        mol = ase.Atoms(self.atoms, self.xyz[0])
+        size_soap = len(self.soap.create(mol, n_jobs=1))
+
+        self.features_soap = np.zeros([len(self.xyz), size_soap], 
+                                      dtype=np.float64)
+
+        for i in tqdm(range(len(self.xyz))):
+            mol = ase.Atoms(self.atoms, self.xyz[i])
+            self.features_soap[i, :] = self.soap.create(mol, n_jobs=1)
+
+        n_features = size_soap
+        col_names = list(range(n_features))
+        df_soap = pd.DataFrame(self.features_soap, columns=col_names)
+
+        if self.traj_time is not None:
+            df_soap.insert(0, "TRAJ", self.traj_time[:, 0])
+            df_soap.insert(1, "time", self.traj_time[:, 1])
+            df_soap["TRAJ"] = df_soap["TRAJ"].astype("int32")
+
+        return df_soap
