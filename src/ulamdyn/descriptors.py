@@ -1291,12 +1291,21 @@ class SOAPDescriptor(GetCoords):
         # Handle atoms (atomic symbols)
         if atoms is None:
             # Use read_all_trajs() to get atomic labels if atoms are not provided
-            if hasattr(self, 'read_all_trajs'):
-                atoms = self.read_all_trajs().labels()
-            else:
-                raise ValueError("Atom list must be provided, or labels() must be "
-                                 "retrievable from read_all_trajs().")
-        self.atoms = atoms
+            self.read_all_trajs()
+            self.atoms = self.atoms if hasattr(self, 'atoms') else None
+            if self.atoms is None:
+                raise ValueError("Atom list must be provided or "
+                        "retrievable from read_all_trajs().")
+        elif isinstance(all_geoms, GetCoords):
+            self.atoms = all_geoms.labels
+        else:
+            self.atoms = atoms
+
+        # Ensure that atoms are correctly initialized before proceeding
+        if self.atoms is None:
+            raise ValueError("Atoms must be initialized either "
+                    "through all_geoms or provided explicitly.")
+
 
         # Sort species based on unique atomic symbols
         self.species = list(set(self.atoms))
