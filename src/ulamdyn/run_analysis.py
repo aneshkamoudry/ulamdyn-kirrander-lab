@@ -15,7 +15,6 @@ import time
 
 from ulamdyn.statistics import create_stats
 from ulamdyn.wrappers.bootstrap import Bootstrap
-
 from ulamdyn.wrappers.clustering import ClusteringAnalysis
 from ulamdyn.wrappers.dim_reduction import DimensionReductionAnalysis
 from ulamdyn.wrappers.nma import NMAnalysis
