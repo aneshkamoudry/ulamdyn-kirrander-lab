@@ -1225,6 +1225,7 @@ class RingParams(GetCoords):
 
         return df
 
+
 class SOAPDescriptor(GetCoords):
     """Generates SOAP (Smooth Overlap of Atomic Positions) descriptors.
 
@@ -1242,22 +1243,30 @@ class SOAPDescriptor(GetCoords):
         """
         return "Generator of SOAP descriptors from molecular geometries."
 
-    def __init__(self, all_geoms=None, atoms=None, r_cut=14, n_max=8, l_max=6, 
-                 average='outer', rbf='polynomial') -> None:
+    def __init__(
+        self,
+        all_geoms=None,
+        atoms=None,
+        r_cut=14,
+        n_max=8,
+        l_max=6,
+        average="outer",
+        rbf="polynomial",
+    ) -> None:
         """Class initializer for generating SOAP descriptors.
 
-        This initializer sets up the SOAP descriptor generator based on molecular 
-        geometries and atomic species. The SOAP (Smooth Overlap of Atomic Positions) 
-        descriptor is a widely used tool for describing the local environment of 
+        This initializer sets up the SOAP descriptor generator based on molecular
+        geometries and atomic species. The SOAP (Smooth Overlap of Atomic Positions)
+        descriptor is a widely used tool for describing the local environment of
         atoms in a molecule.
 
-        More details about the SOAP descriptor can be found in the official DScribe 
+        More details about the SOAP descriptor can be found in the official DScribe
         documentation: https://singroup.github.io/dscribe/latest/tutorials/descriptors/soap.html
 
-        :param all_geoms: Molecular geometries, either as an object of 
-                          :class:`~ulamdyn.GetCoords` or a tensor with XYZ coordinates 
-                          (n_samples, n_atoms, 3). If not provided, the method 
-                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will load geometries. 
+        :param all_geoms: Molecular geometries, either as an object of
+                          :class:`~ulamdyn.GetCoords` or a tensor with XYZ coordinates
+                          (n_samples, n_atoms, 3). If not provided, the method
+                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will load geometries.
                           Defaults to None.
         :type all_geoms: ulamdyn.GetCoords | numpy.ndarray
         :param atoms: List of atomic symbols for the geometries. If not provided,
@@ -1269,10 +1278,10 @@ class SOAPDescriptor(GetCoords):
         :type n_max: int, optional
         :param l_max: Maximum degree of spherical harmonics, defaults to 6.
         :type l_max: int, optional
-        :param average: Averaging mode over the center of interest. Options: 'outer', 
+        :param average: Averaging mode over the center of interest. Options: 'outer',
                         'inner', 'off'. Defaults to 'outer'.
         :type average: str, optional
-        :param rbf: Type of radial basis function. Options: 'gto' (Gaussian Type Orbitals), 
+        :param rbf: Type of radial basis function. Options: 'gto' (Gaussian Type Orbitals),
                     'polynomial' (polynomial basis functions). Defaults to 'polynomial'.
         :type rbf: str, optional
         """
@@ -1291,10 +1300,12 @@ class SOAPDescriptor(GetCoords):
         if atoms is None:
             # Use read_all_trajs() to get atomic labels if atoms are not provided
             self.read_all_trajs()
-            self.atoms = self.atoms if hasattr(self, 'atoms') else None
+            self.atoms = self.atoms if hasattr(self, "atoms") else None
             if self.atoms is None:
-                raise ValueError("Atom list must be provided or "
-                        "retrievable from read_all_trajs().")
+                raise ValueError(
+                    "Atom list must be provided or "
+                    "retrievable from read_all_trajs()."
+                )
         elif isinstance(all_geoms, GetCoords):
             self.atoms = all_geoms.labels
         else:
@@ -1302,9 +1313,10 @@ class SOAPDescriptor(GetCoords):
 
         # Ensure that atoms are correctly initialized before proceeding
         if self.atoms is None:
-            raise ValueError("Atoms must be initialized either "
-                    "through all_geoms or provided explicitly.")
-
+            raise ValueError(
+                "Atoms must be initialized either "
+                "through all_geoms or provided explicitly."
+            )
 
         # Sort species based on unique atomic symbols
         self.species = list(set(self.atoms))
@@ -1319,8 +1331,8 @@ class SOAPDescriptor(GetCoords):
             n_max=n_max,
             l_max=l_max,
             average=average,
-            compression={'mode': 'off'},
-            rbf=rbf
+            compression={"mode": "off"},
+            rbf=rbf,
         )
 
     def create_features(self) -> np.ndarray:
@@ -1330,14 +1342,17 @@ class SOAPDescriptor(GetCoords):
         :rtype: numpy.ndarray
         """
         if self.xyz is None or self.atoms is None:
-            raise ValueError("Molecular geometries (xyz) and atom types "
-                             "(atoms) must be provided.")
+            raise ValueError(
+                "Molecular geometries (xyz) and atom types "
+                "(atoms) must be provided."
+            )
 
         mol = ase.Atoms(self.atoms, self.xyz[0])
         size_soap = len(self.soap.create(mol, n_jobs=1))
 
-        self.features_soap = np.zeros([len(self.xyz), size_soap], 
-                                      dtype=np.float64)
+        self.features_soap = np.zeros(
+            [len(self.xyz), size_soap], dtype=np.float64
+        )
 
         for i in tqdm(range(len(self.xyz))):
             mol = ase.Atoms(self.atoms, self.xyz[i])
