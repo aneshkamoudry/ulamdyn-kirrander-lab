@@ -134,7 +134,7 @@ def _get_parser():
             "Zmat",
             "delta-Zmat",
             "NMP",
-            "SOAPDescriptor"
+            "SOAPDescriptor",
         ],
         default="inv-R2",
         help="R| Descriptor used to represent molecular geometries.\n Options: %(choices)s. (default: %(default)s)",
@@ -166,7 +166,7 @@ def _get_parser():
         default=None,
         help="R| Select the data rescaling method.\n Options: %(choices)s.",
     )
-    
+
     pp1.add_argument(
         "--soap_r_cut",
         required=False,
