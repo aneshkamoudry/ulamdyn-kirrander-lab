@@ -7,11 +7,10 @@
 import os
 from itertools import combinations
 
-import numpy as np
-
-from tqdm import tqdm
 import ase
+import numpy as np
 from dscribe.descriptors import SOAP
+from tqdm import tqdm
 
 try:
     import modin.pandas as pd

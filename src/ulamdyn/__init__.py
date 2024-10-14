@@ -30,7 +30,7 @@ from ulamdyn.data_loader import (
     GetProperties,
 )
 from ulamdyn.data_writer import Geometries
-from ulamdyn.descriptors import R2, RingParams, ZMatrix, SOAPDescriptor
+from ulamdyn.descriptors import R2, RingParams, SOAPDescriptor, ZMatrix
 from ulamdyn.kinetics import GetVelocities, KineticEnergy, VibrationalSpectra
 from ulamdyn.nma.normal_mode_analysis import NormalModeAnalysis
 from ulamdyn.unsup_models.geom_sampling import GeomSampling
