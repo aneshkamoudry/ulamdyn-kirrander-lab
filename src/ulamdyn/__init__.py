@@ -23,7 +23,6 @@ ULaMDyn is composed of several Python modules:
 import os
 import warnings
 
-from ulamdyn._version import get_versions
 from ulamdyn.data_loader import (
     GetCoords,
     GetCouplings,
@@ -37,6 +36,7 @@ from ulamdyn.nma.normal_mode_analysis import NormalModeAnalysis
 from ulamdyn.unsup_models.geom_sampling import GeomSampling
 from ulamdyn.unsup_models.geom_space import ClusterGeoms, DimensionReduction
 from ulamdyn.unsup_models.traj_space import ClusterTrajs
+from ulamdyn.version import VERSION as __version__
 
 __all__ = [
     "GetCoords",
@@ -55,18 +55,16 @@ __all__ = [
     "DimensionReduction",
     "ClusterGeoms",
     "ClusterTrajs",
+    "__version__",
 ]
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 __title__ = "ULaMDyn"
-__version__ = get_versions()["version"]
 __author__ = "Max Pinheiro Jr"
 __email__ = "maxjr82@gmail.com"
 __maintainer__ = "Max Pinheiro Jr"
 __license__ = "LGPLv3"
-__copyright__ = "Copyright 2021 Max Pinheiro"
-
-del get_versions
+__copyright__ = "Copyright 2021 MPJ"
 
 filedir = os.path.dirname(__file__)
