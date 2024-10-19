@@ -1,0 +1,35 @@
+build_wheel_job:
+  stage: build
+
+  before_script:
+    - echo $CI_JOB_NAME-$CI_JOB_ID
+    # Install ulamdyn dependencies from requirements.txt
+    - make venv
+    - source venv/bin/activate
+
+  script:
+    # Run the make build command to generate the wheel file
+    - make build
+
+  cache:
+    # Cache the dist folder where the wheel file is located
+    paths:
+      - dist/
+
+  artifacts:
+    paths:
+      - dist/*.whl
+    expire_in: 1 week
+
+  # Ensure that build_wheel runs only after check_lint has completed
+  needs: 
+    - job: check_lint_job
+      artifacts: false
+  
+  rules:
+    # Run on feature branches and merge requests
+    - if: '$CI_COMMIT_REF_NAME != "master"'  
+    # Run on master
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    # Ensure build runs in all cases  
+    - when: always  

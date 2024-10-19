@@ -1,0 +1,34 @@
+version_bump_job:
+  stage: version
+
+  before_script:
+    - echo $CI_JOB_NAME-$CI_JOB_ID
+    - pip install commitizen -U
+  
+  script:
+    - git config user.email "$CI_EMAIL" && git config user.name "$CI_USERNAME"
+    - git config http.sslVerify true
+    # Use the Personal Access Token to authenticate
+    - git remote rm origin && git remote add origin https://oauth2:$PROJECT_ACCESS_TOKEN@gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME.git
+    # Bumps version and updates changelog
+    - cz bump --changelog --yes
+    # Create the tag for git
+    - git tag $(cz version --project)
+    # Push new tag and changes
+    - git push --tags origin $CI_COMMIT_BRANCH:$CI_COMMIT_BRANCH
+
+  # Update version only if build job has been completed successfully
+  needs: 
+    - job: build_wheel_job
+      artifacts: false
+  
+  # Run version bump only if the commit is submitted to the master branch
+  rules:
+    - if: 
+        '$CI_COMMIT_BRANCH == "master" && $GITLAB_USER_NAME != $CI_USERNAME &&
+        ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")'
+    - changes:
+        # Bump version if version.py is changed
+        - version.py
+    # Ensure this runs manually or as a merge request is completed    
+    - when: manual

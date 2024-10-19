@@ -1,0 +1,33 @@
+release_package_job:
+  stage: release
+  
+  before_script:
+    - apt-get update && apt-get install -y curl
+    - curl -L --output release-cli "https://release-cli-downloads.s3.amazonaws.com/latest/release-cli-linux-amd64"
+    - chmod +x release-cli
+    - mv -f release-cli /usr/local/bin/
+
+  script:
+    - echo $CI_JOB_NAME-$CI_JOB_ID
+    - echo "Preparing ULaMDyn release..."
+    - ls dist/
+  
+  release:
+    name: "Release Python Package v$CI_COMMIT_TAG"
+    description: "Automatic release of the package"
+    tag_name: "$CI_COMMIT_TAG"
+    assets:
+      links:
+        - name: "Wheel file"
+          url: "https://gitlab.com/%{project_path}/-/jobs/${CI_JOB_ID}/artifacts/raw/dist/ulamdyn-$CI_COMMIT_TAG-py3-none-any.whl"
+  
+  # Run only on master or when a tag is created
+  only:
+    refs:
+      - tags
+      - master
+    
+  # Update version only if build job has been completed successfully
+  needs: 
+    - job: build_wheel_job
+      artifacts: true

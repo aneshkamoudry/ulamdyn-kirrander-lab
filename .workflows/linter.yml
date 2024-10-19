@@ -1,23 +1,22 @@
-stages:
-  - check_lint
-
 variables:
   REPORT_DIR: "lint_report"
   ARTIFACT_NAME: "lint_report_${CI_JOB_ID}"
 
-before_script:
-  # Install ulamdyn dependencies from requirements.txt
-  - make venv
-  - source venv/bin/activate
-  - pip install --upgrade pip
-  - pip install flake8 flake8-html black isort pylint-gitlab
-  - pip install anybadge -U
-  # Configure environment to export artifacts
-  - mkdir -p $REPORT_DIR/lint $REPORT_DIR/flake8 $REPORT_DIR/badges
-  - echo undefined > $REPORT_DIR/lint/pylint.score
-
-check_lint:
+check_lint_job:
   stage: check_lint
+
+  before_script:
+    - echo $CI_JOB_NAME-$CI_JOB_ID
+    # Install ulamdyn dependencies from requirements.txt
+    - make venv
+    - source venv/bin/activate
+    - pip install --upgrade pip
+    - pip install flake8 flake8-html black isort pylint-gitlab
+    - pip install anybadge -U
+    # Configure environment to export artifacts
+    - mkdir -p $REPORT_DIR/lint $REPORT_DIR/flake8 $REPORT_DIR/badges
+    - echo undefined > $REPORT_DIR/lint/pylint.score
+
   script:
     # Run flake8-html in the background and make check in parallel
     - flake8 --format=html --htmldir=$REPORT_DIR/flake8 src/ || true &
@@ -36,7 +35,16 @@ check_lint:
   artifacts:
     name: $ARTIFACT_NAME
     paths:
+      - $REPORT_DIR/badges/$CI_JOB_NAME.svg
       - ${ARTIFACT_NAME}.tgz
-    expire_in: 1 week
+    expire_in: 3 weeks
+    when: always
+  
   rules:
-    - if: '$CI_MERGE_REQUEST_IID'
+    # Run on feature branches and merge requests
+    - if: '$CI_COMMIT_REF_NAME != "master"'  
+    # Run on master
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    # Ensure build runs in all cases  
+    - when: always
+  
