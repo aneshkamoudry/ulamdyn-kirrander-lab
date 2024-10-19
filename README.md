@@ -87,7 +87,7 @@ the structured data sets in the CSV format is shown below:
 More flexible usage of the ULaMDyn functionalities can be done via Python API. In this case, all program functions and classes are accessible by importing ULaMDyn as 
 an external package. With this feature, users with some experience in Python have the possibility of designing their own customized scripts by taking advantage of the
 ULaMDyn functions to perform specific data analysis. To generate a dataset containing the QM properties available in all MD trajectories, one can simply run the
-following commands in the Python enviroment or in a jupyter notebook:
+following commands in the Python enviroment or in a Jupyter Notebook:
 
 ```python
 >>> import ulamdyn as ulmd
