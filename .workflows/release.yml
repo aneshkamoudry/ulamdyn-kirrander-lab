@@ -11,23 +11,36 @@ release_package_job:
     - echo $CI_JOB_NAME-$CI_JOB_ID
     - echo "Preparing ULaMDyn release..."
     - ls dist/
-  
+    
+    # Ensure a valid tag name is available
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        export TAG_NAME="$CI_COMMIT_TAG"
+      fi
+
+    - echo "Current TAG_NAME = $TAG_NAME"
+    - export EXPECTED_WHEEL_NAME="ulamdyn-$TAG_NAME-py3-none-any.whl"
+    - echo "Expected wheel file = $EXPECTED_WHEEL_NAME"  
+
   release:
-    name: "Release Python Package v$CI_COMMIT_TAG"
+    name: "ULaMDyn package v$TAG_NAME"
     description: "Automatic release of the package"
-    tag_name: "$CI_COMMIT_TAG"
+    tag_name: "$TAG_NAME"
+    ref: "$CI_COMMIT_SHA"
     assets:
       links:
         - name: "Wheel file"
-          url: "https://gitlab.com/%{project_path}/-/jobs/${CI_JOB_ID}/artifacts/raw/dist/ulamdyn-$CI_COMMIT_TAG-py3-none-any.whl"
+          # Important: the CI_JOB_ID must be the one of build step, GE_JOB_ID
+          url: "https://gitlab.com/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/-/jobs/${GE_JOB_ID}/artifacts/file/dist/ulamdyn-${TAG_NAME}-py3-none-any.whl"
   
   # Run only on master or when a tag is created
   only:
     refs:
-      - tags
       - master
     
   # Update version only if build job has been completed successfully
   needs: 
     - job: build_wheel_job
       artifacts: true
+    - job: version_bump_job
+      artifacts: true  

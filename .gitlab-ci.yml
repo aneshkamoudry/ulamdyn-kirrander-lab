@@ -3,12 +3,12 @@ image: python:3.10
 # List of stages to be executed by the CI/CD pipeline
 stages:
   - check_lint
-  - build
   - version
+  - build
   - release
 
 include:
   - local: '.workflows/linter.yml'
-  - local: '.workflows/build.yml'
   - local: '.workflows/versioning.yml'
+  - local: '.workflows/build.yml'
   - local: '.workflows/release.yml'

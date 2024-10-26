@@ -8,10 +8,11 @@ line-length = 79
 [tool.commitizen]
 # Initial version, Committizen will handle updates
 version = "1.0.0"
-tag_format = "$major.$minor.$patch$prerelease"
-# Ensures that changelog is updated on each bump
-update_changelog_on_bump = true
 # Path to the file that holds the version information
 version_files = [
     "src/ulamdyn/version.py"
 ]
+tag_format = "$major.$minor.$patch"
+# Ensures that changelog is updated on each bump
+update_changelog_on_bump = false
+annotated_tag = false

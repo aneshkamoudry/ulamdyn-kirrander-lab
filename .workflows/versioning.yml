@@ -1,34 +1,67 @@
 version_bump_job:
   stage: version
-
+  
   before_script:
-    - echo $CI_JOB_NAME-$CI_JOB_ID
+    - echo "$CI_JOB_NAME-$CI_JOB_ID"
+    - pip install --upgrade pip
     - pip install commitizen -U
   
   script:
-    - git config user.email "$CI_EMAIL" && git config user.name "$CI_USERNAME"
+    - git config user.email "$CI_EMAIL"
+    - git config user.name "$CI_USERNAME"
     - git config http.sslVerify true
     # Use the Personal Access Token to authenticate
-    - git remote rm origin && git remote add origin https://oauth2:$PROJECT_ACCESS_TOKEN@gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME.git
-    # Bumps version and updates changelog
-    - cz bump --changelog --yes
-    # Create the tag for git
-    - git tag $(cz version --project)
-    # Push new tag and changes
-    - git push --tags origin $CI_COMMIT_BRANCH:$CI_COMMIT_BRANCH
+    - git remote rm origin
+    - git remote add origin "https://oauth2:$PROJECT_ACCESS_TOKEN@gitlab.com/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME.git"
+    
+    # Print out the current branch name for debugging
+    - echo "Initial branch is $(git rev-parse --abbrev-ref HEAD)"
 
-  # Update version only if build job has been completed successfully
-  needs: 
-    - job: build_wheel_job
-      artifacts: false
-  
-  # Run version bump only if the commit is submitted to the master branch
+    # Fetch tags and check existing tags
+    - git fetch origin --tags --force
+    # Check out the master branch explicitly
+    - git checkout master
+    
+    - echo "Working branch is $(git rev-parse --abbrev-ref HEAD)"
+
+    # Step 1: Bump version and update changelog (this also creates the tag)
+    - cz bump --yes
+
+    # Assign cz version --project to a variable
+    - TAG_NAME=$(cz version --project)
+
+    # Step 2: Update changelog incrementally (since the last tag)
+    - cz changelog --incremental
+    
+    # Step 3: Commit changelog and other changes
+    - git add CHANGELOG.md pyproject.toml src/ulamdyn/version.py
+    - git commit -m "version-changelog update [ci skip]"
+
+    # Step 4: Push new tag and changes to remote
+    - git tag $TAG_NAME --force
+    - git push -o ci.skip --follow-tags origin master
+ 
+     # Expose TAG_NAME as a CI environment variable for subsequent jobs
+    - echo "Exporting new tag $TAG_NAME for release job"
+    - echo "TAG_NAME=$TAG_NAME" > tag_name.env
+
+  cache:
+    # Cache the version file for the build step
+    paths:
+      - pyproject.toml
+      - src/ulamdyn/version.py
+
+  artifacts:
+    reports:
+      dotenv: tag_name.env
+    paths:
+      - src/ulamdyn/version.py  
+
   rules:
-    - if: 
-        '$CI_COMMIT_BRANCH == "master" && $GITLAB_USER_NAME != $CI_USERNAME &&
-        ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")'
-    - changes:
-        # Bump version if version.py is changed
-        - version.py
-    # Ensure this runs manually or as a merge request is completed    
-    - when: manual
+    # Rule 1: Only run on commits to master (not on tag events)
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: always
+    
+    # Rule 3: Never trigger the pipeline if 'ci_bot' push changes 
+    - if: '$GITLAB_USER_NAME == $CI_USERNAME' 
+      when: never

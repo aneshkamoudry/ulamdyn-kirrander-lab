@@ -3,12 +3,26 @@ build_wheel_job:
 
   before_script:
     - echo $CI_JOB_NAME-$CI_JOB_ID
+    - echo "Commit tag variable = $CI_COMMIT_TAG"
+    - echo "Commit reference name = $CI_COMMIT_REF_NAME"
+    - |
+      if [[ "$CI_COMMIT_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+         echo "CI_COMMIT_REF_NAME matches a version tag format."
+         export IS_VERSION_TAGGED=true
+      else
+         echo "CI_COMMIT_REF_NAME does NOT match a version tag format."
+         export IS_VERSION_TAGGED=false
+      fi
+      echo "IS_VERSION_TAGGED=$IS_VERSION_TAGGED" > generate_wheel.env
     # Install ulamdyn dependencies from requirements.txt
+    - echo GE_JOB_ID=$CI_JOB_ID >> generate_wheel.env
     - make venv
     - source venv/bin/activate
 
   script:
     # Run the make build command to generate the wheel file
+    - VERSION=$(grep VERSION src/ulamdyn/version.py | cut -d "=" -f2)
+    - echo "Building package with version $VERSION"
     - make build
 
   cache:
@@ -20,16 +34,28 @@ build_wheel_job:
     paths:
       - dist/*.whl
     expire_in: 1 week
+    reports:
+      dotenv: generate_wheel.env
 
-  # Ensure that build_wheel runs only after check_lint has completed
-  needs: 
-    - job: check_lint_job
-      artifacts: false
-  
   rules:
-    # Run on feature branches and merge requests
-    - if: '$CI_COMMIT_REF_NAME != "master"'  
-    # Run on master
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-    # Ensure build runs in all cases  
-    - when: always  
+    # On other branches, it runs independently
+    - if: '$CI_COMMIT_BRANCH != "master"'
+      needs: 
+        - job: check_lint_job
+          artifacts: false
+    
+    - if: $IS_VERSION_TAGGED == "true"
+      when: never
+
+    # On master, the build must wait for version bump to ensure correct versioning
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+      needs: 
+        - job: check_lint_job
+          artifacts: false
+          optional: false
+        - job: version_bump_job
+          artifacts: true
+          optional: false
+    - when: never
+    

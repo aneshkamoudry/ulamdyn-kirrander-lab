@@ -31,7 +31,10 @@ check_lint_job:
       echo "The lint code score is: $(cat $REPORT_DIR/lint/pylint.score)"
     # Archive the flake8-html report
     - tar -zcvf ${ARTIFACT_NAME}.tgz $REPORT_DIR
- 
+  
+  except:
+    - tags
+
   artifacts:
     name: $ARTIFACT_NAME
     paths:
@@ -39,12 +42,3 @@ check_lint_job:
       - ${ARTIFACT_NAME}.tgz
     expire_in: 3 weeks
     when: always
-  
-  rules:
-    # Run on feature branches and merge requests
-    - if: '$CI_COMMIT_REF_NAME != "master"'  
-    # Run on master
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-    # Ensure build runs in all cases  
-    - when: always
-  
