@@ -97,3 +97,4 @@ following commands in the Python enviroment or in a Jupyter Notebook:
 ``` 
 
 For more examples of how to use ULaMDyn as a Python API, check the ipython notebooks available in the tutorials folder.
+
