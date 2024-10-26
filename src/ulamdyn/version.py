@@ -7,4 +7,4 @@
 #   X.Y.0   # For first release after an increment in Y
 #   X.Y.Z   # For bugfix releases
 #
-VERSION = "1.0.0"
+VERSION = "1.0.1"
