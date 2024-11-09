@@ -1,16 +1,13 @@
-"""Module used to generate ML descriptors from molecular geometries."""
-
-# Author: Max Pinheiro Jr <maxjr82@gmail.com>
-#         Bidhan Chandra Garain <bidhanchandragarain@gmail.com>
-# Date: 07/10/2024
+"""Classes and methods used to generate ML descriptors from molecular geometries."""
+# Author: Max Pinheiro Jr <maxjr82@gmail.com> ; Bidhan Chandra Garain <bidhanchandragarain@gmail.com>
+# Date: 03/10/2021
 
 import os
 from itertools import combinations
-
-import ase
 import numpy as np
 from dscribe.descriptors import SOAP
 from tqdm import tqdm
+import ase
 
 try:
     import modin.pandas as pd
@@ -19,7 +16,7 @@ except ModuleNotFoundError:
     import pandas as pd
 
 from ulamdyn.data_loader import GetCoords
-from ulamdyn.nx_utils import get_labels_masses
+from ulamdyn.nx_utils import *
 
 __all__ = ["R2", "ZMatrix", "RingParams", "SOAPDescriptor"]
 
@@ -27,27 +24,19 @@ filedir = os.path.dirname(__file__)
 
 
 class R2(GetCoords):
-    """Class used to convert the XYZ coordinates of molecular geometries into
-    R2-type of descriptors.
+    """Class used to convert the XYZ coordinates of molecular geometries into R2-type of descriptors.
 
-    The R2 descriptor is defined as the (flattened) matrix of all pairwise
-    Euclidean distances between all atoms in the molecule. Since the matrix is
-    symmetric with respect to the interchange of atom indices (i.e., Dij = Dji)
-    only the lower triangular portion of the R2 matrix will be outputed in the
-    final data set.
+    The R2 descriptor is defined as the (flattened) matrix of all pairwise Euclidean distances
+    between all atoms in the molecule. Since the matrix is symmetric with respect to the interchange
+    of atom indices (i.e., Dij = Dji) only the lower triangular portion of the R2 matrix will be
+    outputed in the final data set.
 
-    This class also provides a method to compute other molecular descriptors
-    derived from the R2 distance matrix. They are:
+    This class also provides a method to compute other molecular descriptors derived from the R2
+    distance matrix. They are:
 
-    - inverse R2 -> defined as :math:`1/R_{ij}`, similarly to the Coulomb
-                    matrix descriptor.
-    - delta R2 -> difference between the R2 vector of the current geometry in
-                  time *t* and the equivalent R2 vector of a reference geometry
-                  (typically the ground-state geometry), :math:`R_{ij}(t) -
-                  R_{ij}(ref)`.
-    - RE -> R2 vector normalized relative to equilibrium geometry,
-            :math:`R_{ij}(eq)/R_{ij}(t)`. For more details, check the
-            reference `J. Chem. Phys. 146, 244108 (2017) <https://aip.scitation.org/doi/10.1063/1.4989536>`_.
+    - inverse R2 -> defined as :math:`1/R_{ij}`, similarly to the Coulomb matrix descriptor.
+    - delta R2 -> difference between the R2 vector of the current geometry in time *t* and the equivalent R2 vector of a reference geometry (typically the ground-state geometry), :math:`R_{ij}(t) - R_{ij}(ref)`.
+    - RE -> R2 vector normalized relative to equilibrium geometry, :math:`R_{ij}(eq)/R_{ij}(t)`. For more details, check the reference `J. Chem. Phys. 146, 244108 (2017) <https://aip.scitation.org/doi/10.1063/1.4989536>`_.
 
     """
 
@@ -71,17 +60,15 @@ class R2(GetCoords):
     def __init__(self, all_geoms=None, use_mwc=False) -> None:
         """Class initializer.
 
-        :param all_geoms: contain geometry information either collected from
-                          available MD trajectories as an object of the
-                          :class:`~ulamdyn.GetCoords or given as a tensor with
-                          all stacked XYZ coordinates in the
-                          shape (n_samples, n_atoms, 3). if not provided, the
-                          method :meth:`~ulamdyn.GetCoords.read_all_trajs` will
-                          be called to load all geometries and build the
-                          tensor. Defaults to None.
+        :param all_geoms: contain geometry information either collected from available
+                          MD trajectories as an object of the :class:`~ulamdyn.GetCoords
+                          or given as a tensor with all stacked XYZ coordinates in the
+                          shape (n_samples, n_atoms, 3). if not provided, the method
+                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will be called to
+                          load all geometries and build the tensor. Defaults to None.
         :type all_geoms: ulamdyn.GetCoords | numpy.ndarray
-        :param use_mwc: If True, use mass weighted coordinates to compute the
-                        descriptors, defaults to False.
+        :param use_mwc: If True, use mass weighted coordinates to compute the descriptors,
+                        defaults to False.
         :type use_mwc: bool
         """
         super().__init__()
@@ -122,11 +109,11 @@ class R2(GetCoords):
     def xyz_to_distances(xyz_matrix: np.ndarray) -> np.ndarray:
         """Calculate the pairwise distance matrix for a given XYZ geometry.
 
-        :param xyz_matrix: Cartesian coordinates of a molecular structure given
-                           as a matrix of shape (n_atoms, 3).
+        :param xyz_matrix: Cartesian coordinates of a molecular structure given as a
+                           matrix of shape (n_atoms, 3).
         :type xyz_matrix: numpy.ndarray
-        :return: vector of size :math:`n_{atoms} (n_{atoms} - 1)/2` containing
-                 the lower triangular portion of the R2 matrix.
+        :return: vector of size :math:`n_{atoms} (n_{atoms} - 1)/2` containing the
+                 lower triangular portion of the R2 matrix.
         :rtype: numpy.ndarray
         """
         n_atoms = len(xyz_matrix)
@@ -146,9 +133,7 @@ class R2(GetCoords):
     def __build_r2_matrix(n, arr):
         m = np.zeros([n, n], dtype=np.float64)
         ind_lower_triang = np.tril_indices(n, -1)
-        ind_pair = [
-            (i, j) for i, j in zip(ind_lower_triang[0], ind_lower_triang[1])
-        ]
+        ind_pair = [(i, j) for i, j in zip(ind_lower_triang[0], ind_lower_triang[1])]
         for n, pair in enumerate(ind_pair):
             i, j = pair
             m[i, j] = arr[n]
@@ -157,20 +142,17 @@ class R2(GetCoords):
 
     @staticmethod
     def reconstruct_xyz(r2_vec: np.ndarray) -> np.ndarray:
-        """Reconstruct the XYZ coordinates from the pairwise atom distance
-        vector.
+        """Reconstruct the XYZ coordinates from the pairwise atom distance vector.
 
-        :param r2_vec: Numpy 2D array of shape
-                       (n_samples, n_atoms * (n_atoms - 1)/2) that contains
-                       stacked R2 vectors.
+        :param r2_vec: Numpy 2D array of shape (n_samples, n_atoms * (n_atoms - 1)/2)
+                       that contains stacked R2 vectors.
         :type r2_vec: numpy.ndarray
-        :return: Numpy 3D array of shape (n_samples, n_atoms, 3) containing the
-                 molecular geometries transformed back into the Cartesian
-                 coordinate space.
+        :return: Numpy 3D array of shape (n_samples, n_atoms, 3) containing the molecular
+                 geometries transformed back into the Cartesian coordinate space.
         :rtype: numpy.ndarray
         """
         n_samples, dim = r2_vec.shape
-        n_atoms = np.int64((1 + np.sqrt(1 + 8 * dim)) / 2)
+        n_atoms = np.int((1 + np.sqrt(1 + 8 * dim)) / 2)
 
         xyz_reconstructed = np.zeros([n_samples, n_atoms, 3], dtype=np.float64)
         for n, vec in enumerate(r2_vec):
@@ -179,11 +161,10 @@ class R2(GetCoords):
             E = -0.5 * d**2
 
             # Use mat to generate column and row means.
-            Er = np.asmatrix(np.mean(E, 1))
-            Es = np.asmatrix(np.mean(E, 0))
+            Er = np.mat(np.mean(E, 1))
+            Es = np.mat(np.mean(E, 0))
 
-            # From Principles of Multivariate Analysis: A User's Perspective
-            # (page 107).
+            # From Principles of Multivariate Analysis: A User's Perspective (page 107).
             F = np.array(E - np.transpose(Er) - Es + np.mean(E))
 
             [U, S, V] = np.linalg.svd(F)
@@ -219,25 +200,11 @@ class R2(GetCoords):
         inv_sigmoid = np.vectorize(lambda x: np.log(x / (1 - x)))
         inv_tanh = np.vectorize(np.arctanh)
 
-        transformations = {
-            "sigmoid": sigmoid,
-            "tanh": tanh,
-            "inv_sigmoid": inv_sigmoid,
-            "inv_tanh": inv_tanh,
-        }
-
         funct = funct.strip().replace(" ", "").lower()
         if inverse:
             funct = "inv_" + funct
-
-        # Fetch the function from the dictionary
-        transform_func = transformations.get(funct)
-
-        if transform_func is None:
-            err_msg = f"Transformation function '{funct}' is not defined."
-            raise ValueError(err_msg)
-
-        trans_dr2_data = transform_func(delta_r2_data)
+        funct = eval(funct)
+        trans_dr2_data = funct(delta_r2_data)
 
         return trans_dr2_data
 
@@ -261,8 +228,7 @@ class R2(GetCoords):
                 self.r2_descriptor = self.r2_ref_geom / self.r2_descriptor
 
     def inverse_transform(self, descriptor):
-        """Apply all transformations in reverse order to recover the original
-        R2 vector."""
+        """Apply all transformations in reverse order to recover the original R2 vector."""
 
         if self.variant == "inv-R2":
             descriptor = 1 / descriptor
@@ -278,25 +244,20 @@ class R2(GetCoords):
         descriptor *= 1 / self.norm_factor
         return descriptor
 
-    def build_descriptor(
-        self, variant=None, apply_to_delta=None, save_csv=False
-    ):
-        """Generate a dataframe with R2-based descriptors for all geometries.
+    def build_descriptor(self, variant=None, apply_to_delta=None, save_csv=False):
+        """Generate a dataframe with R2-based descriptors for all molecular geometries.
 
-        :param variant: molecular representation derived from the R2
-                        descriptor, defaults to None.
+        :param variant: molecular representation derived from the R2 descriptor,
+                        defaults to None.
         :type variant: str, optional
-        :param apply_to_delta: select a nonlinear function to apply as a
-                               transformation (sigmoid or hyperbolic tangent)
-                               on delta-R2 descriptors, defaults to None.
+        :param apply_to_delta: select a nonlinear function to apply as a transformation (sigmoid
+                          or hyperbolic tangent) on delta-R2 descriptors, defaults to None.
         :type apply_to_delta: str, optional
-        :param save_csv: if True export the data set with all calculated
-                         descriptors in a csv format with name
-                         all_geoms_r2.csv, defaults to False.
+        :param save_csv: if True export the data set with all calculated descriptors in
+                         a csv format with name all_geoms_r2.csv, defaults to False.
         :type save_csv: bool, optional
-        :return: a dataframe object of shape
-                 (n_samples, n_atoms * (n_atoms - 1)/2), where each row is a
-                 vector with the R2-based descriptor computed for a given
+        :return: a dataframe object of shape (n_samples, n_atoms * (n_atoms - 1)/2), where
+                 each row is a vector with the R2-based descriptor computed for a given
                  molecular geometry.
         :rtype: pandas.DataFrame | modin.pandas.dataframe.DataFrame
         """
@@ -308,9 +269,7 @@ class R2(GetCoords):
         if self.mass_weights is not None:
             all_geoms *= self.mass_weights
 
-        self.r2_descriptor = np.empty(
-            (n_samples, n_features), dtype=np.float64
-        )
+        self.r2_descriptor = np.empty((n_samples, n_features), dtype=np.float64)
 
         for i, xyz in enumerate(all_geoms):
             d = self.xyz_to_distances(xyz)
@@ -318,18 +277,14 @@ class R2(GetCoords):
 
         self.r2_descriptor *= self.norm_factor
 
-        func = lambda x, y: "r" + "".join(
-            sorted([str(y + 1), str(x + 1)], key=int)
-        )
+        func = lambda x, y: "r" + "".join(sorted([str(y + 1), str(x + 1)], key=int))
         col_names = list(map(func, id_atom_pairs[0], id_atom_pairs[1]))
 
         if variant in ["inv-R2", "delta-R2", "RE"]:
             self._derived_model(variant)
             self.variant = variant
             if (variant == "delta-R2") and (apply_to_delta is not None):
-                self.r2_descriptor = self._transform(
-                    self.r2_descriptor, apply_to_delta
-                )
+                self.r2_descriptor = self._transform(self.r2_descriptor, apply_to_delta)
                 self.apply_to_delta = apply_to_delta
 
         df_r2 = pd.DataFrame(self.r2_descriptor, columns=col_names)
@@ -345,15 +300,14 @@ class R2(GetCoords):
 
 
 class ZMatrix(GetCoords):
-    """Class used to generate molecular descriptors using internal coordinates
-    (Z-Matrix).
+    """Class used to generate molecular descriptors using internal coordinates (Z-Matrix).
 
-    This class does not require arguments in its constructor. All quantities
-    related to distances are given in angstrom, while the features derived from
-    angles are provided in degrees.
+    This class does not require arguments in its constructor. All quantities related to
+    distances are given in angstrom, while the features derived from angles are provided
+    in degrees.
 
-    In addition to the standard Z-Matrix, the class also provides a method to
-    compute other variants of the Z-Matrix molecular descriptors:
+    In addition to the standard Z-Matrix, the class also provides a method to compute other
+    variants of the Z-Matrix molecular descriptors:
 
     - delta Z-Matrix -> difference between the Z-Matrix representation of the current geometry in time *t* and the Z-Matrix of a reference geometry.
     - tanh Z-Matrix -> hyperbolic tangent transformation on all features of delta Z-Matrix.
@@ -361,16 +315,11 @@ class ZMatrix(GetCoords):
 
     Data attributes:
     ----------------
-       ``distancematrix`` (numpy.ndarray): stores the full matrix of bond
-                                           distances for all geometries.\n
-       ``connectivity`` (list): indices of connected atoms based on a distance
-                                criterion of proximity.\n
-       ``angleconnectivity`` (list): indices of three neighboring atoms to
-                                     compute angles.\n
-       ``dihedralconnectivity`` (list): four indices of neighboring atoms to
-                                        calculate dihedrals.\n
-       ``zmat_ref_geom`` (numpy.ndarray): stores the Z-matrix calculated for
-                                          the reference geometry.
+       ``distancematrix`` (numpy.ndarray): stores the full matrix of bond distances for all geometries.\n
+       ``connectivity`` (list): indices of connected atoms based on a distance criterion of proximity.\n
+       ``angleconnectivity`` (list): indices of three neighboring atoms to compute angles.\n
+       ``dihedralconnectivity`` (list): four indices of neighboring atoms to calculate dihedrals.\n
+       ``zmat_ref_geom`` (numpy.ndarray): stores the Z-matrix calculated for the reference geometry.
 
     """
 
@@ -394,14 +343,12 @@ class ZMatrix(GetCoords):
     def __init__(self, all_geoms=None) -> None:
         """Class initializer.
 
-        :param all_geoms: contain geometry information either collected from
-                          available MD trajectories as an object of the
-                          :class:`~ulamdyn.GetCoords or given as a tensor with
-                          all stacked XYZ coordinates in the shape
-                          (n_samples, n_atoms, 3). if not provided, the method
-                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will be
-                          called to load all geometries and build the tensor.
-                          Defaults to None.
+        :param all_geoms: contain geometry information either collected from available
+                          MD trajectories as an object of the :class:`~ulamdyn.GetCoords
+                          or given as a tensor with all stacked XYZ coordinates in the
+                          shape (n_samples, n_atoms, 3). if not provided, the method
+                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will be called to
+                          load all geometries and build the tensor. Defaults to None.
         :type all_geoms: ulamdyn.GetCoords | numpy.ndarray
         """
         super().__init__()
@@ -427,11 +374,10 @@ class ZMatrix(GetCoords):
     def get_distance(geom: np.ndarray, idx_atoms: list) -> np.float64:
         """Calculate the Euclidean distance between a pair of atoms.
 
-        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of
-                     a single molecule.
+        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
         :type geom: numpy.ndarray
-        :param idx_atoms: a pair of indices corresponding to the atoms for
-                          which the distance will be calculated.
+        :param idx_atoms: a pair of indices corresponding to the atoms for which the distance will
+                          be calculated.
         :type idx_atoms: list
         :return: Euclidean distance (in Angstrom) between two selected atoms.
         :rtype: numpy.float
@@ -446,11 +392,10 @@ class ZMatrix(GetCoords):
     def get_angle(geom: np.ndarray, idx_atoms: list) -> np.float64:
         """Calculate the angle formed by three selected atoms.
 
-        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of
-                     a single molecule.
+        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
         :type geom: numpy.ndarray
-        :param idx_atoms: a list of three indices corresponding to the atoms
-                          for which the angle will be calculated.
+        :param idx_atoms: a list of three indices corresponding to the atoms for which the angle
+                          will be calculated.
         :type idx_atoms: list
         :return: angle (in degrees) between three selected atoms.
         :rtype: numpy.float
@@ -469,11 +414,10 @@ class ZMatrix(GetCoords):
     def get_dihedral(geom: np.ndarray, idx_atoms: list) -> np.float64:
         """Calculate the dihedral angle formed by four selected atoms.
 
-        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of
-                     a single molecule.
+        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
         :type geom: numpy.ndarray
-        :param idx_atoms: a list of four indices to select the atoms for which
-                          the dihedral angle will be calculated.
+        :param idx_atoms: a list of four indices to select the atoms for which the dihedral angle
+                          will be calculated.
         :type idx_atoms: list
         :return: dihedral angle (in degrees) formed by four specified atoms.
         :rtype: numpy.float
@@ -512,25 +456,20 @@ class ZMatrix(GetCoords):
     def get_bending(geom: np.ndarray, idx_atoms: list) -> np.float64:
         """Calculate the bending angle between two planes of the molecule.
 
-        This method is particularly useful to describe large out-of-plane
-        distortions in the molecular structure that involves more than four
-        atoms. The bending angle is calculated by first defining two vectors,
-        each one perpendicular to different molecular planes formed by two sets
-        of three atoms. Then, the angle between the two vectors is obtained
-        by calculating the inverse cosine of the scalar product between these
-        vectors.
+        This method is particularly useful to describe large out-of-plane distortions in the
+        molecular structure that involves more than four atoms. The bending angle is calculated
+        by first defining two vectors each one perpendicular to different molecular planes
+        formed by two sets of three atoms. Then, the angle between the two vectors is obtained
+        by calculating the inverse cosine of the scalar product between these vectors.
 
-        .. note:: By default, the bending angle is not used to construct the
-                  Z-Matrix descriptor. It can be used to construct an augmented
-                  version of the Z-Matrix that better captures changes in the
-                  molecular structure during the dynamics.
+        .. note:: By default, the bending angle is not used to construct the Z-Matrix descriptor.
+                  It can be used to construct an augmented version of the Z-Matrix that better
+                  captures changes in the molecular structure during the dynamics.
 
-        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of
-                     a single molecule.
+        :param geom: matrix of shape (natoms, 3) storing the XYZ coordinates of a single molecule.
         :type geom: numpy.ndarray
-        :param idx_atoms: a list of lists with three atom indices in each, used
-                          to define two molecular planes for which the angle
-                          will be calculated.
+        :param idx_atoms: a list of lists with three atom indices in each, used to define two
+                          molecular planes for which the angle will be calculated.
         :type idx_atoms: list
         :return: bending angle (in degrees) defined by six specified atoms.
         :rtype: np.float
@@ -571,13 +510,11 @@ class ZMatrix(GetCoords):
         col_names = list()
         # Column labels for bond distances
         col_names += [
-            "r" + "".join(map(str, np.array(idx) + 1))
-            for idx in self.connectivity
+            "r" + "".join(map(str, np.array(idx) + 1)) for idx in self.connectivity
         ]
         # Column labels for angles
         col_names += [
-            "a" + "".join(map(str, np.array(idx) + 1))
-            for idx in self.angleconnectivity
+            "a" + "".join(map(str, np.array(idx) + 1)) for idx in self.angleconnectivity
         ]
         # Column labels for dihedrals
         col_names += [
@@ -608,48 +545,36 @@ class ZMatrix(GetCoords):
         angle_features = bond_features + 1
 
         if funct.lower() == "sigmoid":
-            zmat_data[:, :bond_features] = sigmoid(
-                zmat_data[:, :bond_features]
-            )
-            zmat_data[:, angle_features:] = 1 - np.cos(
-                zmat_data[:, angle_features:]
-            )
+            zmat_data[:, :bond_features] = sigmoid(zmat_data[:, :bond_features])
+            zmat_data[:, angle_features:] = 1 - np.cos(zmat_data[:, angle_features:])
 
         if funct.lower() == "tanh":
             zmat_data[:, :bond_features] = tanh(zmat_data[:, :bond_features])
-            zmat_data[:, angle_features:] = np.cos(
-                zmat_data[:, angle_features:]
-            )
+            zmat_data[:, angle_features:] = np.cos(zmat_data[:, angle_features:])
 
         return zmat_data
 
-    def build_descriptor(
-        self, delta=False, apply_to_delta=None, save_csv=False
-    ):
+    def build_descriptor(self, delta=False, apply_to_delta=None, save_csv=False):
         """Construct the standard Z-Matrix descriptor and other variants.
 
-        .. note:: By default, the algorithm will calculate the three main
-                  components of the Z-Matrix: *bond distances*, *angles* and
-                  *dihedrals*. An augmented version of the Z-Matrix descriptor
-                  can be also obtained by calculating additional distances,
-                  angles, dihedrals and/or bending angles using the methods
-                  provided in the class.
+        .. note:: By default, the algorithm will calculate the three main components of the
+                  Z-Matrix: *bond distances*, *angles* and *dihedrals*. An augmented version
+                  of the Z-Matrix descriptor can be also obtained by calculating additional
+                  distances, angles, dihedrals and/or bending angles using the methods provided
+                  in the class.
 
-        :param delta: if True, the Z_matrix feature vector of each geometry
-                      will be subtracted from the Z_Matrix of the reference
-                      geometry, defaults to False.
+        :param delta: if True, the Z_matrix feature vector of each geometry will be subtracted
+                      from the Z_Matrix of the reference geometry, defaults to False.
         :type delta: bool, optional
-        :param apply_to_delta: select a nonlinear function to apply as a
-                               transformation (sigmoid or hyperbolic tangent)
-                               on the delta Z-matrix, defaults to None.
+        :param apply_to_delta: select a nonlinear function to apply as a transformation (sigmoid
+                          or hyperbolic tangent) on the delta Z-matrix, defaults to None.
         :type apply_to_delta: str, optional
-        :param save_csv: if true save a single csv file named
-                         all_geoms_zmatrix.csv containing the Z-Matrix
-                         descriptors computed for all geometries available the
-                         MD trajectories., defaults to False.
+        :param save_csv: if true save a single csv file named all_geoms_zmatrix.csv containing
+                         the Z-Matrix descriptors computed for all geometries available the MD
+                         trajectories., defaults to False.
         :type save_csv: bool, optional
-        :return: a dataframe object with the (flattened) Z-Matrix descriptors
-                 stacked for all MD geometries.
+        :return: a dataframe object with the (flattened) Z-Matrix descriptors stacked for all
+                 MD geometries.
         :rtype: pandas.DataFrame
         """
         # Use a function inherited from GetCoords to read the coordinates
@@ -691,10 +616,7 @@ class ZMatrix(GetCoords):
                 atms[2] = self.connectivity[atms[1]][1]
                 if atms[2] == atms[1]:
                     for idx in range(1, len(self.connectivity[:atom])):
-                        if (
-                            self.connectivity[idx][1] in atms
-                            and idx not in atms
-                        ):
+                        if self.connectivity[idx][1] in atms and not idx in atms:
                             atms[2] = idx
                             break
 
@@ -711,10 +633,7 @@ class ZMatrix(GetCoords):
                 atms[3] = self.angleconnectivity[atms[1]][2]
                 if atms[3] in atms[:3]:
                     for idx in range(1, len(self.connectivity[:atom])):
-                        if (
-                            self.connectivity[idx][1] in atms
-                            and idx not in atms
-                        ):
+                        if self.connectivity[idx][1] in atms and not idx in atms:
                             atms[3] = idx
                             break
 
@@ -723,16 +642,9 @@ class ZMatrix(GetCoords):
                 #                if math.isnan(self.dihedrals[atom]):
                 #                    dihedrals.append(0.0)
 
-                self.dihedralconnectivity[atom] = (
-                    atms[0],
-                    atms[1],
-                    atms[2],
-                    atms[3],
-                )
+                self.dihedralconnectivity[atom] = (atms[0], atms[1], atms[2], atms[3])
 
-        self.zmat_ref_geom = np.array(
-            distances + angles + dihedrals, dtype=np.float64
-        )
+        self.zmat_ref_geom = np.array(distances + angles + dihedrals, dtype=np.float64)
 
         self.connectivity = self.connectivity[1:]
         self.angleconnectivity = self.angleconnectivity[2:]
@@ -740,12 +652,8 @@ class ZMatrix(GetCoords):
 
         all_geoms = self.xyz
         n_samples = all_geoms.shape[0]
-        distances = np.empty(
-            (n_samples, len(self.connectivity)), dtype=np.float64
-        )
-        angles = np.empty(
-            (n_samples, len(self.angleconnectivity)), dtype=np.float64
-        )
+        distances = np.empty((n_samples, len(self.connectivity)), dtype=np.float64)
+        angles = np.empty((n_samples, len(self.angleconnectivity)), dtype=np.float64)
         dihedrals = np.empty(
             (n_samples, len(self.dihedralconnectivity)), dtype=np.float64
         )
@@ -795,13 +703,9 @@ class RingParams(GetCoords):
         :return: Short description of the class functionality.
         :rtype: str
         """
-        return (
-            "Cremer-Pople parameter calculator for cyclic molecular fragments."
-        )
+        return "Cremer-Pople parameter calculator for cyclic molecular fragments."
 
-    def __init__(
-        self, ring_atom_ind: list, ring_coords: np.ndarray = None
-    ) -> None:
+    def __init__(self, ring_atom_ind: list, ring_coords: np.ndarray = None) -> None:
         """Class initializer."""
         super().__init__()
         # List of atom indices that defines the ring
@@ -811,15 +715,12 @@ class RingParams(GetCoords):
         self.ring_size = len(ring_atom_ind)
 
     def _fixzero(self, x) -> np.ndarray:
-        x_ = (
-            np.array([0.0]) if np.allclose(0, x, rtol=1e-06, atol=1e-08) else x
-        )
+        x_ = np.array([0.0]) if np.allclose(0, x, rtol=1e-06, atol=1e-08) else x
         return x_
 
     @property
     def ring_coords(self) -> np.ndarray:
-        """Filter the XYZ coordinates corresponding to the selected ring and
-        translate the coordinates to the ring center."""
+        """Filter the XYZ coordinates corresponding to the selected ring and translate the coordinates to the ring center."""
         return self._ring_coords
 
     @ring_coords.setter
@@ -831,9 +732,7 @@ class RingParams(GetCoords):
         else:
             self.read_all_trajs()
             ring_coords = self.xyz[:, self.ring_indices]
-        self._ring_coords = ring_coords - ring_coords.mean(
-            axis=(1,), keepdims=True
-        )
+        self._ring_coords = ring_coords - ring_coords.mean(axis=(1,), keepdims=True)
 
     def _cp_to_polar(self, pucker_coords) -> dict:
         Q = np.sqrt(np.power(pucker_coords[:, :2], 2).sum(axis=1))
@@ -846,12 +745,8 @@ class RingParams(GetCoords):
         return polar_coords
 
     def _get_ang_components(self, z, rs, m) -> tuple:
-        cos_term = [
-            np.dot(z, np.cos(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m
-        ]
-        sin_term = [
-            np.dot(z, np.sin(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m
-        ]
+        cos_term = [np.dot(z, np.cos(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m]
+        sin_term = [np.dot(z, np.sin(2 * np.pi * k * np.arange(0, rs) / rs)) for k in m]
         qcos = self._fixzero(np.sqrt(2 / rs) * np.array(cos_term))
         qsin = self._fixzero(-np.sqrt(2 / rs) * np.array(sin_term))
         return (qcos, qsin)
@@ -888,10 +783,9 @@ class RingParams(GetCoords):
                 amplitude = np.sqrt(qsin**2 + qcos**2)
                 angle = np.arctan2(qsin, qcos)
         else:
-            err_msg = f"ERROR: Ring size {self.ring_size} not supported! "
-            err_msg += "The number of atoms should be 4 < n_atoms <= 20."
-            raise ValueError(err_msg)
-
+            print("ERROR:")
+            print("Ring size not supported!")
+            print("The number of atoms should be 4 < n_atoms <= 20.")
         # Convert from radian to degree
         if angle < 0.0:
             angle += 2 * np.pi
@@ -901,10 +795,6 @@ class RingParams(GetCoords):
 
     @staticmethod
     def _reduce_angle(*args):
-        # Initialize variables with a default value to avoid pylint error
-        phi = 0
-        theta = None
-
         if len(args) == 1:
             phi = args[0]
             theta = None
@@ -925,12 +815,10 @@ class RingParams(GetCoords):
                 theta = theta - sign * n360 * 360
             if theta > 180:
                 theta = theta - 180
-
         return (phi, theta)
 
     def get_conf_5memb(self, phi) -> str:
-        """Determine the class of a 5-membered ring deformation based on the CP
-        parameters."""
+        """Determine the class of a 5-membered ring deformation based on the CP parameters."""
         # Reduce angle to 0 <= phi <= 360
         phi, _ = self._reduce_angle(phi)
         # while phi < 0:
@@ -963,8 +851,7 @@ class RingParams(GetCoords):
         return conf
 
     def get_conf_6memb(self, theta, phi) -> str:
-        """Determine the conformation class for a 6-membered ring based on the
-        CP parameters."""
+        """Determine the conformation class for a 6-membered ring based on the CP parameters."""
         sqrt2 = np.sqrt(2.0)
         sqrt32 = np.sqrt(1.5)
 
@@ -972,9 +859,6 @@ class RingParams(GetCoords):
         # DEG -> RAD
         phi = np.radians(phi)
         theta = np.radians(theta)
-
-        # Initialize variables with a default value to avoid pylint error
-        n_final = 0
 
         # Phi test
         n_test = 6.0 / np.pi * phi
@@ -984,7 +868,6 @@ class RingParams(GetCoords):
             n_final = trunc_n
         elif remainder_n >= 0.5:
             n_final = trunc_n + 1
-
         if n_final % 2:
             phi_class = "HST"
         else:
@@ -1097,73 +980,83 @@ class RingParams(GetCoords):
         return class_var
 
     @staticmethod
-    def _class_odd_6memb(class_var: str, n_final: int) -> str:
+    def _class_odd_6memb(class_var, n_final):
         if "H" in class_var:
             cl = "H"
         elif "S" in class_var:
             cl = "S"
         elif "T" in class_var:
             cl = "T"
-        else:
-            print("Ring type not recognized!")
-            return class_var
-
-        # Initialize variables with a default value to avoid pylint error
-        indices = (0, 0)
 
         if n_final == 1:
             if class_var in ["H1", "S1"]:
-                indices = (1, 2)
+                ind1 = 1
+                ind2 = 2
             elif class_var in ["H2", "S2"]:
-                indices = (4, 5)
+                ind1 = 4
+                ind2 = 5
             elif class_var == "T":
-                indices = (4, 2)
+                ind1 = 4
+                ind2 = 2
         elif n_final == 3:
             if class_var in ["H1", "S1"]:
-                indices = (3, 2)
+                ind1 = 3
+                ind2 = 2
             elif class_var in ["H2", "S2"]:
-                indices = (6, 5)
+                ind1 = 6
+                ind2 = 5
             elif class_var == "T":
-                indices = (6, 2)
+                ind1 = 6
+                ind2 = 2
         elif n_final == 5:
             if class_var in ["H1", "S1"]:
-                indices = (3, 4)
+                ind1 = 3
+                ind2 = 4
             elif class_var in ["H2", "S2"]:
-                indices = (6, 1)
+                ind1 = 6
+                ind2 = 1
             elif class_var == "T":
-                indices = (3, 1)
+                ind1 = 3
+                ind2 = 1
         elif n_final == 7:
             if class_var in ["H1", "S1"]:
-                indices = (5, 4)
+                ind1 = 5
+                ind2 = 4
             elif class_var in ["H2", "S2"]:
-                indices = (2, 1)
+                ind1 = 2
+                ind2 = 1
             elif class_var == "T":
-                indices = (2, 4)
+                ind1 = 2
+                ind2 = 4
         elif n_final == 9:
             if class_var in ["H1", "S1"]:
-                indices = (5, 6)
+                ind1 = 5
+                ind2 = 6
             elif class_var in ["H2", "S2"]:
-                indices = (2, 3)
+                ind1 = 2
+                ind2 = 3
             elif class_var == "T":
-                indices = (2, 6)
+                ind1 = 2
+                ind2 = 6
         elif n_final == 11:
             if class_var in ["H1", "S1"]:
-                indices = (1, 6)
+                ind1 = 1
+                ind2 = 6
             elif class_var in ["H2", "S2"]:
-                indices = (4, 3)
+                ind1 = 4
+                ind2 = 3
             elif class_var == "T":
-                indices = (1, 3)
+                ind1 = 1
+                ind2 = 3
         else:
             raise ValueError("ERROR: phi angle is out of limits.")
-
-        ind1, ind2 = indices
         class_var = f"{ind1}{cl}{ind2}"
         return class_var
 
     @staticmethod
-    def _class_c_6memb(class_var: str, theta: float, phi: float) -> str:
-        ind1 = 0
-        ind2 = 0
+    def _class_c_6memb(class_var, theta, phi):
+        ind1 = ""
+        ind2 = ""
         if (0 <= phi) and (phi < np.pi / 6):
             ind1 = 1
             ind2 = 4
@@ -1189,13 +1082,11 @@ class RingParams(GetCoords):
             indaux = ind1
             ind1 = ind2
             ind2 = indaux
-
         class_var = f"{ind1}{class_var}{ind2}"
         return class_var
 
     def build_dataframe(self, save_csv=False):
-        """Construct a data frame containing the Cremer-Pople parameters of all
-        collected geometries."""
+        """Construct a data frame containing the Cremer-Pople parameters of all collected geometries."""
         all_pucker_params = []
         append_pucker_params = all_pucker_params.append
         for xyz in self.ring_coords:
@@ -1215,9 +1106,8 @@ class RingParams(GetCoords):
             df = pd.DataFrame(all_pucker_params, columns=col_names)
             func_vec = np.vectorize(self.get_conf_5memb)
             df["class"] = func_vec(df["phi"].values)
-        # If the trajectory indices and time steps are available in the parent
-        # class (GetCoords), these information will be added to the current
-        # dataframe.
+        # If the trajectory indices and time steps are available in the parent class (GetCoords),
+        # these information will be added to the current dataframe.
         df = self._insert_traj_time(df)
 
         if save_csv:
@@ -1225,69 +1115,89 @@ class RingParams(GetCoords):
 
         return df
 
-
 class SOAPDescriptor(GetCoords):
-    """Generates SOAP (Smooth Overlap of Atomic Positions) descriptors.
+    """Class used to generate SOAP (Smooth Overlap of Atomic Positions) descriptors for molecular geometries.
 
-    This class extends the GetCoords class, handling molecular geometries
-    and generating SOAP descriptors based on atomic coordinates and species.
+    This class extends the GetCoords class, allowing it to handle molecular geometries and generate
+    SOAP descriptors based on the atomic coordinates and species extracted from those geometries.
     """
 
-    __slots__ = ["species", "soap", "atoms", "features_soap"]
+    __slots__ = [
+        "species",
+        "soap",
+        "atoms",
+    ]
 
     def __str__(self) -> str:
-        """Provides a string representation of the class.
+        """Provide a string representation of the class.
 
         :return: Short description of the class functionality.
         :rtype: str
         """
         return "Generator of SOAP descriptors from molecular geometries."
 
-    def __init__(
-        self,
-        all_geoms=None,
-        atoms=None,
-        r_cut=14,
-        n_max=8,
-        l_max=6,
-        average="outer",
-        rbf="polynomial",
-    ) -> None:
-        """Class initializer for generating SOAP descriptors.
+    def __init__(self, all_geoms=None, atoms=None, r_cut=14, n_max=8, l_max=6, average='outer', rbf='polynomial') -> None:
+        """Class initializer.
 
-        This initializer sets up the SOAP descriptor generator based on molecular
-        geometries and atomic species. The SOAP (Smooth Overlap of Atomic Positions)
-        descriptor is a widely used tool for describing the local environment of
-        atoms in a molecule.
-
-        More details about the SOAP descriptor can be found in the official DScribe
-        documentation: https://singroup.github.io/dscribe/latest/tutorials/descriptors/soap.html
-
-        :param all_geoms: Molecular geometries, either as an object of
-                          :class:`~ulamdyn.GetCoords` or a tensor with XYZ coordinates
-                          (n_samples, n_atoms, 3). If not provided, the method
-                          :meth:`~ulamdyn.GetCoords.read_all_trajs` will load geometries.
-                          Defaults to None.
+        :param all_geoms: Molecular geometries, either collected from available
+                        MD trajectories as an object of the :class:`~ulamdyn.GetCoords`
+                        or given as a tensor with all stacked XYZ coordinates in the
+                        shape (n_samples, n_atoms, 3). If not provided, the method
+                        :meth:`~ulamdyn.GetCoords.read_all_trajs` will be called to
+                        load all geometries and build the tensor. Defaults to None.
         :type all_geoms: ulamdyn.GetCoords | numpy.ndarray
-        :param atoms: List of atomic symbols for the geometries. If not provided,
-                      they will be read using `read_all_trajs().labels()`.
+        :param atoms: List of atomic symbols corresponding to the atoms in the geometries.
         :type atoms: list[str]
-        :param r_cut: Cutoff radius for the local environment, defaults to 14.
+        :param r_cut: Cutoff radius for local environment, defaults to 14.
         :type r_cut: float, optional
         :param n_max: Maximum radial basis functions, defaults to 8.
         :type n_max: int, optional
         :param l_max: Maximum degree of spherical harmonics, defaults to 6.
         :type l_max: int, optional
-        :param average: Averaging mode over the center of interest. Options: 'outer',
-                        'inner', 'off'. Defaults to 'outer'.
+        :param average: The averaging mode over centre of interest. The valid options are
+                        'outer', 'inner' and 'off'. Defaults to 'outer'.
+                        'off': No averaging
+                        'inner': Averaging over sites before summing up magnetic quantum numbers
+                        'outer': Averaging over the power spectrum of different sites
         :type average: str, optional
-        :param rbf: Type of radial basis function. Options: 'gto' (Gaussian Type Orbitals),
-                    'polynomial' (polynomial basis functions). Defaults to 'polynomial'.
+        :param rbf: Type of radial basis function to use, defaults to 'polynomial'. The valid options are
+                        'gto': Sphreical gaussian type orbitals
+                        'polynomial': polynomial basis function
         :type rbf: str, optional
         """
         super().__init__()
 
-        # Handle all_geoms (molecular geometries)
+        # Process geometries and atoms
+        self._initialize_geometries_and_atoms(all_geoms, atoms)
+
+        # Sort unique species
+        self.species = list(set(self.atoms))
+        self.species.sort()
+        self.features_soap = None
+
+        # Initialize SOAP descriptor
+        self.soap = SOAP(
+            species=self.species,
+            periodic=False,
+            r_cut=r_cut,
+            n_max=n_max,
+            l_max=l_max,
+            average=average,
+            compression={'mode': 'off'},
+            rbf=rbf
+        )
+
+    def _initialize_geometries_and_atoms(self, all_geoms, atoms):
+        """
+        Helper function to initialize geometries and atom types.
+
+        :param all_geoms: Molecular geometries, either collected from available
+                        MD trajectories or given as a tensor.
+        :type all_geoms: ulamdyn.GetCoords | numpy.ndarray
+        :param atoms: List of atomic symbols corresponding to the atoms in the geometries.
+        :type atoms: list[str]
+        :raises ValueError: If `atoms` is not provided.
+        """
         if all_geoms is None:
             self.read_all_trajs()
         elif isinstance(all_geoms, GetCoords):
@@ -1296,67 +1206,28 @@ class SOAPDescriptor(GetCoords):
         elif isinstance(all_geoms, np.ndarray):
             self.xyz = all_geoms
 
-        # Handle atoms (atomic symbols)
         if atoms is None:
-            # Use read_all_trajs() to get atomic labels if atoms are not provided
-            self.read_all_trajs()
-            self.atoms = self.atoms if hasattr(self, "atoms") else None
-            if self.atoms is None:
-                raise ValueError(
-                    "Atom list must be provided or "
-                    "retrievable from read_all_trajs()."
-                )
-        elif isinstance(all_geoms, GetCoords):
-            self.atoms = all_geoms.labels
-        else:
-            self.atoms = atoms
+            raise ValueError("Atom list must be provided.")
 
-        # Ensure that atoms are correctly initialized before proceeding
-        if self.atoms is None:
-            raise ValueError(
-                "Atoms must be initialized either "
-                "through all_geoms or provided explicitly."
-            )
+        self.atoms = atoms
 
-        # Sort species based on unique atomic symbols
-        self.species = list(set(self.atoms))
-        self.species.sort()
-
-        # Initialize SOAP descriptor
-        self.features_soap = None
-        self.soap = SOAP(
-            species=self.species,
-            periodic=False,
-            r_cut=r_cut,
-            n_max=n_max,
-            l_max=l_max,
-            average=average,
-            compression={"mode": "off"},
-            rbf=rbf,
-        )
-
-    def create_features(self) -> np.ndarray:
-        """Generates SOAP descriptors for provided molecular geometries.
+    def create_features(self) -> pd.DataFrame:
+        """Generate SOAP descriptors for the provided molecular geometries.
 
         :return: Array of SOAP descriptors for each molecular geometry.
         :rtype: numpy.ndarray
         """
         if self.xyz is None or self.atoms is None:
-            raise ValueError(
-                "Molecular geometries (xyz) and atom types "
-                "(atoms) must be provided."
-            )
+            raise ValueError("Molecular geometries (xyz) and atom types (atoms) must be provided.")
 
         mol = ase.Atoms(self.atoms, self.xyz[0])
-        size_soap = len(self.soap.create(mol, n_jobs=1))
+        size_soap = len(self.soap.create(mol, n_jobs=-1))
 
-        self.features_soap = np.zeros(
-            [len(self.xyz), size_soap], dtype=np.float64
-        )
+        self.features_soap = np.zeros([len(self.xyz), size_soap], dtype=np.float64)
 
-        for i in tqdm(range(len(self.xyz))):
+        for i in (range(len(self.xyz))):
             mol = ase.Atoms(self.atoms, self.xyz[i])
-            self.features_soap[i, :] = self.soap.create(mol, n_jobs=1)
+            self.features_soap[i, :] = self.soap.create(mol, n_jobs=-1)
 
         n_features = size_soap
         col_names = list(range(n_features))
