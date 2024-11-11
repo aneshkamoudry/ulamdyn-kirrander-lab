@@ -64,7 +64,6 @@ check: prepare_lint_dir
 	@sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' /tmp/pylint.txt > $(LINT_OUTPUTS)/lint/pylint.score
 	${ENV_NAME}/bin/pylint --exit-zero --output-format=pylint_gitlab.GitlabCodeClimateReporter ./src > $(LINT_OUTPUTS)/lint/codeclimate.json
 	${ENV_NAME}/bin/pylint --exit-zero --output-format=pylint_gitlab.GitlabPagesHtmlReporter ./src > $(LINT_OUTPUTS)/lint/index.html
-
 #	@echo Running tests...
 #	${ENV_NAME}/bin/pytest -s --cov=src tests --cov-report term --cov-report html:coverage_html --cov-report xml:coverage.xml
 
@@ -85,3 +84,4 @@ ${ENV_INSTALL_NAME}: build
 	${PYTHON} -m venv ${ENV_INSTALL_NAME}
 	${ENV_INSTALL_NAME}/bin/pip install -r requirements.txt
 	${ENV_INSTALL_NAME}/bin/pip install $(WHEEL_NAME)
+
