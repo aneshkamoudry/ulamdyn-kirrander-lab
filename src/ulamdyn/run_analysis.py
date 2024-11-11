@@ -15,11 +15,10 @@ import time
 
 from ulamdyn.statistics import create_stats
 from ulamdyn.wrappers.bootstrap import Bootstrap
-
-# from ulamdyn.wrappers.clustering import ClusteringAnalysis
-# from ulamdyn.wrappers.dim_reduction import DimensionReductionAnalysis
-# from ulamdyn.wrappers.nma import NMAnalysis
-# from ulamdyn.wrappers.ring_analysis import RingAnalysis
+from ulamdyn.wrappers.clustering import ClusteringAnalysis
+from ulamdyn.wrappers.dim_reduction import DimensionReductionAnalysis
+from ulamdyn.wrappers.nma import NMAnalysis
+from ulamdyn.wrappers.ring_analysis import RingAnalysis
 from ulamdyn.wrappers.sampling import SampleGeometries
 from ulamdyn.wrappers.save_datasets import SaveDataset
 from ulamdyn.wrappers.save_xyz import SaveXYZ
@@ -135,6 +134,7 @@ def _get_parser():
             "Zmat",
             "delta-Zmat",
             "NMP",
+            "SOAPDescriptor",
         ],
         default="inv-R2",
         help="R| Descriptor used to represent molecular geometries.\n Options: %(choices)s. (default: %(default)s)",
@@ -165,6 +165,53 @@ def _get_parser():
         choices=["minmax", "standard", "robust", "norm"],
         default=None,
         help="R| Select the data rescaling method.\n Options: %(choices)s.",
+    )
+
+    pp1.add_argument(
+        "--soap_r_cut",
+        required=False,
+        type=float,
+        metavar="",
+        default=14.0,
+        help="R| Cutoff radius for the local environment in SOAP descriptor (default: %(default)s).",
+    )
+
+    pp1.add_argument(
+        "--soap_n_max",
+        required=False,
+        type=int,
+        metavar="",
+        default=8,
+        help="R| Maximum radial basis functions for SOAP descriptor (default: %(default)s).",
+    )
+
+    pp1.add_argument(
+        "--soap_l_max",
+        required=False,
+        type=int,
+        metavar="",
+        default=6,
+        help="R| Maximum degree of spherical harmonics for SOAP descriptor (default: %(default)s).",
+    )
+
+    pp1.add_argument(
+        "--soap_average",
+        required=False,
+        type=str,
+        metavar="",
+        choices=["outer", "inner", "off"],
+        default="outer",
+        help="R| Averaging mode for SOAP descriptor (default: %(default)s).",
+    )
+
+    pp1.add_argument(
+        "--soap_rbf",
+        required=False,
+        type=str,
+        metavar="",
+        choices=["polynomial", "gto"],
+        default="polynomial",
+        help="R| Radial basis function type for SOAP descriptor (default: %(default)s).",
     )
 
     pp2 = argparse.ArgumentParser(add_help=False)
