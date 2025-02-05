@@ -20,3 +20,9 @@ dist/
 eggs/
 .eggs/
 src/ulamdyn.egg-info/
+
+# Dictionaries
+nx_trajs_fulv/
+
+# Files
+.DS_Store

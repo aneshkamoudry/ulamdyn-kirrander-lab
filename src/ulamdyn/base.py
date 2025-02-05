@@ -10,6 +10,7 @@ import pandas as pd
 
 
 class BaseClass:
+    """Provide a list of class name and type for each attribute."""
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
         attributes = ", ".join(
