@@ -25,8 +25,8 @@ import warnings
 
 from ulamdyn.data_loader import (
     GetCoords,
-    GetCouplings,
-    GetGradients,
+    #GetCouplings,
+    #GetGradients,
     GetProperties,
 )
 from ulamdyn.data_writer import Geometries
@@ -37,6 +37,7 @@ from ulamdyn.unsup_models.geom_sampling import GeomSampling
 from ulamdyn.unsup_models.geom_space import ClusterGeoms, DimensionReduction
 from ulamdyn.unsup_models.traj_space import ClusterTrajs
 from ulamdyn.version import VERSION as __version__
+from ulamdyn.aneshka import DataFrameToArray, ConicalIntersectionClassifier
 
 __all__ = [
     "GetCoords",

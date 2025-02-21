@@ -18,10 +18,10 @@ __all__ = [
     "PROTON_MASS",
     "AU_TO_FS",
     "get_traj_dirs",
-    "get_nx_version",
+#    "get_nx_version",
     "get_labels_masses",
     "read_nx_control",
-    "read_h5_nx",
+#    "read_h5_nx",
     "get_num_atoms",
     "check_nx_trajs",
 ] 
@@ -437,13 +437,25 @@ def check_nx_trajs() -> dict:
                 sh_log = traj + "/0/data/out.log"
                 with open(sh_log, "r") as out:
                     lines = out.read().split("\n")
-                    end_flag = "TERMINATED"
+                    
+                    try:
+                        termination_index = lines.index("TERMINATED")
+                    except ValueError:
+                        print(f"\nWarning: No TERMINATED flag found in {traj}")
+                        continue
                             
-                    time_lines = list(filter(lambda k: "Time:" in k, lines))
+                    time_lines = []
+                    for i, line in enumerate(lines):
+                        if i >= termination_index:
+                            break
+                        if "Time:" in line:
+                            time_lines.append(line)
+
                     if time_lines:  # If we found any time lines
-                        #tmax = float(time_lines[-1].split()[4])
-                        tmax=float(time_lines[-1].split()[1])
-                    #traj_tmax[traj] = tmax
+                        last_time = float(time_lines[-1].split()[1])
+                        traj_tmax[traj] = last_time
+                    else:
+                        print(f"\nWarning: No time entries found before TERMINATED in {traj}")
 
             except FileNotFoundError:
                 print("\n---------------------------------------")
@@ -452,9 +464,9 @@ def check_nx_trajs() -> dict:
                 print("---------------------------------------\n")
                 continue
 
-    if not traj_tmax:  # If no trajectories were successfully processed
-        config = read_nx_control(traj_list[0])
-        tmax = config.get("tmax", 10000)
-        traj_tmax = dict.fromkeys(traj_list, tmax)
+    #if not traj_tmax:  # If no trajectories were successfully processed
+    #    config = read_nx_control(traj_list[0])
+    #    tmax = config.get("tmax", 10000)
+    #    traj_tmax = dict.fromkeys(traj_list, tmax)
 
     return traj_tmax

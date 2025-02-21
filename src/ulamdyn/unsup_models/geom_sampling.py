@@ -4,7 +4,7 @@
 import numpy as np
 import pandas as pd
 
-from ulamdyn.data_loader import GetProperties
+#from ulamdyn.data_loader import GetProperties
 from ulamdyn.data_writer import Geometries
 from ulamdyn.descriptors import R2
 from ulamdyn.unsup_models.geom_space import ClusterGeoms
