@@ -1,7 +1,7 @@
 """Module with auxiliary functions and constants used to process dataframe to .xyz data and visualisaiton."""
 
 # Author: Aneshka Moudry <aneshkamoudry@gmail.com>
-# Date: Feb 6 2025
+# Date: March 4th 2025
 
 import numpy as np
 import rmsd
@@ -207,41 +207,70 @@ class ConicalIntersectionClassifier(BaseClass):
         float
             Angle in degrees
         """
-        # Vector from center atom to first atom
+
         vector1 = P[A] - P[B]
-        # Vector from center atom to third atom
         vector2 = P[C] - P[B]
     
-        # Normalize the vectors
         vector1_norm = vector1 / np.linalg.norm(vector1)
         vector2_norm = vector2 / np.linalg.norm(vector2)
     
-        # Calculate dot product and angle
         dot_product = np.dot(vector1_norm, vector2_norm)
-        # Clip to handle floating point errors
         dot_product = np.clip(dot_product, -1.0, 1.0)
         angle = np.arccos(dot_product)
         angle = float(np.degrees(angle))
     
-        # Convert to degrees
         return angle
     
-    def classify_ci_geom(self, geom: np.ndarray, method='rmsd') -> str:
+    def classify_ci_geom(self, geom_data, method='rmsd', remove_hydrogens=False, remove_atoms=None) -> str:
         """
         Classify a single conical intersection geometry.
-        
+    
         Parameters:
         -----------
-        geom : np.ndarray
+        geom_data : tuple or np.ndarray
+            Either a tuple of (coordinates, atom_types) or just coordinates
+        method : str, default='rmsd'
+            Method to use for classification ('rmsd' or 'angle')
+        remove_hydrogens : bool, default=False
+            Whether to remove hydrogen atoms before RMSD calculation
+        remove_atoms : list or None, default=None
+            List of atom indices to remove before RMSD calculation
+        
+        Returns:
+        --------
+        str
+            Classification key
         """
         if self.ci_refs is None:
             self.load_ci_refs()
 
         ci_refs = self.ci_refs
 
+        if isinstance(geom_data, tuple) and len(geom_data) == 2:
+                geom = geom_data[0]
+                atom_types = geom_data[1]
+        else:
+            geom = geom_data
+            atom_types = None
+
         if method == 'rmsd':
-            geom = geom.squeeze()
-            geom -= rmsd.centroid(geom)
+            
+            if remove_hydrogens or remove_atoms is not None:
+                mask = np.ones(geom.shape[0], dtype=bool)
+
+                if remove_hydrogens and atom_types is not None:
+                    h_indices = [i for i, atom in enumerate(atom_types) if atom.lower() == 'h']
+                    mask[h_indices] = False
+
+                if remove_atoms is not None:
+                    mask[remove_atoms] = False
+                
+                filtered_geom = geom[mask]
+            else:
+                filtered_geom = geom
+            
+            filtered_geom -= rmsd.centroid(filtered_geom)
+
             rmsd_dict = {}
 
             for key in ci_refs:
@@ -266,7 +295,8 @@ class ConicalIntersectionClassifier(BaseClass):
                 bangle[k] = self.calculate_angle(geom, (v[0]-1), (v[1]-1), (v[2]-1))
 
             min_key = min(bangle, key=bangle.get)
-        return min_key      
+    
+        return min_key    
     
     def get_xyz_df(self, idx: tuple) -> np.ndarray:
         """
@@ -289,13 +319,26 @@ class ConicalIntersectionClassifier(BaseClass):
         c1 = self.coords.traj_time[:, 0] == traj
         c2 = self.coords.traj_time[:, 1] == time
         selected_geom = self.coords.xyz[(c1 & c2)][0]
-        return selected_geom
+        label = self.coords.labels
+        return selected_geom, label
 
-    def classify_ci_df(self, hop: str, method='rmsd') -> pd.DataFrame:
+    def classify_ci_df(self, hop: str, method='rmsd', remove_hydrogens=False, remove_atoms=None) -> pd.DataFrame:
         """
         Classify the conical intersection geometries.
+    
+        Parameters:
+        -----------
+        hop : str
+            Column name for hopping data in the dataset
+        method : str, default='rmsd'
+            Method to use for classification ('rmsd' or 'angle')
+        remove_hydrogens : bool, default=False
+            Whether to remove hydrogen atoms before RMSD calculation
+        remove_atoms : list or None, default=None
+            List of atom indices to remove before RMSD calculation
         
         Returns:
+        --------
         pandas.DataFrame: Dataframe containing the classified geometries
         """
         if self.ci_refs is None:
@@ -314,14 +357,17 @@ class ConicalIntersectionClassifier(BaseClass):
             ci_classified = []
             for idx, row in df.iterrows():
                 if row[hop] == 1:
-                    geom = self.get_xyz_df([row['TRAJ'], row['time']])
+                    geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
 
                     if method == 'rmsd':
-                        ci_id = self.classify_ci_geom(geom, 'rmsd')
+                        ci_id = self.classify_ci_geom(geom_data, 'rmsd',
+                                                    remove_hydrogens=remove_hydrogens,
+                                                    remove_atoms=remove_atoms)
+
                         ci_classified.append(ci_id)
 
                     elif method == 'angle':
-                        ci_id = self.classify_ci_geom(geom, 'angle')
+                        ci_id = self.classify_ci_geom(geom_data, 'angle')
                         ci_classified.append(ci_id)
                         
                 else:
