@@ -222,6 +222,45 @@ class ConicalIntersectionClassifier(BaseClass):
     
         return angle
     
+    @staticmethod
+    def calculate_angle_vectors( 
+        A: np.array,
+        B: np.array,
+        C: np.array,
+        ) -> float:
+        """
+        Calculate the angle between three atoms where B is the center atom. 
+        A, B, C are arrays corresponding to the XYZ coordinates of the atom.
+
+        Parameters:
+        -----------
+
+        A : array
+           (1,3) matrix
+        B : array
+           (1,3) matrix  
+        C : array
+           (1,3) matrix
+        
+        Returns:
+        --------
+        float
+            Angle in degrees
+        """
+
+        vector1 = A - B
+        vector2 = C - B
+    
+        vector1_norm = vector1 / np.linalg.norm(vector1)
+        vector2_norm = vector2 / np.linalg.norm(vector2)
+    
+        dot_product = np.dot(vector1_norm, vector2_norm)
+        dot_product = np.clip(dot_product, -1.0, 1.0)
+        angle = np.arccos(dot_product)
+        angle = float(np.degrees(angle))
+    
+        return angle
+    
     def classify_ci_geom(self, geom_data, method='rmsd', remove_hydrogens=False, remove_atoms=None) -> str:
         """
         Classify a single conical intersection geometry.
