@@ -14,6 +14,7 @@ except ModuleNotFoundError:
 from ulamdyn.data_loader import GetCoords, GetProperties
 from ulamdyn.base import BaseClass
 from pathlib import Path
+from ulamdyn.descriptors import ZMatrix
 
 __all__ = ['DataFrameToArray', 'ConicalIntersectionClassifier']
 
@@ -376,4 +377,172 @@ class ConicalIntersectionClassifier(BaseClass):
             df['CI_ID'] = ci_classified
    
         return df
+    
+    def internal_coordinates_nbd_qc(self) -> pd.DataFrame:
+        """
+        Calculate the internal coordinates specific to the NBD/QC molecular system
+        
+        Returns:
+        --------
+        pandas.DataFrame
+            Dataframe containing the internal coordinates.
+        """
+        if self.properties.dataset is None:
+            self.properties.energies()
+        
+        df = self.properties.dataset
+
+        # Calculate the internal coordinates - 'square' angles
+
+        square_angle = {
+                        'a134': (1, 3, 4),
+                        'a342': (3, 4, 2),
+                        'a213': (2, 1, 3),
+                        'a421': (4, 2, 1)
+                }
+        
+        for k, v in square_angle.items():
+            angles = []
+
+            for idx, row in df.iterrows():
+                geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
+                geom = geom_data[0]
+                angle = self.calculate_angle(geom, (v[0]-1), (v[1]-1), (v[2]-1))
+                angles.append(angle)
+            
+            df[f"a_{k}"] = angles
+
+        # 'Tent' angle
+
+        tent_angle = []
+        for idx, row in df.iterrows():
+            geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
+            geom = geom_data[0]
+            midpoint13 = (geom[0] + geom[2])/2
+            c7 = geom[6]
+            midpoint24 = (geom[1] + geom[3])/2
+            angle = self.calculate_angle_vectors(midpoint13, c7, midpoint24)
+            tent_angle.append(angle)
+
+        df['a_tent'] = tent_angle
+
+        # 'Bridge' angle
+
+        bridge_angle = []
+
+        for idx, row in df.iterrows():
+            geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
+            geom = geom_data[0]
+            angle = self.calculate_angle(geom, 4, 6, 5)
+            bridge_angle.append(angle)
+        
+        df['$\theta$'] = bridge_angle
+
+        # 'triangular' angle
+
+        triangular_angle = {
+                        'a512': (5, 1, 2),
+                        'a521': (5, 2, 1),
+                        'a634': (6, 3, 4),
+                        'a643': (6, 4, 3)
+                    }
+
+        for k, v in square_angle.items():
+            angles = []
+
+            for idx, row in df.iterrows():
+                geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
+                geom = geom_data[0]
+                angle = self.calculate_angle(geom, (v[0]-1), (v[1]-1), (v[2]-1))
+                angles.append(angle)
+            
+            df[f"a_{k}"] = angles
+
+        # 'book' angle
+
+        book_angle = []
+        for idx, row in df.iterrows():
+            geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
+            geom = geom_data[0]
+            
+            vector1 = geom[4] - geom[0]
+            vector2 = geom[2] - geom[0]
+            plane_vector_1 = np.cross(vector1, vector2)
+            vector3 = geom[4] - geom[1]
+            vector4 = geom[3] - geom[1]
+            plane_vector_2 = np.cross(vector3, vector4)
+
+            plane_vector1_norm = plane_vector_1 / np.linalg.norm(plane_vector_1)
+            plane_vector2_norm = plane_vector_2 / np.linalg.norm(plane_vector_2)
+    
+            dot_product1 = np.dot(plane_vector1_norm, plane_vector2_norm)
+            dot_product1 = np.clip(dot_product1, -1.0, 1.0)
+            angle1 = np.arccos(dot_product1)
+            angle1 = float(np.degrees(angle1))
+            
+            vector5 = geom[5] - geom[2]
+            vector6 = geom[0] - geom[2]
+            plane_vector_3 = np.cross(vector5, vector6)
+            vector7 = geom[5] - geom[3]
+            vector8 = geom[1] - geom[3]
+            plane_vector_4 = np.cross(vector7, vector8)
+
+            plane_vector3_norm = plane_vector_3 / np.linalg.norm(plane_vector_3)
+            plane_vector4_norm = plane_vector_4 / np.linalg.norm(plane_vector_4)
+    
+            dot_product2 = np.dot(plane_vector3_norm, plane_vector4_norm)
+            dot_product2 = np.clip(dot_product2, -1.0, 1.0)
+            angle2 = np.arccos(dot_product2)
+            angle2 = float(np.degrees(angle2))
+
+            angle = (angle1 + angle2) / 2
+            book_angle.append(angle)
+
+        df['a_book'] = book_angle
+
+        # r_base length
+
+        r_base = []
+        for idx, row in df.iterrows():
+            geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
+            geom = geom_data[0]
+            vec1 = geom[1] - geom[0]
+            vec2 = geom[4] - geom[1]
+            r = vec1 + vec2
+            r_dot = np.dot(r, vec1) * vec1 / np.linalg.norm(vec1)
+            r_bases = np.linalg.norm(r - r_dot)
+            vec3 = geom[3] - geom[2]
+            vec4 = geom[5] - geom[3]
+            r1 = vec3 + vec4
+            r_dot1 = np.dot(r1, vec3) * vec3 / np.linalg.norm(vec3)
+            r_bases1 = np.linalg.norm(r1 - r_dot1)
+
+            r_ave = (r_bases + r_bases1) / 2
+
+            r_base.append(r_ave)
+
+        df['r_base'] = r_base
+
+        # dihedral angles
+
+        dihedral_angle = {
+                        'd6421': (6, 4, 2, 1),
+                        'd6312': (6, 3, 1, 2),
+                        'd5134': (5, 1, 3, 4),
+                        'd5243': (5, 2, 4, 3)
+                    }
+
+        for k, v in dihedral_angle.items():
+            angles = []
+
+            for idx, row in df.iterrows():
+                geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
+                geom = geom_data[0]
+                angle = ZMatrix.get_dihedral(geom, [v[0]-1, v[1]-1, v[2]-1, v[3]-1])
+                angles.append(angle)
+            
+            df[f"d_{k}"] = angles
+
+        return df
+
         
