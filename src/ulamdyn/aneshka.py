@@ -94,6 +94,7 @@ class ConicalIntersectionClassifier(BaseClass):
         elif isinstance(dataframe, GetProperties):
             self.properties.dataset = dataframe
         self.ci_refs = None
+        self.geom_refs = None
 
     def check_xyz_files(self) -> bool:
         """
@@ -150,6 +151,28 @@ class ConicalIntersectionClassifier(BaseClass):
                 _, xyz = self.coords.from_xyz(file)
                 ci_refs[ci_id] = xyz
                 self.ci_refs = ci_refs
+                     
+        else:
+            print("No reference .xyz files found.")
+            return
+        
+    def load_geom_refs(self) -> dict:
+        """
+        Load the reference files for the dynamics.
+         Returns:
+        dict: Dictionary mapping geom IDs (file stems) to their xyz coordinates
+        """
+        geom_refs = {}
+
+        if self.check_xyz_files():
+            dir_path = Path('geom_refs')
+            files = [f for f in dir_path.iterdir() if f.is_file() and not f.name.startswith('.')]
+
+            for file in files:
+                id = file.stem
+                _, xyz = self.coords.from_xyz(file)
+                geom_refs[id] = xyz
+                self.geom_refs = geom_refs
                      
         else:
             print("No reference .xyz files found.")
