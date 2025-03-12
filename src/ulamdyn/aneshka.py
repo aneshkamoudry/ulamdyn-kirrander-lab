@@ -582,6 +582,8 @@ class ConicalIntersectionClassifier(BaseClass):
             
             df[f"d_{k}"] = angles
 
+        df.to_csv('out.csv.gz', compression='gzip')
+
         return df
 
         
