@@ -220,9 +220,9 @@ class ConicalIntersectionClassifier(BaseClass):
 
         Parameters:
         -----------
-         P : array
+        P : array
            (N,D) matrix, where N is points and D is dimension.
-         A : integer
+        A : integer
         B : integer  
         C : integer
         
@@ -452,161 +452,227 @@ class ConicalIntersectionClassifier(BaseClass):
         if self.properties.dataset is None:
             self.properties.energies()
         
-        df = self.properties.dataset
-
-        # Calculate the internal coordinates - 'square' angles
+        df = self.properties.dataset.copy()
+        all_geometries = {
+            (row['TRAJ'], row['time']): self.get_xyz_df([row['TRAJ'], row['time']])[0] for _, row in df.iterrows()
+        }
 
         square_angle = {
-                        'a134': (1, 3, 4),
-                        'a342': (3, 4, 2),
-                        'a213': (2, 1, 3),
-                        'a421': (4, 2, 1)
-                }
-        
-        for k, v in square_angle.items():
-            angles = []
-
-            for idx, row in df.iterrows():
-                geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
-                geom = geom_data[0]
-                angle = self.calculate_angle(geom, (v[0]-1), (v[1]-1), (v[2]-1))
-                angles.append(angle)
-            
-            df[f"a_{k}"] = angles
-
-        # 'Tent' angle
-
-        tent_angle = []
-        for idx, row in df.iterrows():
-            geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
-            geom = geom_data[0]
-            midpoint13 = (geom[0] + geom[2])/2
-            c7 = geom[6]
-            midpoint24 = (geom[1] + geom[3])/2
-            angle = self.calculate_angle_vectors(midpoint13, c7, midpoint24)
-            tent_angle.append(angle)
-
-        df['a_tent'] = tent_angle
-
-        # 'Bridge' angle
-
-        bridge_angle = []
-
-        for idx, row in df.iterrows():
-            geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
-            geom = geom_data[0]
-            angle = self.calculate_angle(geom, 4, 6, 5)
-            bridge_angle.append(angle)
-        
-        df['$\theta$'] = bridge_angle
-
-        # 'triangular' angle
+            'a134': (1, 3, 4),
+            'a342': (3, 4, 2),
+            'a213': (2, 1, 3),
+            'a421': (4, 2, 1)
+        }
 
         triangular_angle = {
-                        'a512': (5, 1, 2),
-                        'a521': (5, 2, 1),
-                        'a634': (6, 3, 4),
-                        'a643': (6, 4, 3)
-                    }
+            'a512': (5, 1, 2),
+            'a521': (5, 2, 1),
+            'a634': (6, 3, 4),
+            'a643': (6, 4, 3)
+        }
+        
+        dihedral_angle = {
+            'd6421': (6, 4, 2, 1),
+            'd6312': (6, 3, 1, 2),
+            'd5134': (5, 1, 3, 4),
+            'd5243': (5, 2, 4, 3)
+        }
 
-        for k, v in square_angle.items():
-            angles = []
+        computed_data = {
+            'a_tent': [],
+            'a_book': [],
+            'r_base': [],
+            'a_bridge': []
+        }
 
-            for idx, row in df.iterrows():
-                geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
-                geom = geom_data[0]
-                angle = self.calculate_angle(geom, (v[0]-1), (v[1]-1), (v[2]-1))
-                angles.append(angle)
-            
-            df[f"a_{k}"] = angles
+        def compute_book_angle(geom):
+                
+            vectors = {
+                    'v1': geom[4] - geom[0],
+                    'v2': geom[2] - geom[0],
+                    'v3': geom[4] - geom[1],
+                    'v4': geom[3] - geom[1],
+                    'v5': geom[5] - geom[2],
+                    'v6': geom[0] - geom[2],
+                    'v7': geom[5] - geom[3],
+                    'v8': geom[1] - geom[3],
+                }
 
-        # 'book' angle
+            planes = {
+                    'p1': np.cross(vectors['v1'], vectors['v2']),
+                    'p2': np.cross(vectors['v3'], vectors['v4']),
+                    'p3': np.cross(vectors['v5'], vectors['v6']),
+                    'p4': np.cross(vectors['v7'], vectors['v8']),
+                }
 
-        book_angle = []
-        for idx, row in df.iterrows():
-            geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
-            geom = geom_data[0]
-            
-            vector1 = geom[4] - geom[0]
-            vector2 = geom[2] - geom[0]
-            plane_vector_1 = np.cross(vector1, vector2)
-            vector3 = geom[4] - geom[1]
-            vector4 = geom[3] - geom[1]
-            plane_vector_2 = np.cross(vector3, vector4)
+            for k,v in planes.items():
+                planes[k] = v / np.linalg.norm(v)
 
-            plane_vector1_norm = plane_vector_1 / np.linalg.norm(plane_vector_1)
-            plane_vector2_norm = plane_vector_2 / np.linalg.norm(plane_vector_2)
-    
-            dot_product1 = np.dot(plane_vector1_norm, plane_vector2_norm)
-            dot_product1 = np.clip(dot_product1, -1.0, 1.0)
-            angle1 = np.arccos(dot_product1)
-            angle1 = float(np.degrees(angle1))
-            
-            vector5 = geom[5] - geom[2]
-            vector6 = geom[0] - geom[2]
-            plane_vector_3 = np.cross(vector5, vector6)
-            vector7 = geom[5] - geom[3]
-            vector8 = geom[1] - geom[3]
-            plane_vector_4 = np.cross(vector7, vector8)
+            angle = {
+                    'a1': np.degrees(np.arccos(np.clip(np.dot(planes['p1'], planes['p2']), -1.0, 1.0))),
+                    'a2': np.degrees(np.arccos(np.clip(np.dot(planes['p3'], planes['p4']), -1.0, 1.0)))
+                }
 
-            plane_vector3_norm = plane_vector_3 / np.linalg.norm(plane_vector_3)
-            plane_vector4_norm = plane_vector_4 / np.linalg.norm(plane_vector_4)
-    
-            dot_product2 = np.dot(plane_vector3_norm, plane_vector4_norm)
-            dot_product2 = np.clip(dot_product2, -1.0, 1.0)
-            angle2 = np.arccos(dot_product2)
-            angle2 = float(np.degrees(angle2))
-
-            angle = (angle1 + angle2) / 2
-            book_angle.append(angle)
-
-        df['a_book'] = book_angle
-
-        # r_base length
-
-        r_base = []
-        for idx, row in df.iterrows():
-            geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
-            geom = geom_data[0]
+            return (angle['a1'] + angle['a2']) / 2
+        
+        def compute_r_base(geom):
             vec1 = geom[1] - geom[0]
             vec2 = geom[4] - geom[1]
-            r = vec1 + vec2
-            r_dot = np.dot(r, vec1) * vec1 / np.linalg.norm(vec1)
-            r_bases = np.linalg.norm(r - r_dot)
             vec3 = geom[3] - geom[2]
             vec4 = geom[5] - geom[3]
-            r1 = vec3 + vec4
-            r_dot1 = np.dot(r1, vec3) * vec3 / np.linalg.norm(vec3)
-            r_bases1 = np.linalg.norm(r1 - r_dot1)
 
-            r_ave = (r_bases + r_bases1) / 2
+            r1 = vec1 + vec2
+            r2 = vec3 + vec4
 
-            r_base.append(r_ave)
+            def project_length(r, vec):
+                return np.linalg.norm(r - (np.dot(r, vec) * vec / np.linalg.norm(vec)))
 
-        df['r_base'] = r_base
+            return (project_length(r1, vec1) + project_length(r2, vec3)) / 2
 
-        # dihedral angles
+        for name in square_angle.keys():
+            computed_data[f"{name}"] = []
+        for name in triangular_angle.keys():
+            computed_data[f"{name}"] = []
+        for name in dihedral_angle.keys():
+            computed_data[f"{name}"] = []
 
-        dihedral_angle = {
-                        'd6421': (6, 4, 2, 1),
-                        'd6312': (6, 3, 1, 2),
-                        'd5134': (5, 1, 3, 4),
-                        'd5243': (5, 2, 4, 3)
-                    }
+        for _, row in df.iterrows():
+            geom = all_geometries[(row['TRAJ'], row['time'])]
 
-        for k, v in dihedral_angle.items():
-            angles = []
+            for k, v in square_angle.items():
+                angle = self.calculate_angle(geom, (v[0]-1), (v[1]-1), (v[2]-1))
+                computed_data[k].append(angle)
 
-            for idx, row in df.iterrows():
-                geom_data = self.get_xyz_df([row['TRAJ'], row['time']])
-                geom = geom_data[0]
+            for k, v in triangular_angle.items():   
+                angle = self.calculate_angle(geom, (v[0]-1), (v[1]-1), (v[2]-1))
+                computed_data[k].append(angle)
+
+            for k, v in dihedral_angle.items():
                 angle = ZMatrix.get_dihedral(geom, [v[0]-1, v[1]-1, v[2]-1, v[3]-1])
-                angles.append(angle)
-            
-            df[f"d_{k}"] = angles
+                computed_data[k].append(angle)
+
+            computed_data['a_tent'].append(self.calculate_angle_vectors(
+                (geom[0] + geom[2])/2,
+                geom[6],
+                (geom[1] + geom[3])/2
+            ))
+
+            computed_data['a_bridge'].append(self.calculate_angle(geom, 4, 6, 5))
+
+            computed_data['a_book'].append(compute_book_angle(geom))
+
+            computed_data['r_base'].append(compute_r_base(geom))
+
+        for k, v in computed_data.items():
+            df[k] = v
 
         df.to_csv('out.csv.gz', compression='gzip')
 
         return df
+    
 
-        
+    def internal_coordinates_geom_refs(self) -> pd.DataFrame:
+        if self.geom_refs is None:
+            self.load_geom_refs()
+
+        square_angle = {
+            'a134': (1, 3, 4),
+            'a342': (3, 4, 2),
+            'a213': (2, 1, 3),
+            'a421': (4, 2, 1)
+        }
+
+        triangular_angle = {
+            'a512': (5, 1, 2),
+            'a521': (5, 2, 1),
+            'a634': (6, 3, 4),
+            'a643': (6, 4, 3)
+        }
+
+        dihedral_angle = {
+            'd6421': (6, 4, 2, 1),
+            'd6312': (6, 3, 1, 2),
+            'd5134': (5, 1, 3, 4),
+            'd5243': (5, 2, 4, 3)
+        }
+
+        def compute_book_angle(geom):
+            vectors = {
+                'v1': geom[4] - geom[0],
+                'v2': geom[2] - geom[0],
+                'v3': geom[4] - geom[1],
+                'v4': geom[3] - geom[1],
+                'v5': geom[5] - geom[2],
+                'v6': geom[0] - geom[2],
+                'v7': geom[5] - geom[3],
+                'v8': geom[1] - geom[3],
+            }
+
+            planes = {
+                k: np.cross(vectors[v1], vectors[v2])
+                for k, (v1, v2) in zip(['p1', 'p2', 'p3', 'p4'], 
+                                   [('v1', 'v2'), ('v3', 'v4'), ('v5', 'v6'), ('v7', 'v8')])
+            }
+
+            for k in planes:
+                planes[k] /= np.linalg.norm(planes[k])
+
+            angle = {
+                'a1': np.degrees(np.arccos(np.clip(np.dot(planes['p1'], planes['p2']), -1.0, 1.0))),
+                'a2': np.degrees(np.arccos(np.clip(np.dot(planes['p3'], planes['p4']), -1.0, 1.0)))
+            }
+
+            return (angle['a1'] + angle['a2']) / 2
+
+        def compute_r_base(geom):
+            vec1 = geom[1] - geom[0]
+            vec2 = geom[4] - geom[1]
+            vec3 = geom[3] - geom[2]
+            vec4 = geom[5] - geom[3]
+
+            r1 = vec1 + vec2
+            r2 = vec3 + vec4
+
+            def project_length(r, vec):
+                return np.linalg.norm(r - (np.dot(r, vec) * vec / np.linalg.norm(vec)))
+
+            return (project_length(r1, vec1) + project_length(r2, vec3)) / 2
+
+        internal_coords = {}
+
+        coords = list(square_angle.keys()) + list(triangular_angle.keys()) + list(dihedral_angle.keys()) + ['a_tent', 'a_bridge', 'a_book', 'r_base']
+
+        for coord in coords:
+            internal_coords[coord] = {}
+
+        for k, v in self.geom_refs.items():
+            geom = v[0]
+
+            for key, indices in square_angle.items():
+                angle_value = self.calculate_angle(geom, indices[0] - 1, indices[1] - 1, indices[2] - 1)
+                internal_coords[key][k] = angle_value
+
+            for key, indices in triangular_angle.items():
+                angle_value = self.calculate_angle(geom, indices[0] - 1, indices[1] - 1, indices[2] - 1)
+                internal_coords[key][k] = angle_value
+                
+            for key, indices in dihedral_angle.items():
+                angle_value = ZMatrix.get_dihedral(geom, [indices[0] - 1, indices[1] - 1, indices[2] - 1, indices[3] - 1])
+                internal_coords[key][k] = angle_value
+
+            internal_coords['a_tent'][k] = (self.calculate_angle_vectors(
+                (geom[0] + geom[2]) / 2,
+                geom[6],
+                (geom[1] + geom[3]) / 2
+            ))
+
+            internal_coords['a_bridge'][k] = self.calculate_angle(geom, 4, 6, 5)
+
+            internal_coords['a_book'][k] = compute_book_angle(geom)
+
+            internal_coords['r_base'][k] = compute_r_base(geom)
+
+            df = pd.DataFrame(internal_coords)
+
+        return df
+
