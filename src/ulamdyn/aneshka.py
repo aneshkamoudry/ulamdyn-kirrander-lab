@@ -640,7 +640,8 @@ class ConicalIntersectionClassifier(BaseClass):
 
         internal_coords = {}
 
-        coords = list(square_angle.keys()) + list(triangular_angle.keys()) + list(dihedral_angle.keys()) + ['a_tent', 'a_bridge', 'a_book', 'r_base']
+        coords = list(square_angle.keys()) + list(triangular_angle.keys()) + list(dihedral_angle.keys()) + ['a_tent', 'a_bridge', 'a_book', 'r_base', 'r12', 'r23', 'r34', 'r13', 'r24', 'r14', 'r46', 'r36', 'r15', 'r25', 'rcc', 'rdb', 'rrh']
+
 
         for coord in coords:
             internal_coords[coord] = {}
@@ -671,6 +672,20 @@ class ConicalIntersectionClassifier(BaseClass):
             internal_coords['a_book'][k] = compute_book_angle(geom)
 
             internal_coords['r_base'][k] = compute_r_base(geom)
+
+            internal_coords['r12'][k] = np.linalg.norm(geom[0] - geom[1])
+            internal_coords['r23'][k] = np.linalg.norm(geom[1] - geom[2])
+            internal_coords['r34'][k] = np.linalg.norm(geom[2] - geom[3])
+            internal_coords['r13'][k] = np.linalg.norm(geom[0] - geom[2])
+            internal_coords['r24'][k] = np.linalg.norm(geom[1] - geom[3])
+            internal_coords['r14'][k] = np.linalg.norm(geom[0] - geom[3])
+            internal_coords['r46'][k] = np.linalg.norm(geom[3] - geom[5])
+            internal_coords['r36'][k] = np.linalg.norm(geom[2] - geom[5])
+            internal_coords['r15'][k] = np.linalg.norm(geom[0] - geom[4])
+            internal_coords['r25'][k] = np.linalg.norm(geom[1] - geom[4])
+            internal_coords['rcc'][k] = (internal_coords['r34'][k] + internal_coords['r12'][k])/2
+            internal_coords['rdb'][k] = (internal_coords['r13'][k] + internal_coords['r24'][k])/2
+            internal_coords['rrh'][k] = internal_coords['r23'][k] - internal_coords['r14'][k]
 
             df = pd.DataFrame(internal_coords)
 
