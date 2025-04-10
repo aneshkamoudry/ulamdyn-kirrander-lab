@@ -339,10 +339,25 @@ class ConicalIntersectionClassifier(BaseClass):
             for key in ci_refs:
                 ref_geom = ci_refs[key]
                 ref_geom = ref_geom.squeeze()
-                ref_geom -= rmsd.centroid(ref_geom)
-                u = rmsd.kabsch(ref_geom, geom)
-                aligned_geom = np.dot(geom, u)
-                rmsd_dict[key] = rmsd.rmsd(ref_geom, aligned_geom)
+
+                if remove_hydrogens or remove_atoms is not None:
+                    mask = np.ones(geom.shape[0], dtype=bool)
+
+                    if remove_hydrogens and atom_types is not None:
+                        h_indices = [i for i, atom in enumerate(atom_types) if atom.lower() == 'h']
+                        mask[h_indices] = False
+                    if remove_atoms is not None:
+                        mask[remove_atoms] = False
+
+                    filtered_ref_geom = ref_geom[mask]
+                else:
+                    filtered_ref_geom = ref_geom
+
+                filtered_ref_geom -= rmsd.centroid(filtered_ref_geom)
+                u = rmsd.kabsch(filtered_ref_geom, filtered_geom)
+                aligned_geom = np.dot(filtered_geom, u)
+                rmsd_dict[key] = rmsd.rmsd(filtered_ref_geom, aligned_geom) 
+                  
             min_key = min(rmsd_dict, key=rmsd_dict.get)
             
         elif method == 'angle':
